@@ -1,3 +1,4 @@
+.cookies
 *.sql
 test/*
 conf/*.php
