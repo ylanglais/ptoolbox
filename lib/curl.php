@@ -1,11 +1,21 @@
 <?php
 require_once("lib/dbg_tools.php");
 	
+/**
+ * Ease access to curl
+ */
 class curl {
 	private $c;
 	private $baseurl;
 	private $debug;
 
+	/**
+	 * Constructor with maximum stuff preconfigured 
+	 * - $baseurl base url of API 
+	 * - $header  header used for API consumation 
+	 * - $prevent proxy usage event though defined in configuration
+	 * - $debug   locally turn on/off debugging supercharging configuration flag
+	 */
 	function __construct($baseurl, $header = "", $noproxy = false, $debug = false) {
 		$this->debug = $debug;
 		
@@ -54,10 +64,16 @@ class curl {
 		}
 	}
 
+	/** 
+     * Destructor to force connexion closing
+	 */
 	function __destruct() {
 		curl_close($this->c);
 	}
 
+	/**
+     * Header get or set
+     */
 	function header($hdr = "") {
 		if ($hdr == "") {
 			return curl_getopt($this->c, CURLOPT_HTTPHEADER);
@@ -65,20 +81,31 @@ class curl {
 		curl_setopt($this->c, CURLOPT_HTTPHEADER, $hdr);
 		return $hdr;
 	}
-	function cookie($cookie) {
+
+	/**
+	 * Cookie get or set
+	 */
+	function cookie($cookie = "") {
 		if ($cookie == "") {
 			return cur_getopt($this->c, CURLOPT_COOKIE);
 		}
 		curl_setopt($this->c, CURLOPT_COOKIE, $cookie);
 		return $cookie;
 	}
-	function url($what) {
+	
+	private function _url($what) {
 		$url = $this->baseurl;
 		if (substr($url, -1) != "/") $url .= "/";
 		return $url . $what;
 	}
+
+	/**
+     * Call API entry point w/ post method:
+	 * - $what	is the entry point
+	 * - $params is an associative array of parameters [ $k1 => $v1, $k2 => $v2 ...]
+     */
 	function post($what, $param = []) {
-		curl_setopt($this->c, CURLOPT_URL, $this->url($what));
+		curl_setopt($this->c, CURLOPT_URL, $this->_url($what));
 		curl_setopt($this->c, CURLOPT_POST, true); 
 		curl_setopt($this->c, CURLOPT_POSTFIELDS, $param);
 	
@@ -100,6 +127,11 @@ class curl {
 		return $r;
 	}
 
+	/**
+     * Call API entry point w/ get method:
+	 * - $what	is the entry point
+	 * - $params is an associative array of parameters [ $k1 => $v1, $k2 => $v2 ...]
+	 */
 	function get($what, $param = []) {
 		if ($what != '') {
 			$p = "";
@@ -126,6 +158,12 @@ class curl {
 		return $r;
 	}
 
+	/**
+     * Send is a generic method to pass rest actions (GET/POST/PUT/DEL).
+	 * - $act	 is the rest action
+	 * - $what   is the entry point
+	 * - $params is an associative array of parameters [ $k1 => $v1, $k2 => $v2 ...]
+	 */
 	function send($act, $what, $param = "") {
 		if ($what == "") {
 			_err("$act is not a defined action (try get, post, put or delete)");
@@ -157,7 +195,6 @@ class curl {
 			return false;
 		}
 	
-
 		$url = $this->baseurl;
 		if (substr($url, -1) !=  '/') $url .= "/";
 		$url .= $what;
@@ -178,52 +215,31 @@ class curl {
 		return false;
 	}
 
+	/**
+     * Call API entry point w/ DEL rest action:
+	 * - $what	is the entry point
+	 * - $params is an associative array of parameters [ $k1 => $v1, $k2 => $v2 ...]
+	 */
 	function delete($what, $param = []) {
-		curl_setopt($this->c, CURLOPT_URL,           $this->url($what));
-		curl_setopt($this->c, CURLOPT_POST,          true); 
-		curl_setopt($this->c, CURLOPT_CUSTOMREQUEST, "DELETE");
-		curl_setopt($this->c, CURLOPT_POSTFIELDS,    $param);
-	
 		if ($this->debug) {
 			_dbg("curl delete url: $this->baseurl/$what");
 			_dbg("curl delete param: <<" . print_r($param, true) . ">>");
 		}
-
-		$d = false;
-		$r = curl_exec($this->c);
-		if (($e = curl_error($this->c))) {
-			print("curl error: $e");
-			print_r(curl_getinfo($this->c));
-			return false;
-		}
-		if ($r === false) {
-			_err("curl returned false" . print_r(curl_getinfo($this->c), true));
-			return false;
-		}
-		return $r;
+		return $this->send("DEL", $what, $param); 
 	}
+
+	/**
+     * Call API entry point w/ PUT rest action:
+	 * - $what	is the entry point
+	 * - $params is an associative array of parameters [ $k1 => $v1, $k2 => $v2 ...]
+	 */
 	function put($what, $param = []) {
-		curl_setopt($this->c, CURLOPT_URL,           $this->url($what));
-		curl_setopt($this->c, CURLOPT_POST,          true); 
-		curl_setopt($this->c, CURLOPT_CUSTOMREQUEST, "PUT");
-		curl_setopt($this->c, CURLOPT_POSTFIELDS,    $param);
-	
 		if ($this->debug) {
-			_dbg("curl put url: ". $this->url($what));
+			_dbg("curl put url: ". $this->_url($what));
 			_dbg("curl put param: <<" . print_r($param) . ">>");
 		}
 
-		$d = false;
-		$r = curl_exec($this->c);
-		if (($e = curl_error($this->c))) {
-			_err("curl error: $e" . print_r(curl_getinfo($this->c), true));
-			return false;
-		}
-		if ($r === false) {
-			_err("curl returned false" . print_r(curl_getinfo($this->c), true));
-			return false;
-		}
-		return $r;
+		return $this->send("PUT", $what, $param);
 	}
 }
 
