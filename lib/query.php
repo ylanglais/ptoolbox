@@ -29,7 +29,7 @@ require_once("lib/dbg_tools.php");
  */
 class query {
 	/**
- 	 * Constructor can handle 3 arguments ($a1, $a2, $a3) :
+ 	 * @param Constructor can handle 3 arguments ($a1, $a2, $a3) :
 	 * - string : interpreted as sql statement (normal or w/ preparation);
 	 * - array  : interpreted as data array for preparation / exec;
 	 * - object : interpreted as database connection.<br/>
@@ -67,21 +67,20 @@ class query {
 				$odb  = $$a;
 			}
 		}
-		
 		if ($sql === false || $sql == null || $sql == "") {
 			_err("no statement");
 			return;
 		}
 
 		if ($odb === false) $odb = new db();
-		if ($odb === false || $odb->pdo === false) {
+		if ($odb === false || $odb->check_cnx() === false) {
 			$this->stmt   = false;
 			$this->status = false;
 			return;
 		}
 		
 		try {
-			$this->stmt   = $odb->pdo->prepare($sql);
+			$this->stmt   = $odb->prepare($sql);
 			if ($data !== false) 
 				$this->status = $this->stmt->execute($data);
 			else
@@ -92,13 +91,13 @@ class query {
 		}
 	}
 	/**
-     * Retreive last error message (alias to error() method)
+     * Retrieve last error message (alias to error() method)
      */
 	function err() {
 		return $this->error();
 	}
 	/**
-     * Retreive last error message
+     * Retrieve last error message
      */
 	function error() {
 		if ($this->stmt === false) {
@@ -145,8 +144,9 @@ class query {
 
 	/**
      * <pre>Return all rows as csv string
-	 * $sep is the separator (default ;)
-	 * $del is the delimitor (default none)</pre>
+	 * @param $sep is the separator (default ;)
+	 * @param $del is the delimitor (default none)</pre>
+	 * @return csv string result
      */
 	function csv($sep = ";", $del = "") {
 		$all = "";

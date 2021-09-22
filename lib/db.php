@@ -88,16 +88,16 @@ require_once("lib/dbg_tools.php");
 class db {
 	private $pdo;
 	/**
-	 *  $db_dsn may: 
+	 *  @param $db_dsn may: 
 	 *  - be unset or set to false, in which case the default database configured in conf/db.php will be used 
 	 *  - contain a dbs, (dbs=db_connexion_id or db_connexion_id referenced in column dbs of the tech.dbs table of the default database)
      *    "dbs=default" or default stands for default database configured in conf/db.php
      *  - contain a proper pdo dsn  matched by '^([^:]*):(host=[^;]*);(port=([0-9]*);)?(dbname=(.*))$'
 	 *  
      * 	<pre>
-	 *  $db_user if d$b_dsn is a proper dsn, must be set to database user login
-	 *  $db_user if $db_dsn is a proper dsn, must be set to database user password
-	 *  $dboption may contain options passed to $options argument of PDO constructor (see https://www.php.net/manual/class.pdo.php) 
+	 *  @param $db_user     if d$b_dsn is a proper dsn, must be set to database user login
+	 *  @param $db_user     if $db_dsn is a proper dsn, must be set to database user password
+	 *  @param $dboption    may contain options passed to $options argument of PDO constructor (see https://www.php.net/manual/class.pdo.php) 
 	 *  </pre>
 	 */
 	function __construct($db_dsn = false, $db_user = false, $db_pass = false, $db_options = [PDO::ERRMODE_WARNING => true]) {
@@ -105,7 +105,7 @@ class db {
 		$this->db_drv    = false;
 		$this->db_name   = false;
 
-		if ($db_dsn === false || $db_dsn == "dbs=default" || $db_dsn = "default") {
+		if ($db_dsn === false || $db_dsn == "dbs=default" || $db_dsn == "default") {
 			if (file_exists("conf/db.php")) {
 				include("conf/db.php");
 				if (!isset($db_dsn) || $db_dsn === false) {
@@ -127,7 +127,7 @@ class db {
 					$dbs = $m[1];
 				else 
 					$dbs = $db_dsn;
-				
+
 				$dd = new db();
 				$q = $dd->query("select drv, host, port, name, \"user\", pass from tech.dbs where dbs = '$dbs'");
 				if ($q === false) return;
@@ -154,6 +154,19 @@ class db {
 		$this->status = true;
 	}
 
+	/**
+     * check connection
+	 */
+	function check_cnx() {
+		if ($this->pdo === false) return false;
+		return true;
+	} 
+	function prepare($sql) {
+		if ($this->pdo === false) return false;
+		return $this->pdo->prepare($sql);
+		return true;
+		
+	}
 	/**
 	 * Return db database driver name
 	 */

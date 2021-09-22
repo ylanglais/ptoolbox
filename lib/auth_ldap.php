@@ -38,9 +38,7 @@ class auth_ldap {
 			
 			ldap_set_option($this->ldap, LDAP_OPT_PROTOCOL_VERSION, $ldap_ver);
 			ldap_set_option($this->ldap, LDAP_OPT_REFERRALS, 0);
-		} else {
-			err("no conf/auth_ldap.conf");
-		}
+		} 
 	}
 	/** 
 	 * Destructor only closes connection to ldap sever
@@ -53,8 +51,9 @@ class auth_ldap {
 	}
 	/** 
      * Check pour matching $login/$passwd pairs in the LDAP database.
-     * If ldap connecion is false, $login or $passwd are empty, null, false or not matching => return false. 
-     * Else true is returned
+	 * @param $login	login string
+	 * @param $passwd	clear password string
+	 * @return If ldap connecion is false, $login or $passwd are empty, null, false or not matching => return false. Else true is returned
      */
 	function check($login, $passwd) {
 		if ($this->ldap === false) return null;
