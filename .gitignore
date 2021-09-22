@@ -3,3 +3,4 @@
 test/*
 conf/*.php
 doc/*
+conf/*.test.*
