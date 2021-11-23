@@ -16,11 +16,11 @@ class auth_ldap {
 		$ldap_ver = 3;
 		if (file_exists("conf/auth_ldap.php")) {
 			include("conf/auth_ldap.php");
-			if (!isset($ldap_server)) {
+			if (!isset($ldap_srv)) {
 				err("no ldap_server defined");
 				return;
 			}
-			if (!is_array($ldap_server)) $ldap_server = [$ldap_server];
+			if (!is_array($ldap_srv)) $ldap_server = [$ldap_srv];
 			if (isset($ldap_domain) && isset($ldap_uid))
 				$this->rstr = "$ldap_uid=%s,$ldap_domain";
 			else if (isset($ldap_fqdn)) 
@@ -28,7 +28,7 @@ class auth_ldap {
 			else 
 				$this->rstr = "%s";
 				
-			foreach ($ldap_server as $srv) {
+			foreach ($ldap_srv as $srv) {
 				if (($this->ldap = ldap_connect($srv)) !== false) break;
 			}
 			if ($this->ldap === false) {
@@ -38,6 +38,16 @@ class auth_ldap {
 			
 			ldap_set_option($this->ldap, LDAP_OPT_PROTOCOL_VERSION, $ldap_ver);
 			ldap_set_option($this->ldap, LDAP_OPT_REFERRALS, 0);
+
+			if (isset($ldap_opts) && is_array($ldap_opts)) {
+				foreach ($ldap_opts as $k => $v) {
+					try {
+						ldap_set_option($this->ldap, $k, $v);
+					} catch (Exception $e) {
+						warn("ignoring invalid ldap option value pair [ $k => $v ]");
+					}
+				}
+			}
 		} 
 	}
 	/** 

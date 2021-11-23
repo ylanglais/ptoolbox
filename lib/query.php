@@ -124,6 +124,17 @@ class query {
 		return $this->stmt->fetch(PDO::FETCH_ASSOC);
 	}
 	/**
+     * Return all rows as an array of arrays, first row as header:
+     */
+	function all_data() {
+		if ($this->stmt === false) return false;
+		$a = [];
+		while ($o = $this->data()) {
+			array_push($a, $o);
+		}
+		return $a; 
+	}
+	/**
      * Return next data row as an object:
      */
 	function obj() {

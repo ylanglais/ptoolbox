@@ -1,16 +1,41 @@
 <?php
 
 require_once("lib/dbg_tools.php");
-
+/**
+ * This class is intended to use a csv as an in ram data cache
+ *
+ * Example:<pre>
+ *	$str = "A;B;C;D\n1;2;3;4\na;b;c;d\n";
+ *	$in = "test-csv.in";
+ *
+ *	file_put_contents($in, $str);
+ *
+ *	$cr = new cachecsv($in, "A", ["B", "D"]);
+ *	foreach ([1, "a", "A"] as $k) {
+ *		$v = $cr->get($k, "B");
+ *		print(" $k -> ". ($v === false ? "false" : $v) . "\n"); 
+ *	}	
+ *	$cr = new cachecsv($in, "A", [2, 3]);
+ *	foreach ([1, "a", "A"] as $k) {
+ *		$v = $cr->get($k, "C");
+ *		print(" $k -> ". ($v === false ? "false" : $v) . "\n"); 
+ *	}	
+ *	$cr = new cachecsv($in, "A");
+ *	foreach ([1, "a", "A"] as $k) {
+ *		$v = $cr->get($k, "D");
+ *		print(" $k -> ". ($v === false ? "false" : $v) . "\n"); 
+ *	}	
+ *	</pre>
+ */
 class cachecsv {
-	#
-	#	file = filename
-	#   key  = name of the id column
-	#   columns = list of columns to cache (array of column {numbers, names or empty = all columns}) 
-	#   sep  = csv field separator
-	#	del  = csv field delimitor;
-	#	field_list = use field names as header instead of reading it from file (1st line treated as data)
-	#
+	/** 
+	 *	@param file  		filename
+	 *  @param key   		name of the id column
+	 *  @param columns 		list of columns to cache (array of column {numbers, names or empty = all columns}) 
+	 *  @param sep  		csv field separator
+	 *	@param del  		csv field delimitor;
+	 *	@param field_list 	use field names as header instead of reading it from file (1st line treated as data)
+	 */
 	function __construct($file, $key, $columns = [], $sep = ";", $del = '"', $field_list = []) {
 		if (!file_exists($file)) {
 			_err("file $file doesn't exist");
@@ -71,7 +96,14 @@ class cachecsv {
 		fclose($fh);
 	}
 
-	# $field == false => return the all cached data:
+	/**
+     * 	Retrieve field (or fields) corresponding to id/key within the csv
+	 *  @param $kval 	the value of the key searched for
+	 * 	@param $field	the name of the requested field or all fields of the line if false
+	 *  @return false	if index value not found,<br/>
+	 *          field value corresponding to index value<br/>
+	 *			field list corresponding to index value       
+     */
 	function get($kval, $field = false) {
 		if ($this->data === false)                         return false;
 		if (!array_key_exists($kval, $this->data))         return false;
@@ -80,7 +112,9 @@ class cachecsv {
 		return $this->data[$kval][$field];
 	}
 }
-
+/**
+ * a est fonction for cachecsv class
+ */ 
 function cachecsv_test() {
 	$str = "A;B;C;D\n1;2;3;4\na;b;c;d\n";
 	$in = "test-csv.in";

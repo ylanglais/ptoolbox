@@ -27,6 +27,8 @@ class auth_local {
 
 	/**
      * Generate random salt
+	 * @param $len 		size of the salt string (default 23)
+	 * @return 	a random salt string base64 encoded
 	 */
 	function salt($len = 23) {
 		return substr(base64_encode(openssl_random_pseudo_bytes(64)),0, $len);
@@ -34,6 +36,11 @@ class auth_local {
 	
 	/** 
      * Generate pbkdf2 hash
+	 * @param $algo		hash algorithm to be used
+	 * @param $pass		string to be hashed
+	 * @param $salt		salt string
+	 * @param $cost		cost number 
+	 * @return the hashed $pass string
      */
 	function pbkdf2($algo, $pass, $salt, $cost) {
 		return base64_encode(hash_pbkdf2($algo, $pass, $salt, $cost, 0, true));
@@ -41,6 +48,8 @@ class auth_local {
 
 	/** 
 	 * Generate a db passwd string from clear passwd
+	 * @param $pass		the password tp be hased
+	 * @return	a complete hash string, including algo, salt cost and hash to be stored in db
 	 */
 	function dbstr_from_pass($pass) {
 		$algo = $this->algo;
@@ -50,6 +59,12 @@ class auth_local {
 		return "\$pbkdf2-$algo\$$cost\$$salt\$$hash";
 	}
 
+	/** 
+	 * method to check if a given login string is not a potential injection
+	 * @param login		the string to verify
+	 * @return false if the string is longer than 30chars or contains quote or parentheses<br/>
+     *         true  if the string is ok
+	 */
 	private function verif_login($login) {
 		if (strlen($login) > 30 || strstr("'", $login) || strstr("(", $login) || strstr(")", $login)) {
 			$ip = get_ip() || "no ip";
@@ -60,6 +75,10 @@ class auth_local {
 
 	/**
      * Check credentials 
+	 *	@param $login	a user login
+	 *  @param $passwd	a user password
+	 *  @return true if le login/passwd pair matches a user in the local database<br/>
+	 *			false if not
 	 */
 	function check(string $login, string $passwd) :bool {
 		#
@@ -104,10 +123,12 @@ class auth_local {
 		return false; 
 	}
         
-
-
 	/**
      * Method to update password of a given login.
+	 * @param $login	the login
+	 * @param $pass		the new password
+	 * @return false if login is bad (potential injection) or if the update fails<br/>
+	 *		   true  if password changed in db
 	 */
 	function update(string $login, string $pass) :bool {
 		#
@@ -126,6 +147,7 @@ class auth_local {
 	}
 
 /*
+	TODO: check what to do about that
 	function check_token($pwd_db, $passwd) {
 		if (!preg_match('/^\$pbkdf2-([^$]*)\$([0-9]*)\$([^\$]*)\$(.*)$/', $pwd_db, $m))
                     return false;

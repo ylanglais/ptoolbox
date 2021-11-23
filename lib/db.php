@@ -137,7 +137,7 @@ class db {
 				}	
 				$db_user = $this->db_user;
 				$db_pass = $this->db_pass;
-				$db_dsn = "$this->db_drv:host=$this->db_host;".$this->db_port."dbname=$this->db_name";
+				$db_dsn = "$this->db_drv:host=$this->db_host;port=".$this->db_port.";dbname=$this->db_name";
 			} 
 		}
 
@@ -145,6 +145,7 @@ class db {
 			$this->pdo = new PDO($db_dsn, $db_user, $db_pass, $db_options);
 		} catch (PDOException $e) {
 			_err("Cannot connect to db using $db_dsn: " . $e->getMessage());
+			$this->pdo = false;
 			return;
 		}	
 		if (($i = $this->pdo->errorInfo()) !== false && $i[1] != null) {
@@ -196,7 +197,7 @@ class db {
 	 * List accessible schemas in the current database:
 	 */
 	function schemas()  {
-		$sql = "select distinct table_schema from information_schema.tables where table_catalog = '$this->db_name'";
+		$sql = "select distinct table_schema from information_schema.tables where table_catalog = '$this->db_name' and table_schema not in ('information_schema','pg_catalog')";
 		$this->query($sql);
 		$t = [];
 		while ($r = $this->obj()) {
@@ -212,10 +213,11 @@ class db {
 		if ($this->db_drv == "mysql") 
 			$sql = "select table_name from information_schema.tables where table_schema = '$this->db_name'";
 		else if ($this->db_drv == "pgsql") {
-			$sql = "select table_name from information_schema.tables where table_catalog = '$this->db_name'";
 			if ($schema != "") {
-				$sql .= "and table_schema = '$schema'";
-			}
+				$sql = "select concat('$schema.', table_name) as table_name from information_schema.tables where table_catalog = '$this->db_name' and table_schema = '$shema' order by 1";
+			} else {
+				$sql = "select case when table_schema = 'public' or table_schema = '' then table_name else concat(table_schema, '.', table_name) end as table_name from information_schema.tables where table_catalog = '$this->db_name' and table_schema not in ('information_schema','pg_catalog') order by table_schema, table_name";
+			}	
 		}
 		$this->query($sql);
 		$t = [];
@@ -344,7 +346,7 @@ order by
 # Undocumented stuff for internal or rare usecases:
 #
 	function query($sql) {
-		if ($this->pdo === false) return false;
+		if ($this->pdo === false || $this->pdo == null) return false;
 		try {
 			$this->stmt   = $this->pdo->prepare($sql);
 		} catch (PDOException $e) {

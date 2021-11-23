@@ -125,7 +125,7 @@ class user {
 				}
 				$this->load_roles();
 				return true;
-			}
+			} else { _warn("ldap not matching"); }
 
 			# test local auth:
 			$auth = new auth_local();

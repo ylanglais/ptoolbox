@@ -11,10 +11,10 @@ class curl {
 
 	/**
 	 * Constructor with maximum stuff preconfigured 
-	 * - $baseurl base url of API 
-	 * - $header  header used for API consumation 
-	 * - $prevent proxy usage event though defined in configuration
-	 * - $debug   locally turn on/off debugging supercharging configuration flag
+	 * @param $baseurl base url of API 
+	 * @param $header  header used for API consumation 
+	 * @param $prevent proxy usage event though defined in configuration
+	 * @param $debug   locally turn on/off debugging supercharging configuration flag
 	 */
 	function __construct($baseurl, $header = "", $noproxy = false, $debug = false) {
 		$this->debug = $debug;
@@ -101,8 +101,9 @@ class curl {
 
 	/**
      * Call API entry point w/ post method:
-	 * - $what	is the entry point
-	 * - $params is an associative array of parameters [ $k1 => $v1, $k2 => $v2 ...]
+	 * @param $what		is the entry point
+	 * @param $params 	is an associative array of parameters [ $k1 => $v1, $k2 => $v2 ...]
+	 * @return the result of curl_exec or false if an error occured
      */
 	function post($what, $param = []) {
 		curl_setopt($this->c, CURLOPT_URL, $this->_url($what));
@@ -129,8 +130,9 @@ class curl {
 
 	/**
      * Call API entry point w/ get method:
-	 * - $what	is the entry point
-	 * - $params is an associative array of parameters [ $k1 => $v1, $k2 => $v2 ...]
+	 * @param $what		the entry point
+	 * @param $params 	an associative array of parameters [ $k1 => $v1, $k2 => $v2 ...]
+	 * @return the result of curl_exec or false if an error occured
 	 */
 	function get($what, $param = []) {
 		if ($what != '') {
@@ -160,9 +162,11 @@ class curl {
 
 	/**
      * Send is a generic method to pass rest actions (GET/POST/PUT/DEL).
-	 * - $act	 is the rest action
-	 * - $what   is the entry point
-	 * - $params is an associative array of parameters [ $k1 => $v1, $k2 => $v2 ...]
+	 * Note that PUT and DEL are not part of html protocol and are coded as custom names of the POST action.
+	 * @param $act	 	the rest action
+	 * @param $what   	the entry point
+	 * @param $params 	an associative array of parameters [ $k1 => $v1, $k2 => $v2 ...]
+	 * @return the result of curl_exec or false if an error occured
 	 */
 	function send($act, $what, $param = "") {
 		if ($what == "") {
@@ -216,9 +220,10 @@ class curl {
 	}
 
 	/**
-     * Call API entry point w/ DEL rest action:
-	 * - $what	is the entry point
-	 * - $params is an associative array of parameters [ $k1 => $v1, $k2 => $v2 ...]
+     * Call API entry point w/ DEL rest action (note that DEL is a custom name over html POST method)
+	 * @param $what		the entry point
+	 * @param $params 	an associative array of parameters [ $k1 => $v1, $k2 => $v2 ...]
+	 * @return the result of curl_exec or false if an error occured
 	 */
 	function delete($what, $param = []) {
 		if ($this->debug) {
@@ -229,9 +234,10 @@ class curl {
 	}
 
 	/**
-     * Call API entry point w/ PUT rest action:
-	 * - $what	is the entry point
-	 * - $params is an associative array of parameters [ $k1 => $v1, $k2 => $v2 ...]
+     * Call API entry point w/ PUT rest action (note that PUT is a custom name over html POST method)
+	 * @param $what	 	the entry point
+	 * @param $params 	an associative array of parameters [ $k1 => $v1, $k2 => $v2 ...]
+	 * @return the result of curl_exec or false if an error occured
 	 */
 	function put($what, $param = []) {
 		if ($this->debug) {

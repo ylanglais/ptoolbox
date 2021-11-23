@@ -21,8 +21,7 @@ class session {
 	public  $roles;
 
 	function __construct() {
-		global $args;
-		if(!isset($_SESSION)) session_start(); 
+		if (!isset($_SESSION)) session_start(); 
 		#
 		# restore session data:
 	 	foreach (get_class_vars("session") as $k => $v ) {
@@ -33,6 +32,7 @@ class session {
 				} #else _log("session: $k is empty");
 			}
 		}
+		$args = new args();
         #
         # update page trackgin:
         if ($args->has('page')) {

@@ -2,7 +2,6 @@
 require_once("lib/query.php");
 
 
-
 function _schema() {
 	static $audit_schema = null;
 	if ($audit_schema != null) return $audit_schema;
@@ -13,6 +12,9 @@ function _schema() {
 
 /** 
  * function to log login errors
+ * @param $login 	login of the user
+ * @param $ip		the incoming ip of the user
+ * @param $error	the error message
  */
 function audit_login_error($login, $ip, $error) {
 	$t  = _schema() . "connection";
@@ -21,6 +23,9 @@ function audit_login_error($login, $ip, $error) {
 
 /** 
  * function to log new logins 
+ * @param $sid		the session id
+ * @param $login 	login of the user
+ * @param $ip		the incoming ip of the user
  */
 function audit_login($sid, $login, $ip) {
 	$t  = _schema() . "connection";
@@ -29,6 +34,7 @@ function audit_login($sid, $login, $ip) {
 
 /** 
  * function to log explicit logouts 
+ * @param $sid		the session id
  */
 function audit_logout($sid) {
 	$t  = _schema() . "connection";

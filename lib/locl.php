@@ -21,7 +21,7 @@ class locl {
 
 	/**
 	 * Generic formatter to transform a value according to the locale
-     * if $val is :
+     * @param if $val is :
      * - a float, it is formatted according to the locale decimal point and the thousand separator w/ n
      * - a numeric, it is formatted as an integer value w/ thousand separator
      * - a %age, it is formated as wether a float or an int + % apended 
