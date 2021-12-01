@@ -26,7 +26,7 @@ class rpt {
 
         $this->colors  = [ "#0972e3",  "#055f8d", "#2a82ac", "#3399cc", "#25bbdb", "#89afe3", "#c5e4f2", "#89d9e3", "#d4f2f7" ];
 
-		if (file_exists("config/rpt.php")) {
+		if (file_exists("conf/rpt.php")) {
 			include("conf/rpt.php");
 			foreach ([ "locale", "lang", "colors" ] as $k) {
 				if (isset(${"rpt_$k"})) $this->$k = ${"rpt_$k"};
