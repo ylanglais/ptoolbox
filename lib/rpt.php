@@ -31,8 +31,8 @@ class rpt {
 				if (isset("rpt_$k")) $this->$k = ${rpt_$k};
 			}
 		}	
-
-        if (property_exists($o, "report") && is_object($o->report)) {
+	
+        if (is_object($o) && property_exists($o, "report") && is_object($o->report)) {
             if (property_exists($o->report, "locale")) { 
                 try {
                     setlocale(LC_ALL, $o->report->locale);
@@ -55,12 +55,15 @@ class rpt {
 
 	function rpt_db($o) {
 		$dbopts = null;
-		if (property_exists($o, "dbs") && property_exists($o, "dbuser") && property_exists($o, "dbpass")) {
-			if (property_exists($o, "dbopts")) {
-				$dbopts = $o->dbopts;
+		if (property_exists($o, "dbs"))
+			if (property_exists($o, "dbuser") && property_exists($o, "dbpass")) {
+				if (property_exists($o, "dbopts")) {
+					$this->odb = new db($o->dbs, $o->dbuser, $o->dbpass, $o->dbopts); 
+				else 
+					$this->odb = new db($o->dbs, $o->dbuser, $o->dbpass); 
+			} else {
+				$this->odb = new db($o->dbs);
 			}
-			if ($dbopts == null) $this->odb = new db($o->dbs, $o->dbuser, $o->dbpass); 
-			else                 $this->odb = new db($o->dbs, $o->dbuser, $o->dbpass, $dbopts); 
 		} else {
 			$this->odb = new db();
 		}
@@ -172,7 +175,7 @@ class rpt {
     }
     function rpt_header($o) {
 		$str = "";
-
+/******
 		if (file_exists("header.html")) $str .= file_get_contents("header.html"); 
 
 		$str .= "<body>\n<style>\n" . file_get_contents("style.css") . "</style>\n";
@@ -206,6 +209,7 @@ class rpt {
             $str .= "<td style='text-align: right;'>$h->label:</td><td>$h->value</td></tr>\n";
         }
         $str .= "</table>\n</header>\n";
+******/
         return $str;
     }
     function rpt_columns($o) {
