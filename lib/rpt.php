@@ -29,7 +29,7 @@ class rpt {
 		if (file_exists("config/rpt.php")) {
 			include("conf/rpt.php");
 			foreach ([ "locale", "lang", "colors" ] as $k) {
-				if (isset("rpt_$k")) $this->$k = ${"rpt_$k"};
+				if (isset(${"rpt_$k"})) $this->$k = ${"rpt_$k"};
 			}
 		}
 	
