@@ -60,8 +60,9 @@ class rpt {
 			if (property_exists($o, "dbuser") && property_exists($o, "dbpass")) {
 				if (property_exists($o, "dbopts")) {
 					$this->odb = new db($o->dbs, $o->dbuser, $o->dbpass, $o->dbopts); 
-				else 
+				} else { 
 					$this->odb = new db($o->dbs, $o->dbuser, $o->dbpass); 
+				}
 			} else {
 				$this->odb = new db($o->dbs);
 			}
