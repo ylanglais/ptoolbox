@@ -19,11 +19,18 @@ class rpt {
         $this->fallback = 'fr_FR.UTF-8';
         $this->locale   = 'fr_FR.UTF-8';
 		$this->lang     = '';
-
 		$this->nsec     = 0;
 		$this->nsub     = 0;
 
 		$this->vars     = [];
+
+        $this->colors  = [ "#0972e3",  "#055f8d", "#2a82ac", "#3399cc", "#25bbdb", "#89afe3", "#c5e4f2", "#89d9e3", "#d4f2f7" ];
+
+		if (file_exists("config/rpt.php")) include("conf/rpt.php");
+			foreach ([ "locale", "lang", "colors" ] as $k) {
+				if (isset("rpt_$k")) $this->$k = ${rpt_$k};
+			}
+		}	
 
         if (property_exists($o, "report") && is_object($o->report)) {
             if (property_exists($o->report, "locale")) { 
@@ -43,10 +50,6 @@ class rpt {
         }
 
 		$this->locl = new locl($this->locale);
-
-        #$this->colors  = [ "#54A3E1", "#5CB3F8", "#65C4FF", "#6DD4FF", "#76E4FF", ];
-        #$this->colors  = [ "#0972e3",  "#055f8d", "#2a82ac", "#3399cc", "#25bbdb", "#89afe3", "#c5e4f2", "#89d9e3", "#d4f2f7" ];
-        $this->colors   = [ "#338ab2", "#2a82ac", "#055f8d", "#8166b2", "#673ab7", "#616161", "#4caf50", "#ff9800" ];
         $this->ncolors  = count($this->colors);
     }
 
@@ -367,8 +370,6 @@ class rpt {
 			_err("badly formed rpt_lcpblock_array => no data");
 			return "";
 		}
-
-
 
 		$str = "<table class='lcpblock_array'>\n";
 		foreach ($o as $a) {
