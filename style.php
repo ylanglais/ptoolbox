@@ -392,8 +392,8 @@ a.menuentry:hover   {
 }
 
 a.menuentry.current {
-	color: $hover;
-	font-weight: bold;
+	color: $selected_fg;
+	font-weight: normal;
 }
 /* 
  * Anchor definitions:
@@ -433,7 +433,7 @@ img {
 }
 img.logo, img.heading {
 	max-height: 100px;
-	height: 100px;
+	height: 75px;
 }
 /* 
  * Table definitions:
@@ -1075,18 +1075,19 @@ text.graph.title {
 text.graph.label {
 	font-size:.9vw;
 }
-text.graph.label.xlabel {}
-text.graph.label.ylabel {}
+.graph.legend { font-size: .9vw }
+text.graph.units.xunits,
+text.graph.units.yunits,
+text.graph.label.xlabel,
+text.graph.label.ylabel,
 text.graph.units { 
-	font-size: .9vw;
-	font-weight: bold;
+	font-size: .7vw;
+	font-weight: normal;
 	fill: #616161;
 }
-text.graph.units.xunits { }
-text.graph.units.yunits { }
-text.graph.legend{
+text.graph.legend {
 	font-size: .9vw;
-	fill: black;
+	font-weight: normal;
 }
 text.graph.pie.legend{
 	font-size: clamp(6px, .7vw, 16px);

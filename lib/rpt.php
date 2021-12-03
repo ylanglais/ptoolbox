@@ -1,5 +1,4 @@
 <?php
-
 require_once("lib/svg.php");
 require_once("lib/dbg_tools.php");
 require_once("lib/db.php");
@@ -122,12 +121,13 @@ class rpt {
 		}
 		return [];
 	}
-	function data_parse($str) {
+	function data_parse($str, $data = 'month', $count = 'count') {
 		if (substr($str, 0, 4) == "sql(") {
 			$q = new query(substr($str, 4, -1), $this->odb);
 			$arr = [];
+
 			while ($d = $q->obj()) {
-				$arr[$d->month] = $d->count;
+				$arr[$d->$data] = $d->$count;
 			}
 			return $arr;
 		}
@@ -443,21 +443,16 @@ class rpt {
         return $str;
     }
 	function rpt_graph($o) {
+		$str = "";
+		if (property_exists($o, "title")) {
+            $str .= "<h2 style='text-align: center'>$o->title</h2>\n";
+		}
 		$data = [];
 		if (!property_exists($o, "data")) {
 			_err("badly formed rpt_graph block: no data");
 			return "";
 		}
-		if (is_array($o->data)) {
-			foreach ($o->data as $series) {
-				$data[$series->name] = $this->data_parse($series->value);
-			}
-		/* } else if (is_string($o->data)) {
-			$data = $this->data_parse($o->data);
-			if (!is_array($data)) {
-				return "";
-			} */
-		} else {
+		if (!is_array($o->data)) {
 			_err("badly formed rpt_graph : invalid data (array or action strinc)");
 			return "";
 		}
@@ -467,14 +462,27 @@ class rpt {
 		if (property_exists($o, "width"))  $w = $o->width;
 		if (property_exists($o, "height")) $h = $o->height;
 		$opts = [];
-		foreach (["xgrid" => true, "ygrid" => true, "title" => null] as $p => $v) {
+		foreach ([ "xunits" => null, "yunits" => null, "xgrid" => true, "ygrid" => true, "xdatatype" => null, "ydatatype" =>null, "borders" => false  ] as $p => $v) {
 			if (property_exists($o, $p)) $opts[$p] = $o->$p;
 			else if ($v != null) $opts[$p] = $v;
 		}
 
+		# old defaut settings for backword compatibility:
+		$x = "month"; $y = "count";
+		if (property_exists($o, "x")) $x = $o->x;
+		if (property_exists($o, "y")) $y = $o->y;
+
+		foreach ($o->data as $series) {
+			$data[$series->name] = $this->data_parse($series->value, $x, $y);
+		}
 		$svg = new svg($w, $h);
 		$svg->colors($this->colors); 
-		return $svg->graph($data, $opts);
+		if (property_exists($o, "xy") && $o->xy === true)
+			$str .= $svg->graph_xy($data, $opts);
+		else
+			$str .= $svg->graph($data, $opts);
+
+		return $str;
 	}
 	function rpt_evolution($o) {
 	}
