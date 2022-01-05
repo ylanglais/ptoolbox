@@ -4,11 +4,11 @@ require_once("lib/args.php");
 require_once("lib/date_util.php");
 require_once("lib/dbg_tools.php");
 
-global $s;
-if (!isset($s)) $s = new session();
+global $_session_;
+if (!isset($_session_)) $_session_ = new session();
 #
 # Make sure we are connected:
-$s->check();
+$_session_->check();
 
 $a = new args();
 

@@ -78,7 +78,7 @@ class form {
 				$str .= "<td><input id='$n' name='$n' onclick='date_cal_open(this);' size='16' pattern='[0-3][0-9]/[0-1][0-9]/20[0-9][0-9]' placeholder='jj/mm/aaaa' value='"
 					   . date_db_to_human($this->vars->$n) . "'/></td></tr>\n";
 			} else if ($p["type"] == "string") {
-				$str .= "<td><input id='$n' name='$n' value='$vars->$n'/></td></tr>\n";
+				$str .= "<td><input id='$n' name='$n' value='" . $this->vars->$n. "'/></td></tr>\n";
 			} else if ($p["type"] == "list") {
 				$str .= "<td><select name='$n' id='$n'>";
 				foreach ($p["values"] as $v) {
