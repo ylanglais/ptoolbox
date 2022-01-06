@@ -520,7 +520,7 @@ tr.over {
 	box-shadow: 1px 1px 3px $shadow;
 }
 tr.selected {
-	color: $reverse_bg;
+	color: $reverse_fg;
 	background-color: $normal;
 	font-weight: bold;
 }
@@ -558,6 +558,7 @@ td.hdr {
 	color: $normal;
 	text-align: center;
 	font-weight: bold;
+}
 td.hdr.over {
 	color: $reverse_fg;
 	text-align: center;
@@ -579,7 +580,7 @@ td.num {
 }
 tr.over td.num {
 	text-align: right;  
-	color: white;
+	color: $hover;
 	font-style: italic;
 }
 td.url { 
@@ -721,8 +722,8 @@ button,
 input[type="button"],
 input[type="submit"] 
 {
-	box-shadow: 2px 2px 5px $normal;
-	color: $reverse_bg;
+	box-shadow: 2px 2px 5px $shadow;
+	color: $reverse_fg;
 	background-color: $normal;
 	border: 0px;
 	padding: 7px;
@@ -733,8 +734,8 @@ button:hover,
 input[type="submit"]:hover, 
 input[type="button"]:hover
 {
-	color: $reverse_bg;
-	box-shadow: -1px -1px 2px $normal;
+	color: $reverse_fg;
+	box-shadow: -1px -1px 2px $shadow;
 	cursor: pointer;
 	outline-width: 0px;
 	outline: none;
@@ -744,7 +745,7 @@ input[type="submit"]:active,
 input[type="button"]:active 
 {
 	color: $selected_fg;
-	box-shadow: -1px -1px 2px $normal;
+	box-shadow: -1px -1px 2px $shadow;
 	cursor: pointer;
 	/** outline-style: hidden; **/
 	/** outline: none; **/
@@ -758,11 +759,19 @@ input[type="button"]:focus
 	outline-width: 0px;
 	outline: none;
 }
+input[type="checkbox"] {
+	color: $bg;
+	border: 0px;	
+}
 input[type="checkbox"]:checked {
 	color: $reverse_bg;
 	background-color: $normal;
 }
 input[type="checkbox"]:not(:checked) {
+	background-color: $bg;
+}
+
+.even {
 	background-color: $bg;
 }
 .odd {
@@ -989,33 +998,33 @@ table.results {
 	width: 75%;
 	border: 0px;
 /* table-layout: fixed; */
-
 }
-
+table.results tr {
+	text-align: right;
+	padding: .5vw;
+	margin:  .9vw;
+	border: 0px;
+}
+table.glist   tr:nth-child(even),
 table.results tr:nth-child(even),
 table.results tr:nth-child(even) td,
-table.results tr:nth-child(even) td.hdr
-{
-	text-align: right;
-	background-color: #fafafa;
-	padding: .5vw;
-	margin:  .9vw;
-	border: 0px;
+table.results tr:nth-child(even) td.hdr {
+	background-color: $bg;
 }
+table.glist   tr:nth-child(odd),
 table.results tr:nth-child(odd),
 table.results tr:nth-child(odd) td,
-table.results tr:nth-child(odd) td.hdr
-{ 
-	text-align: right;
-	background-color: #c5e4f2;
-	padding: .5vw;
-	margin:  .9vw;
-	border: 0px;
+table.results tr:nth-child(odd) td.hdr { 
+	background-color: $light_bg;
 } 
+table.glist tr.nav,
+table.glist tr.but {
+	background-color: $bg;
+}
 table.results th {
 	text-align: right;
-	background-color: #2196F3;
-	color: #ffffff;
+	background-color: $reverse_bg;
+	color: $reverse_fg;
 	padding: .5vw;
 	margin: .9vw;
 	border: 0px;

@@ -14,22 +14,28 @@ class auth_ldap {
 	function __construct() {
 		$this->ldap = false;
 		$ldap_ver = 3;
+		$this->timeout = 1;
 		if (file_exists("conf/auth_ldap.php")) {
 			include("conf/auth_ldap.php");
 			if (!isset($ldap_srv)) {
-				err("no ldap_server defined");
+				info("no ldap_server defined");
 				return;
 			}
+			if (isset($ldap_timeout) && is_int($ldap_timeout) && $ldap_timeout > 0 && $ldap_timeout < 10) {
+				$this->timeout = $ldap_timeout;
+			}
+
 			if (!is_array($ldap_srv)) $ldap_server = [$ldap_srv];
 			if (isset($ldap_domain) && isset($ldap_uid))
 				$this->rstr = "$ldap_uid=%s,$ldap_domain";
 			else if (isset($ldap_fqdn)) 
 				$this->rstr = "%s@$ldap_fqdn";
+				
 			else 
 				$this->rstr = "%s";
-				
+	
 			foreach ($ldap_srv as $srv) {
-				if (($this->ldap = ldap_connect($srv)) !== false) break;
+				if ($this->_ping($srv) && ($this->ldap = ldap_connect($srv)) !== false) break;
 			}
 			if ($this->ldap === false) {
 				err("not connect to a ldap server");
@@ -50,6 +56,29 @@ class auth_ldap {
 			}
 		} 
 	}
+
+	function _ping($srv) {
+		if (($n = preg_match("/(ldap[s]?):\/\/([^:])*(:([0-9]*))?/", $srv, $m)) === false) return false;
+
+		if ($n < 3) return false;
+
+		$p = 0;
+		if ($n < 5) {
+			if ($m[1] == "ldap")       $p = 389;
+			else if ($m[1] == "ldaps") $p = 636;
+			else return false;
+		} else {
+			$p = $m[4];
+		}
+		
+		$s = $m[2];
+		
+        $op = fsockopen($s, $p, $errno, $errstr, $this->timeout);
+        if (!$op) return false;
+		fclose($opanak);
+		return true;
+	}
+
 	/** 
 	 * Destructor only closes connection to ldap sever
      */
