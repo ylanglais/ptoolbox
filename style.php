@@ -730,6 +730,12 @@ input[type="submit"]
 	outline-width: 0px;
 	outline: none;
 }
+:focus {
+	appearance: none;
+	color: $selected_fg;
+	border: 0px solid $selected_bg;
+	ouline: 1px solid $selected_bg;
+}
 button:hover,
 input[type="submit"]:hover, 
 input[type="button"]:hover
@@ -763,12 +769,19 @@ input[type="checkbox"] {
 	color: $bg;
 	border: 0px;	
 }
-input[type="checkbox"]:checked {
-	color: $reverse_bg;
-	background-color: $normal;
-}
-input[type="checkbox"]:not(:checked) {
+input[type="checkbox"] {
+	appearance:none;
 	background-color: $bg;
+	width:  15px;
+	height: 15px;
+	margin: 2px;
+	border-radius: 3px;
+	box-shadow: 1px 1px 2px rgba(0,0,0,.5);
+	vertical-align: bottom;
+}
+input[type="checkbox"]:checked {
+	background-color: $reverse_bg;
+	box-shadow: inset 1px 1px 2px rgba(0,0,0.5);
 }
 
 .even {
