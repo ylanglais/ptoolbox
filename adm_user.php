@@ -2,7 +2,7 @@
 require_once("lib/dbg_tools.php");
 require_once("lib/date_util.php");
 require_once("lib/args.php");
-require_once("lib/users.php");
+require_once("lib/user.php");
 require_once("lib/session.php");
 
 global $s;
@@ -58,9 +58,8 @@ function roles_show($uid) {
 		} 
 	}
 	function roles_read() {
-		var rids = [];
-		if (document.getElementById('apis') == null) return rids;
 		var rows = document.getElementById('roles').tBodies[0].rows;
+		var rids = [];
 		for (r = 0; r < rows.length; r++) {
 			if (rows[r].classList.contains('selected')) {
 				rids.push(rows[r].id.substr('role'.length));
@@ -75,55 +74,6 @@ function roles_show($uid) {
 	return $out;
 }
 
-function apis_show($uid) {
-	$out = "";
-	$uapi = [];
-	if ($uid != "") {
-		$q = new query("select api_id from tech.user_api where user_id = '$uid'");
-		while ($o = $q->obj()) {
-			array_push($uapi, $o->api_id);
-		}
-	}
-	$q = new query("select id, name from tech.api");
-	$out .= "<table id='apis' class='subform' width='100%' onclick='adm_user_check()'>\n";
-	$r_adm = -1;
-	while ($r = $q->obj()) {
-		$c = "";
-		if (in_array($r->id, $uapi)) {
-			$c = "class='selected'";
-		}
-		$out .=	"<tr id='api$r->id' onclick='apis_toggle_selected(this)' $c><td onmouseover='this.classList.add(\"tdover\")' onmouseout='this.classList.remove(\"tdover\")'>$r->name</td></tr>\n";
-		if ($r->name == 'admin') $r_adm = $r->id;
-		else $r_adm = 0;
-	}
-	$out .= "</table>\n";
-	$out .= "
-<script>
-	r_adm = $r_adm;
-	function apis_toggle_selected(r) {
-		if (r.classList.contains('selected')) {
-			r.classList.remove('selected');
-		} else {
-			r.classList.add('selected');
-		} 
-	}
-	function apis_read() {
-		var api_ids = [];
-		if (document.getElementById('apis') == null || document.getElementById('apis').tBodies.length == 0) return api_ids;
-		var rows = document.getElementById('apis').tBodies[0].rows;
-		for (r = 0; r < rows.length; r++) {
-			if (rows[r].classList.contains('selected')) {
-				api_ids.push(rows[r].id.substr('api'.length));
-			}
-		}
-		return api_ids;
-	}
-	
-	var o_apis = apis_read();
-</script>
-";
-	return $out;
-}
 #
 #
 function adm_user_ui($a, $uid) {
@@ -172,7 +122,7 @@ function adm_user_ui($a, $uid) {
 			dat = {'uid': uid, 'login': login, 'mail': mail, 'name': name, 'surname': surname, 'active': active, 'since': since, 'until': until};
 			return dat;
 		}
-		function adm_user_changed(dat, rol,api) {
+		function adm_user_changed(dat, rol) {
 			if (dat.login   != o_data.login)   return true;
 			if (dat.mail    != o_data.mail)    return true;
 			if (dat.name    != o_data.name)    return true;
@@ -182,12 +132,11 @@ function adm_user_ui($a, $uid) {
 			if (dat.until   != o_data.until)   return true;
 
 			if (JSON.stringify(rol) != JSON.stringify(o_roles))   return true;
-                        if (JSON.stringify(api) != JSON.stringify(o_apis))   return true;
 	
 			return false;
 		}
-		function adm_can_update(dat, rol,api) {
-			if (dat.uid   ==  '' || dat.login ==  '' || !adm_user_changed(dat, rol,api)) {
+		function adm_can_update(dat, rol) {
+			if (dat.uid   ==  '' || dat.login ==  '' || !adm_user_changed(dat, rol)) {
 				$("#update").hide();
 				return false;
 			}
@@ -222,14 +171,13 @@ function adm_user_ui($a, $uid) {
 		function adm_user_check() {
 			var dat = adm_user_data();
 			var rol = roles_read();
-			var api = apis_read();
 			if (dat.login  == "") {
 				$("#login").addClass("required");
 			} else {
 				$("#login").removeClass("required");
 			}
-			adm_can_update(dat, rol,api);
-			adm_can_create(dat, rol,api);
+			adm_can_update(dat, rol);
+			adm_can_create(dat, rol);
 
 			if (rol.indexOf("" + r_adm) > -1) 
 				$("#slav").hide();
@@ -259,7 +207,6 @@ function adm_user_ui($a, $uid) {
 	print("<tr><th><label for='until'>Jusqu'à</label></th><td><input id='until' type='text' name='until'  size='16' pattern='[0-3][0-9]/[0-1][0-9]/[12][0-9][0-9][0-9]' placeholder='jj/mm/aaaa' value='$until' onchange='adm_user_check();'/></td><tr>\n");
 
 	print("<tr><th>Roles  </th><td><div class='scrollable'>" . roles_show($uid)   . "</div></td></tr>\n");
-        print("<tr><th>API  </th><td><div class='scrollable'>" . apis_show($uid)   . "</div></td></tr>\n");
 	print("<tr><td colspan='2'>\n");
 	print("<input id='create' type='button' value='Créer' onclick='adm_user_create();'/>");
 	if ($uid != "") { 
@@ -293,7 +240,6 @@ function adm_user_list() {
 			formd.user.since   = $("#since"  ).val();
 			formd.user.until   = $("#until"  ).val();
 			formd.roles        = roles_read();
-			formd.apis         = apis_read();
 			return formd;
 		}
 		function adm_user_cancel() {
@@ -316,7 +262,7 @@ function adm_user_list() {
 		</script>
 	<?php
 	$q = new query("select * from tech.user");
-	print ("<table class='form'>\n");
+	print ("<table class='glist'>\n");
 	$hdr = "<tr><th>#</th><th>Login</th><th>Email</th><th>Actif</th><th>Depuis</th><th>Jusqu'à</th></tr>\n";
 	print("$hdr\n");
 
@@ -325,9 +271,7 @@ function adm_user_list() {
 	} else {
 		$i = 1;
 		while ($o = $q->obj()) {
-			if ($i % 2) $odd = "class='odd'";
-			else        $odd = "";
-			print("<tr $odd onmouseover='this.normalClassName=this.className;this.className=\"over\"' onmouseout='this.className=this.normalClassName;' onclick='adm_user_open(\"$o->id\")'>");
+			print("<tr onmouseover='this.normalClassName=this.className;this.className=\"over\"' onmouseout='this.className=this.normalClassName;' onclick='adm_user_open(\"$o->id\")'>");
 			if ($o->since != "") $since = date_db_to_human($o->since);
 			else                 $since = '';
 			if ($o->until != "") $until = date_db_to_human($o->until);
@@ -339,7 +283,7 @@ function adm_user_list() {
 		}
 	}
 	print("$hdr\n");
-	print("<tr><td colspan='6'><input type='button' value='Créer' onclick='adm_user_new();'/></td><tr>\n");
+	print("<tr class='but'><td colspan='6'><input type='button' value='Créer' onclick='adm_user_new();'/></td><tr>\n");
 	print("</table>\n");
 }
 
@@ -356,45 +300,34 @@ if (($uid = $a->post("uid")) !== false || $a->post("newuser") == true) {
 		if ($usr->active) $active = 'Y';
 		else              $active = 'N';
 		if ($usr->since != '') 
-			$since = date_human_to_db($usr->since);
+			$since = "'". date_human_to_db($usr->since) . "'";
 		else 
-			$since = '';
+			$since = "null";
 		if ($usr->until != '') 
-			$until = date_human_to_db($usr->until);
+			$until = "'". date_human_to_db($usr->until) . "'";
 		else 
-			$until = "";
+			$until = "null";
 
-                
 		$rol = $d->roles;
-		if (property_exists($d, "apis")) 
-			$api = $d->apis;
-		else 
-			$api = (object)[];
 
 		if ($act == "create") {
 			if (($nid = adm_user_new_id()) === false) {
 				dbg_err("cannot find a new id");
 			} else {
-				if ($until == "") $until = "null";
-				else $until = "'$until'";
-				$sql = "insert into tech.user values ('$nid', '$usr->login', '', '$usr->name', '$usr->surname', '$usr->mail', '$active', '$since', $until)";
+				$sql = "insert into tech.user values ('$nid', '$usr->login', '', '$usr->name', '$usr->surname', '$usr->mail', '$active', $since, $until)";
 				new query($sql);
 
 				foreach ($rol as $r)  new query("insert into tech.user_role values ($nid, '$r')");
-				foreach ($api as $a)  new query("insert into tech.user_api  values ($nid, '$a')");
 				$auth = new auth_local();
 				$auth->update($usr->login, 'ChangeMe');
 				#print("<pre>sql = $sql\n</pre>\n");
 			}
 		} else if ($act == "update") {
-			$sql = "update tech.user set login = '$usr->login', mail = '$usr->mail', name = '$usr->name', surname = '$usr->surname', mail = '$usr->mail', active = '$active', since = '$since', until = '$until' where id = '$usr->uid'";
+			$sql = "update tech.user set login = '$usr->login', mail = '$usr->mail', name = '$usr->name', surname = '$usr->surname', active = '$active', since = $since, until = $until where id = '$usr->uid'";
 			new query($sql);
 
 			new query("delete from tech.user_role where user_id = $usr->uid");
 			foreach ($rol as $r)  new query("insert into tech.user_role values ($usr->uid, $r)");
-                        
-                        new query("delete from tech.user_api where user_id = $usr->uid");
-			foreach ($api as $a) new query("insert into tech.user_api values ($usr->uid, $a)");
 			#print("<pre>sql = $sql\n</pre>\n");
 		} 
 	}

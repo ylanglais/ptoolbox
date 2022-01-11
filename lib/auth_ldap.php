@@ -35,6 +35,7 @@ class auth_ldap {
 				$this->rstr = "%s";
 	
 			foreach ($ldap_srv as $srv) {
+err($srv);
 				if ($this->_ping($srv) && ($this->ldap = ldap_connect($srv)) !== false) break;
 			}
 			if ($this->ldap === false) {
@@ -58,10 +59,8 @@ class auth_ldap {
 	}
 
 	function _ping($srv) {
-		if (($n = preg_match("/(ldap[s]?):\/\/([^:])*(:([0-9]*))?/", $srv, $m)) === false) return false;
-
-		if ($n < 3) return false;
-
+		if (($n = preg_match("/(ldap[s]?):\/\/([^:]*)(:([0-9]*))?$/", $srv, $m)) === false) return false;
+		if ($n === false) return false;
 		$p = 0;
 		if ($n < 5) {
 			if ($m[1] == "ldap")       $p = 389;
@@ -75,7 +74,7 @@ class auth_ldap {
 		
         $op = fsockopen($s, $p, $errno, $errstr, $this->timeout);
         if (!$op) return false;
-		fclose($opanak);
+		fclose($op);
 		return true;
 	}
 

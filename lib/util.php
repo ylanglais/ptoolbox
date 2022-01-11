@@ -22,6 +22,10 @@ function gen_uuid() {
 	return rtrim(file_get_contents('/proc/sys/kernel/random/uuid'));
 }
 
+function gen_elid() {
+	return substr(microtime(), 2, 6);
+}
+
 function pdf_2_png($in, $out, $page, $x, $y, $w, $h) {
 	$im = new Imagick();
 	$im->setResolution(300, 300);

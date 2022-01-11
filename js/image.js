@@ -20,3 +20,12 @@ function image_clear(id) {
 	document.getElementById("whole_"     + id).src   = "images/no_image.png";
 	document.getElementById("thumbnail_" + id).src   = "images/tn_no_image.png";
 }
+
+function image_hover(img, hsrc) {
+	img.nsrc = img.src;
+	img.src = img.hsrc;
+}
+
+function image_norm(img) {
+	img.src = img.nsrc;
+}

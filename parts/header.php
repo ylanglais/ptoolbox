@@ -18,12 +18,7 @@ $title = style::value("application_title");
 <link rel='shortcut icon' type='image/x-icon' href='images/favicon.ico' />
 <link rel="stylesheet"   type="text/css" href="style.php"/>
 <script type="text/javascript" src="js/jquery/jquery.js"></script>
-
-</head>
-<body> 
-
 <?php
-
 foreach (array('js') as $dir) {
 	if ($h = opendir($dir)) {
 		$dirs = array();
@@ -35,3 +30,6 @@ foreach (array('js') as $dir) {
 	}
 }
 ?>
+
+</head>
+<body onbeforeunload='timeout_logout("body onbeforeunload")'> 

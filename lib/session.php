@@ -16,7 +16,6 @@ class session {
 	public  $profile;
 	public  $page;
 	public  $prev;
-	public  $id;
 	public  $userdata;
 	public  $roles;
 
@@ -45,6 +44,9 @@ class session {
 			usr_session($this);
 		}
 
+	}
+	function id() {
+		return $this->sid;
 	}
 	function check() {
 		if ($this->isnew()) { echo("<script>window.location.href='index.php'</script>"); exit;}

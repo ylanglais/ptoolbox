@@ -9,11 +9,17 @@ class locl {
      */
 	function __construct($locale = false) {
 		$r = false;
-		if ($locale !== false) {
-        	$r = setlocale(LC_ALL, $locale);
-		}
+		if ($locale !== false) $r = setlocale(LC_ALL, $locale);
 		if ($r === false) {
-			setlocale(LC_ALL, "fr_FR.UTF-8");
+			$conf = "conf/locl.php";
+			if (file_exists($conf)) {
+				include($conf);
+				$this->locale = $locl_locale;
+				$this->lang   = $locl_lang;
+				setlocale(LC_ALL, $this->locale);
+			} else {
+				setlocale(LC_ALL, "fr_FR.UTF-8");
+			}	
 		}
 		$this->lc = (object) localeconv();
 		setlocale(LC_ALL, "C");

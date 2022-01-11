@@ -91,7 +91,7 @@ class form {
 				$str .= "</select></td></tr>";
 			}
 		}
-		$str .= "\t<tr><td class='submit' colspan='2'>";
+		$str .= "\t<tr class='but'><td class='submit' colspan='2'>";
 		foreach ($this->actions as $a) {
 			$str .= "<input type='hidden' name='form' value='true'/>"; #<input type='hidden' name='vars' value='".json_encode($this)."'/>";
 			$str .= "<button onclick=\"form_load('$this->name', '".base64_encode(json_encode($this))."', '$a')\">$a</button>";

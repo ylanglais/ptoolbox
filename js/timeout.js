@@ -3,7 +3,6 @@
  */
 
 var timeout_value;
-
 function timeout_set(minutes) {
 	console.log("Start timer");
     window.onload = timeout_reset;
@@ -24,8 +23,12 @@ function timeout_set(minutes) {
 	 * document.onkeypress   = timeout_reset;
 	 */
 }
-function timeout_logout() {
-	console.log("timeout occured: log out.")
+function timeout_logout(what) {
+	if (what == null) {
+		console.log("timeout")
+	} else {
+		console.log(what);
+	}
 	$("#menusubmit").submit();
 }
 function timeout_reset() {
@@ -34,3 +37,9 @@ function timeout_reset() {
 	clearTimeout(timeout_value);
 	timeout_value = setTimeout(timeout_logout, 10 * min * sec);
 }
+
+/*
+ * Dproerly disconnect on close:
+ */ 
+window.onclose        = timeout_logout("window onclose");
+window.onbeforeunload = timeout_logout("window onbeforeunload");
