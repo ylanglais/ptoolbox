@@ -5,3 +5,4 @@ conf/*.php
 doc/*
 conf/*.test.*
 broken
+images/*
