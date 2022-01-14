@@ -7,7 +7,7 @@ function _load(id, url, params, completef) {
 	
 	xhr.open("POST", url, true);
 	xhr.setRequestHeader("Content-Type", "application/json");
-xhr.onreadystatechange = function() { 
+	xhr.onreadystatechange = function() { 
 		if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
 			console.log("id = " + this.id );
 			e = document.getElementById(this.id);
@@ -24,10 +24,9 @@ xhr.onreadystatechange = function() {
 }
 
 function load(id, url, params) {
-	//console.log("id: " + id + ", url: " + url + ", params: " + params);
-	fetch(url, { method: "POST", credentials: 'same-origin', cache: 'no-cache', headers: {  'Content-Type': 'application/json' }, body: params } )
+	fetch(url, { method: "POST", credentials: 'same-origin', cache: 'no-cache', headers: {  'Content-Type': 'application/json' }, body: JSON.stringify(params) } )
 	.then(response => response.text())
-	.then(html =>     { document.getElementById(id).innerHTML = html; })
+	.then(html     => { document.getElementById(id).innerHTML = html; })
 	.catch(function(err) { console.log(err); });
 } 
 
