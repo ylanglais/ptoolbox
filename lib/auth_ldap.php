@@ -35,7 +35,6 @@ class auth_ldap {
 				$this->rstr = "%s";
 	
 			foreach ($ldap_srv as $srv) {
-err($srv);
 				if ($this->_ping($srv) && ($this->ldap = ldap_connect($srv)) !== false) break;
 			}
 			if ($this->ldap === false) {
