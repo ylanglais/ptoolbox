@@ -5,7 +5,6 @@ require_once("lib/db.php");
 if(!isset($_SESSION)) session_start(); 
 
 function tlist($table, $fieldlist = null, $start = 0, $page = 25, $where = "", $edit = "") {
-dbg("page = $page");
 	$fields = $fieldlist;
 	$edit   = $edit;
 	$where  = $where;
