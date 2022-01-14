@@ -5,16 +5,16 @@ require_once("lib/args.php");
 require_once("lib/user.php");
 require_once("lib/session.php");
 
-global $s;
+global $_session_;
 
 #
 # Start/Restore session:
-if (!isset($s)) $s = new session();
+if (!isset($_session_)) $_session_ = new session();
 
 #
 # Check 
-$s->check();
-if (!$s->has_role("admin")) exit;
+$_session_->check();
+if (!$_session_->has_role("admin")) exit;
 
 function adm_user_new_id() {
 	$q = new query("select max(id)+1 as newid from tech.user");
