@@ -142,14 +142,14 @@ function tlist($table, $fieldlist = null, $start = 0, $page = 25, $where = "", $
 		$out .= "<tr><td class='hdr' colspan='".($nfields + 1)."'><div class='navigation'>";
 
 		if ($start > 0) 
-			$out .= "<a onclick='tlist_go(\"$id\", \"$table\", \"$fieldlist\", $fir_off, $page, \"$where\", \"$edit\")'><img height='25px' src='images/start.3f5a94.png'/></a>";
+			$out .= "<a onclick='tlist_go(\"$id\", \"$table\", \"$fieldlist\", $fir_off, $page, \"$where\", \"$edit\")'><img height='25px' src='images/start.norm.png' onmouseover='this.src=\"images/start.pre.png\"' onmouseout='this.src=\"images/start.norm.png\"'/></a>";
 		if ($start > 0) 
-			$out .= "<a onclick='tlist_go(\"$id\", \"$table\", \"$fieldlist\", $pre_off, $page, \"$where\", \"$edit\")'><img height='25px' src='images/sarrow.left.3f5a94.png'/></a>";
+			$out .= "<a onclick='tlist_go(\"$id\", \"$table\", \"$fieldlist\", $pre_off, $page, \"$where\", \"$edit\")'><img height='25px' src='images/sarrow.left.norm.png' onmouseover='this.src=\"images/sarrow.left.pre.png\"' onmouseout='this.src=\"images/sarrow.left.norm.png\"'/></a>";
 		$out .= "<input type='text' style='width: 15px; text-align: right;' value='$sp' id='".$table. "_".$page."'onchange='tlist_go(\"$id\", \"$table\", \"$fieldlist\", (this.value - 1) * $page, \"$page\", \"$where\", \"$edit\")'/> on $np";
 		if ($nex_off <= $las_off)
-			$out .= "<a onclick='tlist_go(\"$id\", \"$table\", \"$fieldlist\", $nex_off, $page, \"$where\", \"$edit\")'><img height='25px' src='images/sarrow.right.3f5a94.png'/></a>";
+			$out .= "<a onclick='tlist_go(\"$id\", \"$table\", \"$fieldlist\", $nex_off, $page, \"$where\", \"$edit\")'><img height='25px' src='images/sarrow.right.norm.png' onmouseover='this.src=\"images/sarrow.right.pre.png\"' onmouseout='this.src=\"images/sarrow.right.norm.png\"'/></a>";
 		if ($start < $las_off)
-			$out .= "<a onclick='tlist_go(\"$id\", \"$table\", \"$fieldlist\", $las_off, $page, \"$where\", \"$edit\")'><img height='25px' src='images/end.3f5a94.png'/></a>";
+			$out .= "<a onclick='tlist_go(\"$id\", \"$table\", \"$fieldlist\", $las_off, $page, \"$where\", \"$edit\")'><img height='25px' src='images/end.norm.png' onmouseover='this.src=\"images/end.pre.png\"' onmouseout='this.src=\"images/end.norm.png\"'/></a>";
 		#$out .= "<span style='text-align: right'><label>Lignes par page:</label> <input type='text' style='width: 15px; text-align: right;' value='$page' onchange='tlist_go(\"$id\", \"$table\", \"$fieldlist\", $start, this.value, \"$where\", \"$edit\")'/></span>";
 		$out .= "</div></td></tr></table>";
 	}
