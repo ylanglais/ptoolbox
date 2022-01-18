@@ -84,8 +84,10 @@ class user {
 		$q =  new query("SELECT name from $this->role_table where id in (select $this->role_id from $this->user_role_table where $this->user_id = '$this->id')");
 		$this->roles = [];
 		while ($row = $q->data()) {
+			if ($row['name'] == "local" && $this->source != "local") next;
 			array_push($this->roles, $row['name']);
 		}
+		if ($this->source == "local" && !in_array("local", $this->roles)) array_push($this->roles, "local");
 	}
 	function auth_check($login, $passwd, $ip) {
 		if ($login == "admin") {
@@ -123,7 +125,9 @@ class user {
 					$this->$k = $v;
 					//eval("\$this->$k = \"$v\";");
 				}
+				$this->source = "ldap";
 				$this->load_roles();
+				
 				return true;
 			} else { _warn("ldap not matching"); }
 
@@ -161,8 +165,8 @@ class user {
 					return false;
 				}
 
+				$this->source = "local";
 				$this->load_roles();
-				array_push($this->roles, "local");
 				return true;
 			} 
 		} 
