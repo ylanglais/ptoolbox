@@ -100,9 +100,11 @@ class db {
 	 *  @param $dboption    may contain options passed to $options argument of PDO constructor (see https://www.php.net/manual/class.pdo.php) 
 	 *  </pre>
 	 */
-	function __construct($db_dsn = false, $db_user = false, $db_pass = false, $db_options = [PDO::ERRMODE_WARNING => true]) {
+	function __construct($db_dsn = false, $db_user = null, $db_pass = null, $db_options = [PDO::ERRMODE_WARNING => true]) {
 		$this->status    = false;
 		$this->db_drv    = false;
+		$this->drv    	 = false;
+		$this->_drv    	 = false;
 		$this->db_name   = false;
 
 		if ($db_dsn === false || $db_dsn == "dbs=default" || $db_dsn == "default") {
@@ -115,11 +117,16 @@ class db {
 					if ($db_user === false && isset($db_usid)) $db_user = $db_usid;
 				}
                                 
+				$this->drv     = $db_drv;
 				$this->db_drv  = $db_drv;
 				$this->db_name = $db_name;
 			} else return;
 		} else {
-			if (preg_match("/^([^:]*):(host=[^;]*);(port=([0-9]*);)?(dbname=(.*))$/", $db_dsn, $m)) {
+			if (preg_match("/^odbc:(.*)$/", $db_dsn, $m)) {
+				$this->db_drv  = "odbc";
+				$this->db_name = $m[1];
+				$this->db_dsn  = $db_dsn;
+			} else if (preg_match("/^([^:]*):(host=[^;]*);(port=([0-9]*);)?(dbname=(.*))$/", $db_dsn, $m)) {
 				$this->db_drv  = $m[1];
 				$this->db_name = $m[6];
 			} else {
@@ -137,7 +144,7 @@ class db {
 				}	
 				$db_user = $this->db_user;
 				$db_pass = $this->db_pass;
-				$db_dsn = "$this->db_drv:host=$this->db_host;port=".$this->db_port.";dbname=$this->db_name";
+				$db_dsn  = "$this->db_drv:host=$this->db_host;port=".$this->db_port.";dbname=$this->db_name";
 			} 
 		}
 
@@ -152,6 +159,41 @@ class db {
 			_err("$i[0]: $i[1] - $i[2]"); 
 			$this->pdo = false;
 		}
+
+		if ($this->db_drv == "mysql") {
+			$this->drv = "mysql";
+			include_once("lib/dbdrv/mysql.php");
+			$this->_drv = "_mysql";
+		} else if ($this->db_drv == "pgsql") {
+			$this->drv = "pgsql";
+			include_once("lib/dbdrv/pgsql.php");
+			$this->_drv = "_pgsql";
+		} else if ($this->db_drv == "odbc") {
+			#set autocommit:
+			odbc_setoption($this->conn, 1, 102, 1);
+
+			$this->_drv = false;
+			foreach (glob("lib/dbdrv/*.php") as $f) {
+				include_once($f);
+				$d = basename($f, ".php");
+				$this->query($d::version_qry(), false);
+				$o  = $this->obj();
+				if ($o !== false) {
+					foreach ($d::version_strings() as $str) {
+						if ($stripos($o->version, $str) !== false) {
+							$this->_drv = "_$d";
+							break;
+						}
+					}
+				}
+				if ($this->_drv !== false) break;
+			}
+		} 
+
+		if ($this->_drv === false) {
+			warn("Databse is not fully supported (no access to metadata)");
+		} 
+		dbg("db_drv = $this->drv over pdo_$this->db_drv");
 		$this->status = true;
 	}
 
@@ -171,59 +213,65 @@ class db {
 	/**
 	 * Return db database driver name
 	 */
-	function driver()  { return $this->db_drv;  }
+	function driver()      { return $this->db_drv;  }
+	/**
+	 * Return db database real driver name (usefull with odbc drivers):
+	 */
+	function realdriver()  { return $this->drv;  }
 	/**
 	 * Return db database name
 	 */
-	function db_name() { return $this->db_name; }
+	function db_name() {
+		if ($this->_drv === false || ($qry = $this->_drv::dbname_qry()) === false) {
+			warn("method not supported with driver $this->drv");
+			return "";	
+		}
+		$this->query($qry);
+		$o = $this->obj();
+		return $o->dbname;	
+	}
 	/**
 	 * List accessible databases within the data server
 	 */
 	function databases()  {
-		$sql = "";
-		if ($this->db_drv == "mysql") 
-			$sql = "select distinct table_schema as db from information_schema.tables";
-		else if ($this->db_drv == "pgsql") {
-			$sql = "select distinct table_catalog as db from information_schema.tables";
-		}
-		$this->query($sql);
 		$t = [];
-		while ($r = $this->obj()) {
-			array_push($t, $r->db);
+		if ($this->_drv === false || ($qry = $this->_drv::dbname_qry()) === false) {
+			warn("method not supported with driver $this->drv");
+			return $t;
 		}
+
+		$this->query($qry);
+		while ($r = $this->obj()) { array_push($t, $r->dbname); }
 		return $t;
 	}
+	/**
+	/**
 	/**
 	 * List accessible schemas in the current database:
 	 */
 	function schemas()  {
-		$sql = "select distinct table_schema from information_schema.tables where table_catalog = '$this->db_name' and table_schema not in ('information_schema','pg_catalog')";
-		$this->query($sql);
 		$t = [];
-		while ($r = $this->obj()) {
-			array_push($t, $r->table_schema);
+		if ($this->_drv === false || ($qry = $this->_drv::schemas_qry()) === false) {
+			warn("method not supported with driver $this->drv");
+			return $t;
 		}
+		
+		$this->query($qry);
+		while ($r = $this->obj()) { array_push($t, $r->schemas); }
 		return $t;
 	}
 	/**
 	 * List accessible tables in the current database and given schema (if any given)
 	 */
 	function tables($schema = "")  {
-		$sql = "";
-		if ($this->db_drv == "mysql") 
-			$sql = "select table_name from information_schema.tables where table_schema = '$this->db_name'";
-		else if ($this->db_drv == "pgsql") {
-			if ($schema != "") {
-				$sql = "select concat('$schema.', table_name) as table_name from information_schema.tables where table_catalog = '$this->db_name' and table_schema = '$shema' order by 1";
-			} else {
-				$sql = "select case when table_schema = 'public' or table_schema = '' then table_name else concat(table_schema, '.', table_name) end as table_name from information_schema.tables where table_catalog = '$this->db_name' and table_schema not in ('information_schema','pg_catalog') order by table_schema, table_name";
-			}	
-		}
-		$this->query($sql);
 		$t = [];
-		while ($r = $this->obj()) {
-			array_push($t, $r->table_name);
+		if ($this->_drv === false || ($qry = $this->_drv::tables_qry($schema)) === false) {
+			warn("method not supported with driver $this->drv");
+			return $t;	
 		}
+		
+		$this->query($qry);
+		while ($r = $this->obj()) { array_push($t, $r->tables); }
 		return $t;
 	}
 
@@ -232,23 +280,12 @@ class db {
 	 */
 	function table_columns($table) {
 		$cols = [];
-
-		if ($this->db_drv == "mysql") {
-			$sql = "select column_name, is_nullable, data_type, column_default, character_maximum_length from information_schema.COLUMNS where TABLE_SCHEMA = '$this->db_name' and TABLE_NAME = '$table'";
-		} else if ($this->db_drv == "pgsql") {
-			if (preg_match("/^([^.]*).(.*)$/", $table, $m)) {
-				$schema = $m[1];
-				$table  = $m[2];
-			} else {
-				$schema = "public_schema";
-			}
-			$sql = "select COLUMN_NAME, IS_NULLABLE, udt_name as DATA_TYPE, COLUMN_DEFAULT, CHARACTER_MAXIMUM_LENGTH from information_schema.COLUMNS where TABLE_CATALOG = '$this->db_name' and TABLE_SCHEMA = '$schema' and TABLE_NAME = '$table'";
-		} else {
-			_err("bad db driver $this->db_drv");
-			return [];
+		if ($this->_drv === false || ($qry = $this->_drv::columns_qry($table)) === false) {
+			warn("method not supported with driver $this->drv");
+			return $cols;	
 		}
 		
-		$this->query($sql);
+		$this->query($qry);
 		while ($r = $this->data()) {
 			$c = (object) [];
 			foreach ($r as $k => $v) { 
@@ -259,108 +296,60 @@ class db {
 		}
 		return $cols;
 	}
-
-	private function _table_keys_mysql($table) { 
-		$sql = "select column_name as name, column_key as `key` from information_schema.COLUMNS where TABLE_SCHEMA = '$this->db_name' and TABLE_NAME = '$table' and COLUMN_KEY != ''";
-		$kp = $km = [];
-
-		$this->query($sql);
-		while ($o = $this->obj()) {
-			if ($o->key == 'PRI') array_push($kp, $o->name);
-			else                  array_push($km, $o->name);
-		}
-		if ($kp != []) return $kp;
-		return $km;
-		
-	}
-	private function _table_keys_pgsql($table) { 
-		if (preg_match("/^([^.]*).(.*)$/", $table, $m)) {
-			$schema = $m[1];
-			$table  = $m[2];
-		} else {
-			$schema = "public_schema";
-		}
-		$sql = "select column_name from  information_schema.table_constraints tc, information_schema.key_column_usage kc where "
-				. "kc.table_name = tc.table_name and kc.table_schema = tc.table_schema and kc.constraint_name = tc.constraint_name and kc.table_catalog = tc.table_catalog "
-				. "and tc.constraint_type = 'PRIMARY KEY' and tc.table_catalog = '$this->db_name' and tc.table_schema = '$schema' and tc.table_name = '$table'";
-
-		$this->query($sql);
-
-		$kl = [];
-		while ($o = $this->obj()) array_push($kl, $o->column_name);
-		return $kl;
-	}
-
+	
 	/**
 	 * List table keys
 	 */
 	function table_keys($table) {
-		$fct = "_table_keys_".$this->db_drv;
-		if (method_exists($this, $fct)) return $this->$fct($table);	
-		return [];
+		$t = [];
+		if ($this->_drv === false || ($qry = $this->_drv::keys_qry($table)) === false) {
+			warn("method not supported with driver $this->drv");
+			return $t;	
+		}
+		
+		$this->query($qry);
+		while ($o = $this->obj()) array_push($t, $o->column_name);
+		return $t;
 	}
 	
 	/**
 	 * List table foreign keys
 	 */
 	function table_fkeys($table) {
-		$fct = "_table_fkeys_".$this->db_drv;
-		if (method_exists($this, $fct)) return $this->$fct($table);	
-		return [];
+		$t = [];
+		if ($this->_drv === false || ($qry = $this->_drv::fkeys_qry($table)) === false) {
+			warn("method not supported with driver $this->drv");
+			return $t;	
+		}
+		
+		$this->query($qry);
+		while ($o = $this->obj()) array_push($t, $o);
+		return $t;
 	}
         
-	function src_fk($table) {
-		switch($this->db_drv) {
-		case "mysql":
-			break;
-		case "pgsql":
-			if (preg_match("/^([^.]*).(.*)$/", $table, $m)) {
-				$schema = $m[1];
-				$table  = $m[2];
-			} else {
-				$schema = "public_schema";
-			}
-			$sql = 
-"select 
-	distinct fk_tco.table_schema || '.' || fk_tco.table_name as fk_table_name
-	,key_col.column_name
-	,pk_tco.table_schema         || '.' || pk_tco.table_name as primary_table_name
-	,pk_tco.constraint_name
- from 
-	information_schema.referential_constraints rco
- 	INNER join information_schema.key_column_usage key_col on key_col.constraint_name    = rco.constraint_name
-	join information_schema.table_constraints fk_tco       on rco.constraint_name        = fk_tco.constraint_name and rco.constraint_schema        = fk_tco.table_schema
-	join information_schema.table_constraints pk_tco       on rco.unique_constraint_name = pk_tco.constraint_name and rco.unique_constraint_schema = pk_tco.table_schema
- where 
-	fk_tco.table_name = '$table' 
-    and fk_tco.table_catalog = '$this->db_name'
-    and fk_tco.table_schema = '$schema'
-order by 
-	fk_table_name";
-			$this->query($sql);
-			break;
-		}
-	}
-
 ######################################################################################
 # Undocumented stuff for internal or rare usecases:
 #
-	function query($sql) {
+	function query($sql, $silent = false) {
 		if ($this->pdo === false || $this->pdo == null) return false;
 		try {
 			$this->stmt   = $this->pdo->prepare($sql);
 		} catch (PDOException $e) {
 			$this->stmt == false;
-			$i =  $this->stmt->errorInfo();
-			_err($i);
+			if (!$silent) {
+				$i =  $this->stmt->errorInfo();
+				_err($i);
+			}
 			return false;
 		}
 		try {
 			$this->status = $this->stmt->execute();
 		} catch (PDOException $e) {
-			$i =  $this->stmt->errorInfo();
-			if (is_array($i)) _err(print_r($i, TRUE) . "\nstatement = $sql");
-			else _err($i);
+			if (!$silent) {
+				$i =  $this->stmt->errorInfo();
+				if (is_array($i)) _err(print_r($i, TRUE) . "\nstatement = $sql");
+				else _err($i);
+			}
 			return false;
 		}
 		return true;
