@@ -1,13 +1,13 @@
 <?php
 class _oracle {
 	static function version_qry() {
-		return "select banner as vers from V$VERSION";
+		return 'select banner as vers from "V$VERSION"';
 	}
 	static function version_strings() {
 		return [ "oracle" ];
 	}
 	static function dbname_qry() {
-		return 'select V$datase as dbname';
+		return 'select V$datase as "dbname"';
 	}
 	static function databases_qry() {
 		return false;

@@ -144,7 +144,11 @@ class db {
 				}	
 				$db_user = $this->db_user;
 				$db_pass = $this->db_pass;
-				$db_dsn  = "$this->db_drv:host=$this->db_host;port=".$this->db_port.";dbname=$this->db_name";
+				if ($this->db_drv != "oracle") {
+					$db_dsn  = "$this->db_drv:host=$this->db_host;port=".$this->db_port.";dbname=$this->db_name";
+				} else { 
+					$db_dsn  = "$this->db_drv:$this->db_name";
+				}
 			} 
 		}
 
@@ -170,18 +174,19 @@ class db {
 			$this->_drv = "_pgsql";
 		} else if ($this->db_drv == "odbc") {
 			#set autocommit:
-			odbc_setoption($this->conn, 1, 102, 1);
+			#odbc_setoption($this->conn, 1, 102, 1);
 
 			$this->_drv = false;
 			foreach (glob("lib/dbdrv/*.php") as $f) {
 				include_once($f);
-				$d = basename($f, ".php");
-				$this->query($d::version_qry(), false);
+				$d  = basename($f, ".php");
+				$dd = "_$d";
+				$this->query($dd::version_qry(), false);
 				$o  = $this->obj();
 				if ($o !== false) {
-					foreach ($d::version_strings() as $str) {
+					foreach ($dd::version_strings() as $str) {
 						if ($stripos($o->version, $str) !== false) {
-							$this->_drv = "_$d";
+							$this->_drv = $dd;
 							break;
 						}
 					}
@@ -190,10 +195,11 @@ class db {
 			}
 		} 
 
-		if ($this->_drv === false) {
+		if ($this->_drv === false)
 			warn("Databse is not fully supported (no access to metadata)");
-		} 
-		dbg("db_drv = $this->drv over pdo_$this->db_drv");
+		 else  
+			dbg("db_drv = $this->drv over pdo_$this->db_drv");
+
 		$this->status = true;
 	}
 
