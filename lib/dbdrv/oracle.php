@@ -1,7 +1,7 @@
 <?php
 class _oracle {
 	static function version_qry() {
-		return 'select banner as vers from "V$VERSION"';
+		return 'select banner as "version" from V$VERSION';
 	}
 	static function version_strings() {
 		return [ "oracle" ];
