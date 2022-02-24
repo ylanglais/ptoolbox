@@ -144,7 +144,7 @@ class db {
 				}	
 				$db_user = $this->db_user;
 				$db_pass = $this->db_pass;
-				if ($this->db_drv != "oracle") {
+				if ($this->db_drv != "odbc") {
 					$db_dsn  = "$this->db_drv:host=$this->db_host;port=".$this->db_port.";dbname=$this->db_name";
 				} else { 
 					$db_dsn  = "$this->db_drv:$this->db_name";
