@@ -185,7 +185,7 @@ class db {
 				$o  = $this->obj();
 				if ($o !== false) {
 					foreach ($dd::version_strings() as $str) {
-						if ($stripos($o->version, $str) !== false) {
+						if (stripos($o->version, $str) !== false) {
 							$this->_drv = $dd;
 							break;
 						}
