@@ -187,6 +187,7 @@ class db {
 					foreach ($dd::version_strings() as $str) {
 						if (stripos($o->version, $str) !== false) {
 							$this->_drv = $dd;
+							$this->drv  = $d;
 							break;
 						}
 					}
