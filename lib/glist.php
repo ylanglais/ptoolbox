@@ -1,5 +1,6 @@
 <?php
 
+require_once("lib/args.php");
 require_once("lib/util.php");
 require_once("lib/prov.php");
 require_once("lib/locl.php");
@@ -184,6 +185,19 @@ function glist($prov, $opts = []) {
 	$html .= "</td><td class='navpad'>lignes par page:<input style='width: 20px; text-align: right;' id='lpp' value='$pl' onchange='glist_go(\"$id\", $pdat, $d, null, this.value)'></tr></tfoot></table>";
 
 	return $html;
+}
+
+function glist_ctrl() {
+	#dbg("in glist_ctrl");
+	$a = new args();
+
+	$prov = $a->val("prov");
+	$opts = $a->val("opts");
+
+	#dbg(json_encode($prov));
+	#dbg(json_encode($opts));
+
+	return glist(new prov($prov), $opts);
 }
 
 ?>

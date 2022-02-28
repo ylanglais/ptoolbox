@@ -1,13 +1,13 @@
 
 function glist_go(id, pdat, opts, start, lines) {
-	console.log(JSON.stringify(opts));
+	//console.log(JSON.stringify(opts));
 	if (start != null) opts.start = start ;
 	if (lines != null) opts.page  = lines ;
 	console.log(JSON.stringify(opts));
 	
-	data = { "prov": pdat, "opts": opts};
+	data = { "ctrl": "glist", "prov": pdat, "opts": opts};
 	//console.log("glist_go("+ id + "," + JSON.stringify(data));
-	load(id, "glist_act.php", data);
+	load(id, "ctrl.php", data);
 	//$("#" + id).load("glist_act.php", data );       
 }
 
@@ -38,29 +38,11 @@ function glist_sort(el, pdat, opts, field) {
 	}
 	opts.sort  = field;
 	opts.order = o;
-	data = { "prov": pdat, "opts": opts};
-	load(opts.id, "glist_act.php", data);
+	data = { "ctrl": "glist", "prov": pdat, "opts": opts};
+	load(opts.id, "ctrl.php", data);
 }
 
 function glist_view(id, data) {
-	load(id, "gform_act.php", data);
-
-/***
-    $("#"+id).empty();
-    //console.log("glist_view(" + id+ ", "+ JSON.stringify(params)+")");
-    //console.log(" id: " + id + " params: " + JSON.stringify(params));
-    //$("#" + id).load("ui_act.php", params);
-    //load(id, "ui_act.php", params);
-    $.ajax({
-        url: "ui_act.php",
-        type: "POST",
-        data: params,
-        success: function(response) {
-            $("#"+id).append(response);
-        },
-        error: function (xhr, ajaxOptions, thrownError) {
-            console.log("error : "+xhr.responseText);
-        }
-    });
-***/
+	d = { "ctrl": "gform", "id": id, "data": data };
+	load(id, "ctrl.php", d);
 }

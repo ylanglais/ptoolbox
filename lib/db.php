@@ -198,8 +198,8 @@ class db {
 
 		if ($this->_drv === false)
 			warn("Databse is not fully supported (no access to metadata)");
-		 else  
-			dbg("db_drv = $this->drv over pdo_$this->db_drv");
+		#else  
+		#	dbg("db_drv = $this->drv over pdo_$this->db_drv");
 
 		$this->status = true;
 	}

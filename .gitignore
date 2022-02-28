@@ -6,3 +6,4 @@ doc/*
 conf/*.test.*
 broken
 images/*
+logs/*
