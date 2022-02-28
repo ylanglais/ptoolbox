@@ -5,7 +5,7 @@ class test {
 		return ["ok", '{"add": '. ($a + $b) . '"}"' ];
 	} 
 	static function count(array $a) {
-		dbg("test::ount(".json_encode($a).")");
-		return ["ok", '{"count": '. count($a) . '"}"' ];
+		dbg("test::count(".json_encode($a).")");
+		return [ "ok", '{"count": '. count($a) . '"}"' ];
 	} 
 }
