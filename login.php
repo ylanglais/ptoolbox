@@ -22,7 +22,7 @@ input[type=submit] {
 <script type="text/javascript" src="js/geom.js"></script>
 <form action="index.php" method="post" autocomplete="off">
 
-<div id="login" style="position: absolute; background-color: white; width: 20%; min-width: 250px; text-align: center; padding: 15px; box-shadow: 10px 10px 5px #555555;">
+<div id="login" style="position: absolute; background-color: white; width: 15%; min-width: 200px; text-align: center; padding: 15px; border-radius: 5px; box-shadow: 10px 10px 5px #555555;">
 <table align="center">
 <tr><td><label for="login">Login</label></td><td><input type="text" name="login"/></td></tr>
 <tr><td><label for="passwd">Password</label></td><td><input type="password" id="passwd" name="passwd"/></td></tr>

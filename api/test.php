@@ -1,0 +1,11 @@
+<?php
+class test {
+	static function add(int $a, int $b) {
+		dbg("test::add($a, $b)");
+		return ["ok", '{"add": '. ($a + $b) . '"}"' ];
+	} 
+	static function count(array $a) {
+		dbg("test::ount(".json_encode($a).")");
+		return ["ok", '{"count": '. count($a) . '"}"' ];
+	} 
+}

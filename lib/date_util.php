@@ -229,7 +229,7 @@ function date_shift($shift, $date = "", $sep = "-") {
 	return date('Y'.$sep.'m'.$sep.'d', strtotime($shift, strtotime($date)));
 }
 function datetime_shift($shift, $date = "", $sep = "-") {
-	if ($date == "") return date('Y'.$sep.'m'.$sep.'d', strtotime($shift));
+	if ($date == "") return date('Y'.$sep.'m'.$sep.'d H:i:s', strtotime($shift));
 	return date('Y'.$sep.'m'.$sep.'d H:i:s', strtotime($shift, strtotime($date)));
 }
 function date_days_diff($date1, $date2) {

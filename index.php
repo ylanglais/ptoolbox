@@ -29,7 +29,7 @@ if ($_session_->isnew()) {
 		$args->clean("passwd");
 		$args->clean("login");
 	}
-} else if ($_session_->page() == "logout") {
+} else if ($args->has("page") && $args->val("page") == "logout") {
 	$_session_->destroy();
 	$args->all_clean();
 	header("Location: login.php");

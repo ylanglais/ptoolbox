@@ -64,6 +64,13 @@ class curl {
 		}
 	}
 
+	/**
+	 * Set ir unset debug:
+	 */
+	function debug($tf = true) {
+		$this->debug = $tf;
+	}
+
 	/** 
      * Destructor to force connexion closing
 	 */
@@ -74,10 +81,7 @@ class curl {
 	/**
      * Header get or set
      */
-	function header($hdr = "") {
-		if ($hdr == "") {
-			return curl_getopt($this->c, CURLOPT_HTTPHEADER);
-		}
+	function header($hdr) {
 		curl_setopt($this->c, CURLOPT_HTTPHEADER, $hdr);
 		return $hdr;
 	}
@@ -105,14 +109,14 @@ class curl {
 	 * @param $params 	is an associative array of parameters [ $k1 => $v1, $k2 => $v2 ...]
 	 * @return the result of curl_exec or false if an error occured
      */
-	function post($what, $param = []) {
+	function post($what, $param = "") {
 		curl_setopt($this->c, CURLOPT_URL, $this->_url($what));
 		curl_setopt($this->c, CURLOPT_POST, true); 
 		curl_setopt($this->c, CURLOPT_POSTFIELDS, $param);
 	
 		if ($this->debug) {
 			_dbg("curl post url: $this->baseurl/$what");
-			_dbg("curl post param: <<".  print_r($param, true) . ">>");
+			_dbg("curl post param: ".  json_encode($param));
 		}
 
 		$d = false;

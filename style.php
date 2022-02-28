@@ -11,7 +11,6 @@ echo <<<EOB
  */
 body {
 	font-family: $fontfamily;
-	font-size: 10pt;
 	font-size: 1.2vw;
 	text-align: justify;
 	color: $fg;
@@ -97,6 +96,7 @@ div.form {
 div.navigation img {
 	vertical-align: middle;
 }
+
 
 /* Minical style: */
 div.minical {
@@ -435,6 +435,22 @@ img.logo, img.heading {
 	max-height: 100px;
 	height: 75px;
 }
+div.sort, div.sort.up {
+	display: inline-block;
+	height: 12px;
+	width: 12px;
+	/* vertical-align: baseline; */
+	background-image: url('images/sarrow.up.dis.png');
+	background-size: 12px 12px;
+}
+div.sort:hover,
+div.sort.up:hover   { background-image: url('images/sarrow.up.pre.png');     }
+div.sort.down       { background-image: url('images/sarrow.down.dis.png');   }
+div.sort.down:hover { background-image: url('images/sarrow.down.pre.png');   }
+div.sort.sel.up     { background-image: url('images/sarrow.up.white.png');   }
+div.sort.sel.down   { background-image: url('images/sarrow.down.white.png'); }
+
+
 /* 
  * Table definitions:
  */
@@ -477,7 +493,25 @@ td.spacing {
 	border: 0px;
 }
 table.glist {
+	table-layout: auto !important;
 	border: 0.5px solid $normal;
+}
+table.glist th {
+	width: auto !important;
+	position: sticky;
+	top: 0;
+	z-index: 2;
+}
+table.glist tr {
+	border: 0px solid $normal;
+}
+table.glist tr td {
+	width: auto !important;
+	border: 0px solid $normal;
+}
+table.glist td.navpad {
+	width: 200px;
+	text-align: right;
 }
 table.heading, tr.heading{
 	width: 100%;
@@ -544,12 +578,6 @@ td {
 	border: 0px solid $normal;
 	padding: 5px;
 	vertical-align: middle;
-}
-table.glist tr {
-	border: 0px solid $normal;
-}
-table.glist tr td {
-	border: 0px solid $normal;
 }
 td.submit {
 	text-align: right;
@@ -676,7 +704,6 @@ table.form {
 	border: 0.1px solid $normal;
 	border: 0px;
 	box-shadow: 2px 2px 4px $shadow;
-	margin: 5px;
 }
 table.subform {
 	border: 0.1px solid $normal;
@@ -734,7 +761,7 @@ input[type="submit"]
 	appearance: none;
 	color: $selected_fg;
 	border: 0px solid $selected_bg;
-	ouline: 1px solid $selected_bg;
+	outline: 1px solid $selected_bg;
 }
 button:hover,
 input[type="submit"]:hover, 
@@ -1085,13 +1112,15 @@ line.graph.axis.yaxis { }
 text.graph.empty {
 	font-size: 1.2vw;
 	text-anchor: middle;
-	alignment-baseline: middle;
+/*	alignment-baseline:middle; */
+	text-anchor: middle;
 }
 text.graph.title {
 	font-size:1vw;
 	font-weight: bold;
 	text-anchor:middle;
-	alignment-baseline:middle;
+	/* alignment-baseline:middle; */
+	text-anchor: middle;
 	fill: #616161;
 }
 text.graph.label {

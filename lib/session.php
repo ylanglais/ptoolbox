@@ -14,8 +14,6 @@ class session {
 	public  $user;
 	public  $login;	
 	public  $profile;
-	public  $page;
-	public  $prev;
 	public  $userdata;
 	public  $roles;
 
@@ -31,13 +29,6 @@ class session {
 				} #else _log("session: $k is empty");
 			}
 		}
-		$args = new args();
-        #
-        # update page trackgin:
-        if ($args->has('page')) {
-            $_SESSION['prev'] = $this->prev = $this->page;
-            $_SESSION['page'] = $this->page = $args->val('page');
-        }
 
 		if (file_exists("usr/usrsession.php")) {
 			include_once("usr/usrsession.php");
@@ -122,15 +113,12 @@ class session {
 		return $r;
 	}
 	function destroy() {
-		#include "debug.php";
 		audit_logout($this->sid);
+		foreach ($this as $k => $v) {
+			unset($_SESSION[$k]);	
+		}
 		session_unset();
 		session_destroy();
-		//session_regenerate_id(true);
-	}
-	function page($name ="") {
-		if ($name <> "") $_SESSION['page'] = $this->page = $name;
-		return $this->page;
 	}
 }
 ?>

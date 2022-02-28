@@ -1,0 +1,4 @@
+RewriteEngine on
+RewriteBase /
+RewriteRule ^api/([A-Za-z]+)$ api.php?req=$1
+RewriteRule ^api/([A-Za-z]+)/([A-Za-z]+)$ api.php?req=$1&action=$2
