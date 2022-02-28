@@ -24,7 +24,7 @@ if ($a->has("ctrl")) {
 	include("lib/$ctrl.php");
 	$fct = $ctrl . "_ctrl";
 	if (!function_exists($fct)) {
-		err("$file has no $fct");
+		err("$f has no $fct");
 		exit();
 	}
 	print($fct());
