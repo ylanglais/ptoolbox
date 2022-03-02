@@ -4,7 +4,7 @@ require_once("lib/date_util.php");
 require_once("lib/args.php");
 require_once("lib/user.php");
 require_once("lib/session.php");
-require_once("lib/tlist.php");
+require_once("lib/glist.php");
 
 global $_session_;
 
@@ -23,7 +23,8 @@ print("<table class='form'><tr><td>\n");
 /*************************************************
  ******** Envoyer une table DB a glist *************
 **************************************************/
-print(tlist("tech.connection"));
+#print(tlist("tech.connection"));
+print(glist(new prov("default", "tech.connection"), ['gform_id' => 'connection_ui']));
 //print(glist("tech.connection",array("id","login","since","until","ip","state"),0,5));
 
 /*************************************************

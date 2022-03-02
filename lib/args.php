@@ -8,7 +8,9 @@ class args {
 	function __construct() {
 		if (array_key_exists("CONTENT_TYPE", $_SERVER) && $_SERVER["CONTENT_TYPE"] == "application/json") {
 			$a = json_decode(file_get_contents('php://input'), true);
-			foreach ($a as $k => $v) $_POST[$k] = $v;
+			$a = json_decode(($b = file_get_contents('php://input')), true);
+			if (is_array($a)) 
+				foreach ($a as $k => $v) $_POST[$k] = $v;
 		}
 	}
 	function _dbg() {
