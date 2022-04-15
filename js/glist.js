@@ -8,7 +8,6 @@ function glist_go(id, pdat, opts, start, lines) {
 	data = { "ctrl": "glist", "prov": pdat, "opts": opts};
 	//console.log("glist_go("+ id + "," + JSON.stringify(data));
 	load(id, "ctrl.php", data);
-	//$("#" + id).load("glist_act.php", data );       
 }
 
 function glist_sort(el, pdat, opts, field) {
