@@ -49,17 +49,17 @@ function page($dprov, $flds, $start, $page = 25) {
 	$out .= "</tr>";
 	$out .= "<tr><td class='hdr' colspan='".($nfields + 1)."'><div class='navigation'>";
 	if ($start == 0) 
-		$out .= "<a onclick='glist_go(\"$id\", \"$table\", \"$fieldlist\", $fir_off, $page, \"$where\", \"$edit\")'><img height='25px' src='images/start.3f5a94.png'/></a>";
+		$out .= "<a onclick='glist_go(\"$id\", \"$table\", \"$fieldlist\", $fir_off, $page, \"$where\", \"$edit\")'><img height='25px' src='images/start.norm.png'/></a>";
 	else
-		$out .= "<a onclick='glist_go(\"$id\", \"$table\", \"$fieldlist\", $pre_off, $page, \"$where\", \"$edit\")'><img height='25px' src='images/sarrow.left.3f5a94.png'/></a>";
+		$out .= "<a onclick='glist_go(\"$id\", \"$table\", \"$fieldlist\", $pre_off, $page, \"$where\", \"$edit\")'><img height='25px' src='images/sarrow.left.norm.png'/></a>";
 
 	$out .= "<input type='text' style='width: 15px; text-align: right;' value='$sp' id='".$table. "_".$page."'onchange='glist_go(\"$id\", \"$table\", \"$fieldlist\", (this.value - 1) * $page, \"$page\", \"$where\", \"$edit\")'/> on $np";
 
 	if ($nex_off <= $las_off)
-		$out .= "<a onclick='glist_go(\"$id\", \"$table\", \"$fieldlist\", $nex_off, $page, \"$where\", \"$edit\")'><img height='25px' src='images/sarrow.right.3f5a94.png'/></a>";
+		$out .= "<a onclick='glist_go(\"$id\", \"$table\", \"$fieldlist\", $nex_off, $page, \"$where\", \"$edit\")'><img height='25px' src='images/sarrow.right.norm.png'/></a>";
 
 	if ($start < $las_off)
-		$out .= "<a onclick='glist_go(\"$id\", \"$table\", \"$fieldlist\", $las_off, $page, \"$where\", \"$edit\")'><img height='25px' src='images/end.3f5a94.png'/></a>";
+		$out .= "<a onclick='glist_go(\"$id\", \"$table\", \"$fieldlist\", $las_off, $page, \"$where\", \"$edit\")'><img height='25px' src='images/end.norm.png'/></a>";
 
 	$out .= "</div></td></tr></table>";
 	return $out;

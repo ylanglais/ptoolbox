@@ -92,14 +92,12 @@ function tlist($table, $fieldlist = null, $start = 0, $page = 25, $where = "", $
 	
 	$out .= "<table class='glist' id='glist_$tid'>\n";
 	$hdr = "<tr><th>#</th>";
-        
-        $fields = [];
-        if(isset($infos["data"][0]) && count((array)$infos["data"][0]) >0)    
-        foreach($infos["data"][0] as $f => $v){
-            array_push($fields, $f);
-            $hdr .= "<th>$f</th>";
-        }
-
+	$fields = [];
+	if(isset($infos["data"][0]) && count((array)$infos["data"][0]) >0)    
+	foreach($infos["data"][0] as $f => $v){
+		array_push($fields, $f);
+		$hdr .= "<th>$f</th>";
+	}
 	$hdr .= "</tr>\n";
 
 	$nfields = count($fields);

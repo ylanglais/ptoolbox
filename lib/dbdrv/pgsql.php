@@ -37,9 +37,7 @@ class _pgsql {
 		} else {
 			$schema = "public_schema";
 		}
-		return "select column_name from  information_schema.table_constraints tc, information_schema.key_column_usage kc where "
-				. "kc.table_name = tc.table_name and kc.table_schema = tc.table_schema and kc.constraint_name = tc.constraint_name and kc.table_catalog = tc.table_catalog "
-				. "and tc.constraint_type = 'PRIMARY KEY' and tc.table_catalog = current_database() and tc.table_schema = '$schema' and tc.table_name = '$table'";
+		return "SELECT constraint_name, table_schema, table_name, column_name, ordinal_position FROM information_schema.key_column_usage WHERE table_catalog = current_database() and table_schema = '$schema' and table_name = '$table'";
 	}
 	static function fkeys_qry($table) {
 		if (preg_match("/^([^.]*).(.*)$/", $table, $m)) {

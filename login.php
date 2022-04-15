@@ -10,6 +10,7 @@ input[type=text], input[type=password] {
 	box-shadow: -1px -1px 2px #444444;
 	padding: 7px;
 	margin: 10px;
+	width: 10em;
 }
 input[type=button],
 input[type=submit] {
@@ -22,7 +23,7 @@ input[type=submit] {
 <script type="text/javascript" src="js/geom.js"></script>
 <form action="index.php" method="post" autocomplete="off">
 
-<div id="login" style="position: absolute; background-color: white; width: 15%; min-width: 200px; text-align: center; padding: 15px; border-radius: 5px; box-shadow: 10px 10px 5px #555555;">
+<div id="login" style="position: absolute; background-color: white; width: 15%; min-width: 250px; text-align: center; padding: 15px; border-radius: 5px; box-shadow: 10px 10px 5px #555555;">
 <table align="center">
 <tr><td><label for="login">Login</label></td><td><input type="text" name="login"/></td></tr>
 <tr><td><label for="passwd">Password</label></td><td><input type="password" id="passwd" name="passwd"/></td></tr>
