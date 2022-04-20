@@ -22,29 +22,29 @@ class _pgsql {
 		return "select concat('$schema.', table_name) as tables from information_schema.tables where table_catalog = current_database() and table_schema = '$schema' order by 1";
 	}
 	static function columns_qry($table) {
-		if (preg_match("/^([^.]*).(.*)$/", $table, $m)) {
+		if (preg_match("/^([^.]*)\.(.*)$/", $table, $m)) {
 			$schema = $m[1];
 			$table  = $m[2];
 		} else {
-			$schema = "public_schema";
+			$schema = "public";
 		}
 		return "select COLUMN_NAME, IS_NULLABLE, udt_name as DATA_TYPE, COLUMN_DEFAULT, CHARACTER_MAXIMUM_LENGTH from information_schema.COLUMNS where TABLE_CATALOG = current_database() and TABLE_SCHEMA = '$schema' and TABLE_NAME = '$table'";
 	}
 	static function keys_qry($table) {
-		if (preg_match("/^([^.]*).(.*)$/", $table, $m)) {
+		if (preg_match("/^([^.]*)\.(.*)$/", $table, $m)) {
 			$schema = $m[1];
 			$table  = $m[2];
 		} else {
-			$schema = "public_schema";
+			$schema = "public";
 		}
 		return "SELECT constraint_name, table_schema, table_name, column_name, ordinal_position FROM information_schema.key_column_usage WHERE table_catalog = current_database() and table_schema = '$schema' and table_name = '$table'";
 	}
 	static function fkeys_qry($table) {
-		if (preg_match("/^([^.]*).(.*)$/", $table, $m)) {
+		if (preg_match("/^([^.]*)\.(.*)$/", $table, $m)) {
 			$schema = $m[1];
 			$table  = $m[2];
 		} else {
-			$schema = "public_schema";
+			$schema = "public";
 		}
 		return "select s.column_name as col, r.table_schema || '.' || r.table_name as ftable, r.column_name as fcol from "
 			.  "information_schema.table_constraints c ,information_schema.key_column_usage s ,information_schema.constraint_column_usage r where "
