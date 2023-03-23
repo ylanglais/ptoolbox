@@ -61,7 +61,7 @@ function menu_content() {
 		else if ($o->launcher == "tdb_form") $str .= menu_tdb_form($o->label, $o->script);
 	}
 	$str .= "\t\t</ul>\n\t</li>\n";
-	$str .= "<script>timeout_set(10);</script>
+	$str .= "<script>timeout_set(60);</script>
 		<script>
 		
 		</script>

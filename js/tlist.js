@@ -2,7 +2,7 @@
 function tlist_go(id, table, flist, start, page, where, edit) {
 	data = { "table": table, "fieldlist": flist, "start": start, "page": page, "where": where, "edit": edit};
 	//console.log("tlist_go("+ id + "," + JSON.stringify(data));
-	load(id, "tlist_act.php", { "table": table, "fieldlist": flist, "start": start, "page": page, "where": where, "edit": edit} );
+	load(id, "tlist_act.php", data );
 	//$("#" + id).load("tlist_act.php", { "table": table, "fieldlist": flist, "start": start, "page": page, "where": where, "edit": edit} );       
 }
 

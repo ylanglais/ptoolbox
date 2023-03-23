@@ -1,5 +1,5 @@
 function form_load(name, form, action) {
-	form = atob(form);
+ 	form = atob(form);
 	form = JSON.parse(form);
 	namedata = name + "_data";
 	let data = {};
@@ -21,3 +21,5 @@ function form_load(name, form, action) {
 	console.log(">>> " + JSON.stringify(data));
 	$("#"+namedata).load(form.url, data);
 }
+
+

@@ -30,6 +30,7 @@ function load(id, url, params) {
 	.catch(function(err) { console.log(err); });
 } 
 
+/*
 function post(path, params) {
     method = "post";
     // The rest of this code assumes you are not using a library.
@@ -55,4 +56,13 @@ function post(path, params) {
 	form.submit();
 }
 
+*/
+
+
+function post(url, data) {
+	fetch(url, { method: "POST", credentials: 'same-origin', cache: 'no-cache', headers: {  'Content-Type': 'application/json' }, body: data} )
+	.then(response => response.text())
+	.then(html     => { window.open(response.text());})
+	.catch(function(err) { console.log(err); });
+}
 
