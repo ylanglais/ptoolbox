@@ -107,6 +107,28 @@ class rpt {
 		}
 		return $str;
 	}
+	function table_parse($str, $hdr = false, $lnum = false) {
+		if (substr($str, 0, 4) == "sql(") {
+			$q = new query(substr($str, 4, -1), $this->odb);
+			$arr = [];
+			$hdd = [];
+			$r = 1;
+			if ($hdr && $lnum) array_push($hdd, "#");
+			while ($d = $q->data()) {
+				$arl = [];
+				if ($lnum) array_push($arl, $r);
+				foreach ($d as $k => $v) {
+					if ($hdr && $r == 1) array_push($hdd, $k);	
+					array_push($arl, $v);
+				}	
+				if ($hdr && $r == 1) array_push($arr, $hdd);
+				array_push($arr, $arl);
+				$r++;
+			}
+			return $arr;
+		}
+		return [];
+	}
 	function range_parse($str) {
 		if (substr($str, 0, 4) == "sql(") {
 		
@@ -290,12 +312,10 @@ class rpt {
         }
         return $str;
     }
-    function rpt_table($o, $hdr = true) {
+    function rpt_array($o, $hdr = true) {
         if (!is_array($o)) return "";
         $str = "\t<table class='results'>\n";
         $i = 0;
-		if (array_key_exists("header", $o)) $hdr = $o->header;
-		if (array_key_exists("hdr", $o))    $hdr = $o->hdr;
         foreach ($o as $l) {
             $str .= "\t\t<tr>";
             $i++;
@@ -314,6 +334,26 @@ class rpt {
 		$str .= "\t</table>\n";
         return $str;
     }
+	function rpt_table($o, $hdr = true) {
+        if (is_array($o))   return $this->rpt_array($o, $hdr);
+		if (!is_object($o)) return "";
+		$str = "";
+		if (property_exists($o, "header")) $hdr = $o->header;
+		if (property_exists($o, "hdr"))    $hdr = $o->hdr;
+		if (property_exists($o, "title")) 
+			$str .= "<h2 style='text-align: center'>$o->title</h2>";
+		if (property_exists($o, "data")) {
+			if (is_array($o->data)) $str .= $this->rpt_array($o->data, $hdr);
+			else if (substr($o->data, 0, 4) == "sql(") {
+				$lnum = false;
+				if (property_exists($o, "linenumbers") && $o->linenumbers === true) $lnum = true;
+				if (property_exists($o, "lnum")        && $o->lnum        === true) $lnum = true;
+				$str .= $this->rpt_array($this->table_parse($o->data, $hdr, $lnum), $hdr);
+			}
+		}
+		return $str;
+	}
+
     function rpt_table_noheader($o) {
         return $this->rpt_table($o, false);
     }
@@ -544,7 +584,12 @@ class rpt {
 		$str   = "";
 		$lbl   = $dat = [];
 		$total = 0;
-	
+
+		$nolimit = false;
+		$max_totpc  = 95; #95% 
+		$max_parts  =  8 ;
+		$min_partpc =  2; # (if not the last item
+
         if (!property_exists($o, "labels")) {
 			if (!property_exists($o, "data")) {
                 _err("badly formed rpt_breakdown block ignored (no label and no data)");
@@ -566,7 +611,7 @@ class rpt {
 			return "";
 		} else {
 			if (!is_array($o->labels)) {
-				_error("badlu formed rpt_breakdown block ignored (label isn't an array " . print_r($o, FALSE));
+				_error("badly formed rpt_breakdown block ignored (label isn't an array " . print_r($o, FALSE));
 				return "";
 			}
 			$n = count($o->labels);
@@ -579,6 +624,14 @@ class rpt {
 			}
 		}
 
+	 	if (property_exists($o, "nolimit") && $o->nolimit == true) $nolimit = true;
+		else {
+	 		if (property_exists($o, "max_totpc" ) && $o->max_totpc  > 0 && $o->max_totpc  <= 100) $max_totpc  = $o->max_totpc;
+	 		if (property_exists($o, "min_partpc") && $o->min_partpc > 0 && $o->max_partpc <  100) $min_partpc = $o->min_partpc;
+	 		if (property_exists($o, "max_parts")  && $o->max_parts  > 0 && $o->max_parts  <   20) $max_parts  = $o->max_parts;
+			
+		}
+
         $l = $d = [];
 		
 		$a = [];
@@ -589,7 +642,7 @@ class rpt {
         for ($i = 0; $i < $n; $i++) {
 			$p = $dat[$i] / $total * 100;
 			# limit to total = 95% or 8 parts or < 2% (if not the last item):
-			if (($t >= 95 || $i > 8 || $p < 2) && $i < $n - 2) {
+			if ($nolimit === false && ($t >= $max_totpc || $i > $max_parts || $p < $min_partpc) && $i < $n - 2) {
 				array_push($l, "Autres");
 				array_push($d, $total - $c);
 				$a[$i] = [ "Autres", $total - $c, (100. - $t) . "%" ];
