@@ -64,7 +64,13 @@ div.menu {
 	overflow:  auto;
     box-shadow: 3px 3px 5px $shadow;
 }
-
+#msg_area { 
+	position: fixed;
+	bottom:     0px; 
+	overflow:  auto;
+	width:    calc(100% - 300px); 
+	height:    100px;
+}
 div.block {
 	page-break-inside: avoid;
 	page-break-before: auto;
@@ -763,6 +769,9 @@ input[type="submit"]
 	border: 0px solid $selected_bg;
 	outline: 1px solid $selected_bg;
 }
+button:focus,
+input[type="submit"]:focus, 
+input[type="button"]:focus,
 button:hover,
 input[type="submit"]:hover, 
 input[type="button"]:hover
@@ -788,9 +797,7 @@ button:focus,
 input[type="submit"]:focus, 
 input[type="button"]:focus 
 {
-	outline-style: hidden;
-	outline-width: 0px;
-	outline: none;
+	color: $selected_fg;
 }
 input[type="checkbox"] {
 	color: $bg;
