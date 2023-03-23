@@ -18,8 +18,12 @@ function glist($prov, $opts = []) {
 	#
 	# Prepare options:
 	$dopts = [ "start" => 0, "page" => 25, "ln" => true, "hdr" => true, "ftr" => true, "sort" => false, "order" => "up", "id" => false , "gform_id" => false ];
+
 	if (is_array($opts)) {
-		foreach ($dopts as $k => $v) if (!array_key_exists($k, $opts)) $opts[$k] = $v;
+		foreach ($dopts as $k => $v) {
+			if (!array_key_exists($k, $opts)) 
+				$opts[$k] = $v;
+		}
 	} else $opts = $dopts;
 	
 	# 
@@ -108,12 +112,12 @@ function glist($prov, $opts = []) {
 			$i++;
 
 			$qry = [];
-
 			if ($opts["gform_id"] !== false) {
+dbg("a");
 				foreach ($keys as $k) {
+dbg("k = $k");
 					if (!property_exists($o, $k)) {
 						if (!property_exists($o, "_hidden_$k")) {
-							$qry = [];
 							break;
 						}
 						$qry[$k] = $o->{"_hidden_$k"};
@@ -122,6 +126,8 @@ function glist($prov, $opts = []) {
 					}
 				}
 			}
+		
+			dbg("---> " . json_encode($qry));
 
 			$html .= "<tr onmouseover='this.classList.add(\"over\")' onmouseout='this.classList.remove(\"over\")'";
 			if ($qry != []) {
@@ -136,7 +142,7 @@ function glist($prov, $opts = []) {
 				$cl = "";
 				if (property_exists($o, $k)) { 
 					$v = $locl->format($o->$k);
-					if (is_float($v) || is_numeric($v) || substr($v, -1) == "%") $cl = "class='number'";
+					if (is_float($o->$k) || is_numeric($o->$k) || substr($o->$k, -1) == "%") $cl = "class='number'";
 				} else {
 					$v = "";
 				}

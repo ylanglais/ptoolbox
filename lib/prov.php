@@ -62,10 +62,63 @@ class prov {
 				array_push($this->fields, $f);
 			}
 		}
+dbg("fields: " . json_encode ($this->fields));
 	}
 
 	function fields() {
 		return $this->fields;
+	}
+
+	function quote($f, $v) {
+		if (array_key_exists($f, $this->cols)) {
+dbg("$f --> " . $this->cols[$f]["data_type"]);
+			switch($this->cols[$f]["data_type"]) {
+				case "int":
+				case "int2":
+				case "int4":
+				case "integer":
+				case "boolean":
+				case "smallint":
+				case "bigint":
+				case "decimal":
+				case "numeric":
+				case "real":
+				case "double":
+				case "double precision":
+				case "smallserial":
+				case "serial":
+				case "bigserial":
+					return $v;
+					break;
+				case "date":
+				case "time":
+				case "datetime":
+					return "'$v'";
+					break;
+			}
+			if ($v == null  || $v == "null") {
+				dbg("v is null");
+				return "null";
+			}
+		}
+		return "'" . esc($v) . "'";
+	}
+
+	function defval($f) {
+		if (array_key_exists($f, $this->cols)) {
+			return $this->cols[$f]["column_default"];
+		}
+		return "";
+	}
+	function nullable($f) {
+		if (array_key_exists($f, $this->cols)) {
+			return $this->cols[$f]["is_nullable"];
+		}
+		return false;	
+	}
+	function iskey($f) {
+		if (array_key_exists($f, $this->keys)) return true;
+		return false;
 	}
 
 	function keys() {
@@ -82,14 +135,19 @@ class prov {
 				if ($i > 0) $q .= " and";
 				$i++;
 				if (array_key_exists($k, 	$this->cols)) {
-					switch($this->cols[$k]->type) {
-					case "boolean":
+					switch($this->cols[$k]["data_type"]) {
+					case "int":
+					case "int2":
+					case "int4":
 					case "integer":
+					case "boolean":
 					case "smallint":
+					case "bigint":
 					case "decimal":
 					case "numeric":
 					case "real":
 					case "double":
+					case "double precision":
 					case "smallserial":
 					case "serial":
 					case "bigserial":
@@ -144,9 +202,21 @@ class prov {
 				$q .= " desc";
 		}
 		$q .= " offset $start limit $limit"; 
-		#dbg("query= $q");
+		dbg("query= $q");
 		$q = new query($this->db, $q);
 		return $q->all();	
+	}
+
+	function get($req) {
+		$w = [];
+		foreach ($req as $k => $v) {
+			array_push($w, "$k = ". $this->quote($k, $v));
+		}
+		$where = " where " . implode(" and ", $w);
+		dbg("select * from $this->table $where");
+		$q = new query($this->db, "select * from $this->table $where");
+		
+		return $q->obj();
 	}
 
 	function data() {

@@ -10,3 +10,7 @@ function tdb_form(module, titre) {
 function tdb_page(page) {
 	$("#data_area").load(page);
 }
+function tdb_table(page, datalink) {
+	$("#data_area").load("gui.php", {'page': page, 'datalink': datalink});
+}
+

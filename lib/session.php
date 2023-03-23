@@ -86,8 +86,8 @@ class session {
 		}
 	}
 	function has_role($role) {
-		if ($this->roles == null || !in_array($role, $this->roles)) return false;
-		return true;
+		if ($this->roles != null && (in_array($role, $this->roles) || ($role != "admin" && in_array("any", $this->roles)))) return true;
+		return false;
 	}
 	function has($key) {
 		if (isset($_SESSION[$key])) { 
