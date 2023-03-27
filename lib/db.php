@@ -92,26 +92,30 @@ class db {
 	 *  - be unset or set to false, in which case the default database configured in conf/db.php will be used 
 	 *  - contain a dbs, (dbs=db_connexion_id or db_connexion_id referenced in column dbs of the tech.dbs table of the default database)
      *    "dbs=default" or default stands for default database configured in conf/db.php
-     *  - contain a proper pdo dsn  matched by '^([^:]*):(host=[^;]*);(port=([0-9]*);)?(dbname=(.*))$'
+     *  - contain a proper pdo dsn  matched by '^([^:]*):(host=[^;]*);(port=([0-9]*);)?(dbname=([^;]*))?'
 	 *  
      * 	<pre>
 	 *  @param $db_user     if d$b_dsn is a proper dsn, must be set to database user login
 	 *  @param $db_user     if $db_dsn is a proper dsn, must be set to database user password
-	 *  @param $dboption    may contain options passed to $options argument of PDO constructor (see https://www.php.net/manual/class.pdo.php) 
+	 *  @param $db_options  may contain options passed to $options argument of PDO constructor (see https://www.php.net/manual/class.pdo.php) 
+	 *  @param $db_opts		may contain dsn extra options 
 	 *  </pre>
 	 */
-	function __construct($db_dsn = false, $db_user = null, $db_pass = null, $db_options = [PDO::ERRMODE_WARNING => true]) {
-		$this->status    = false;
-		$this->db_drv    = false;
-		$this->drv    	 = false;
-		$this->_drv    	 = false;
-		$this->db_name   = false;
+	function __construct($db_dsn = false, $db_user = null, $db_pass = null, $db_options = [PDO::ERRMODE_WARNING => true], $db_opts = null) {
+		$this->status  = false;
+		$this->db_drv  = false;
+		$this->drv     = false;
+		$this->_drv    = false;
+		$this->db_name = false;
+		$this->db_opts = null;
+
+		$this->db_dsn  = $db_dsn;
 
 		if ($db_dsn === false || $db_dsn == "dbs=default" || $db_dsn == "default") {
 			if (file_exists("conf/db.php")) {
 				include("conf/db.php");
 				if (!isset($db_dsn) || $db_dsn === false) {
-					if (!isset($db_drv) || $db_drv === false) $db_drv = "mysql";
+					if (!isset($db_drv) || $db_drv  === false) $db_drv = "mysql";
 					if (isset($db_port) || $db_port !== false) $port="port=$db_port;"; else $port = "";
 					$db_dsn = "$db_drv:host=$db_host;".$port."dbname=$db_name";
 					if ($db_user === false && isset($db_usid)) $db_user = $db_usid;
@@ -119,16 +123,21 @@ class db {
                                 
 				$this->drv     = $db_drv;
 				$this->db_drv  = $db_drv;
+				$this->db_dsn  = $db_dsn;
 				$this->db_name = $db_name;
+				$this->db_user = $db_user;
+				$this->db_pass = $db_pass;
+				if (isset($db_opts)) $this->db_opts = $db_opts;
 			} else return;
 		} else {
 			if (preg_match("/^odbc:(.*)$/", $db_dsn, $m)) {
 				$this->db_drv  = "odbc";
 				$this->db_name = $m[1];
 				$this->db_dsn  = $db_dsn;
-			} else if (preg_match("/^([^:]*):(host=[^;]*);(port=([0-9]*);)?(dbname=(.*))$/", $db_dsn, $m)) {
+			} else if (preg_match("/^([^:]*):(host=[^;]*);(port=([0-9]*);)?(dbname=([^;]*))(;(.*))?$/", $db_dsn, $m)) {
 				$this->db_drv  = $m[1];
 				$this->db_name = $m[6];
+				$this->db_dsn  = $db_dsn;
 			} else {
 				if (preg_match("/^dbs=(.*)$/", $db_dsn, $m))
 					$dbs = $m[1];
@@ -136,26 +145,35 @@ class db {
 					$dbs = $db_dsn;
 
 				$dd = new db();
-				$q = $dd->query("select drv, host, port, name, \"user\", pass from tech.dbs where dbs = '$dbs'");
+				$q = $dd->query("select drv, host, port, name, \"user\", pass, opts from tech.dbs where dbs = '$dbs'");
 				if ($q === false) return;
 				$o = $dd->obj();
-				foreach (["drv", "host", "port", "name", "user", "pass"] as $k) {
-					$this->{"db_".$k} = $o->$k;
-				}	
-				$db_user = $this->db_user;
-				$db_pass = $this->db_pass;
+				foreach ($o as $k => $v) {
+					$this->{"db_$k"} = $v;
+				}
 				if ($this->db_drv != "odbc") {
-					$db_dsn  = "$this->db_drv:host=$this->db_host;port=".$this->db_port.";dbname=$this->db_name";
+					$this->db_dsn  = "$this->db_drv:host=$this->db_host;port=".$this->db_port.";dbname=$this->db_name";
 				} else { 
-					$db_dsn  = "$this->db_drv:$this->db_name";
+					$this->db_dsn  = "$this->db_drv:$this->db_name";
 				}
 			} 
 		}
 
+		#
+		# Direct call to constructor should overload db / conf file data:
+		if (isset($db_user) && $db_user !== null) $this->db_user = $db_user;
+		if (isset($db_pass) && $db_pass !== null) $this->db_pass = $db_pass;
+		if (isset($db_opts) && $db_opts !== null) $this->db_opts = $db_opts;
+
+		if ($db_options !== null) $this->db_dvop = $db_options;
+
+		$dsn = $this->db_dsn;
+		if ($this->db_opts !== null) $dsn .= ";$this->db_opts";
+
 		try {
-			$this->pdo = new PDO($db_dsn, $db_user, $db_pass, $db_options);
+			$this->pdo = new PDO($dsn, $this->db_user, $this->db_pass, $this->db_dvop);
 		} catch (PDOException $e) {
-			_err("Cannot connect to db using $db_dsn: " . $e->getMessage());
+			_err("Cannot connect to db using $this->db_dsn: " . $e->getMessage());
 			$this->pdo = false;
 			return;
 		}	
