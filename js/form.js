@@ -18,6 +18,6 @@ function form_load(name, form, action) {
 			data[i] = document.getElementById(i).value;
 		}
 	}	
-	console.log(">>> " + JSON.stringify(data));
+	console.log(">>>call " + form.url + " with " + JSON.stringify(data)); 
 	$("#"+namedata).load(form.url, data);
 }

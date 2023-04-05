@@ -18,7 +18,7 @@ if ($a->has("ctrl")) {
 	#dbg("ctrl = $ctrl");
 	$f = "lib/$ctrl.php";
 	if (!file_exists($f)) {
-		err("$file does not exist");
+		err("$f does not exist");
 		exit();
 	}
 	include("lib/$ctrl.php");

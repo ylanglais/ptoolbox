@@ -7,6 +7,9 @@ function tdb_hdr(module, titre) {
 function tdb_form(module, titre) {
 	$("#data_area").load("tdb_form.php", {'module': module, 'titre': titre});
 }
+function tdb_rpt(rptname) {
+	$("#data_area").load("tdb_rpt.php", {'rptname': rptname});
+}
 function tdb_page(page) {
 	$("#data_area").load(page);
 }

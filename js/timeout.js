@@ -3,9 +3,12 @@
  */
 
 var timeout_value;
+var timeout_id;
 function timeout_set(minutes) {
 	console.log("Start timer");
     window.onload = timeout_reset;
+
+	timeout_value = minutes;
 
     /*  
 	 * DOM Events 
@@ -34,8 +37,8 @@ function timeout_logout(what) {
 function timeout_reset() {
 	sec = 1000;
 	min = 60;
-	clearTimeout(timeout_value);
-	timeout_value = setTimeout(timeout_logout, 10 * min * sec);
+	clearTimeout(timeout_id);
+	timeout_id = setTimeout(timeout_logout, timeout_value * min * sec);
 }
 
 /*

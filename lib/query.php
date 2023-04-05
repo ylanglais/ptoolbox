@@ -163,8 +163,8 @@ class query {
 		$all = "";
 		while ($o = $this->obj()) {
 			$r = [];
-			foreach ($o as $k => $v) { array_push($r, "$v"); }
-			$all .= implode($sep, $del.$r.$dem) . "\n";
+			foreach ($o as $k => $v) { array_push($r, $del.$v.$del); }
+			$all .= implode($sep, $r) . "\n";
 		}
 		return $all;
 	}

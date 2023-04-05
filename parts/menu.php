@@ -34,6 +34,9 @@ function menu_content() {
 	function menu_tdb_hdr($label, $url) {
 		return "\t\t\t<li class='menuentry'><a class='menuentry' onclick='tdb_hdr(\"$url\",  \"$label\");menu_onclick(this);'>$label</a></li>\n";
 	}
+	function menu_tdb_rpt($label, $rptname) {
+		return "\t\t\t<li class='menuentry'><a class='menuentry' onclick='tdb_rpt(\"$rptname\");menu_onclick(this);'>$label</a></li>\n";
+	}
 	function menu_tdb_form($label, $url) {
 		return "\t\t\t<li class='menuentry'><a class='menuentry' onclick='tdb_form(\"$url\",  \"$label\");menu_onclick(this);'>$label</a></li>\n";
 	}
@@ -60,13 +63,14 @@ function menu_content() {
 
 		if 	    ($o->ptype    == "Table")    $str .= menu_new_table($o->page, $o->datalink); 
 		else if ($o->ptype    == "System")   $str .= menu_tdb_page($o->page,  $o->pagefile); 
-		//if      ($o->launcher == "new page") $str .= menu_new_page($o->label, $o->script);
-		//else if ($o->launcher == "tdb_page") $str .= menu_tdb_page($o->label, $o->script);
-		//else if ($o->launcher == "tdb_hdr" ) $str .= menu_tdb_hdr ($o->label, $o->script);
-		//else if ($o->launcher == "tdb_form") $str .= menu_tdb_form($o->label, $o->script);
+		//if      ($o->ptype == "new page") $str .= menu_new_page($o->label, $o->script);
+		//else if ($o->ptype == "tdb_page") $str .= menu_tdb_page($o->label, $o->script);
+		//else if ($o->ptype == "tdb_hdr" ) $str .= menu_tdb_hdr ($o->label, $o->script);
+		//else if ($o->ptype == "tdb_form") $str .= menu_tdb_form($o->label, $o->script);
+		//else if ($o->ptype == "tdb_rpt")  $str .= menu_tdb_rpt ($o->label, $o->script);
 	}
 	$str .= "\t\t</ul>\n\t</li>\n";
-	$str .= "<script>timeout_set(10);</script>
+	$str .= "<script>timeout_set(60);</script>
 		<script>
 		
 		</script>
