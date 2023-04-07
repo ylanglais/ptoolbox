@@ -15,7 +15,7 @@ function stats_update($key, $val) {
 	} else {
 		if ($val < $o->min) $o->min = $val;
 		if ($val > $o->max) $o->max = $val;
-		$o->avg = ($o->n * $o->avg + $val) / ($n + 1);
+		$o->avg = ($o->n * $o->avg + $val) / ($o->n + 1);
 		$o->n++;
 		new query("update stats.duration set n = $o->n, min = $o->min, max = $o->max, avg = $o->avg where key = '$key'");
 	}
