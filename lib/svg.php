@@ -34,7 +34,7 @@ class svg {
 		if ($class == "pie" && $this->height > 200) $pc = "75%";
 		$hh = $this->height . "px";
 		$outs  = "<div class='$class' width='100%' height='100%' style='min-height:$hh;text-align:center;vertical-align:middle'>\n";
-		$outs .= "<svg width='$pc'    height='$pc' viewBox='0 0 $this->width $this->height' preserveAspectRatio='xMidYMid meet' style='height: auto;resize:auto'>\n";
+		$outs .= "<svg width='$pc'    height='$pc' viewBox='0 0 $this->width $this->height' preserveAspectRatio='xMidYMid meet' style='height: auto;'>\n";
 		return $outs;
 	}
 
@@ -289,7 +289,7 @@ class svg {
 			$y  = $margin + 20 * ($i + 1);
 			$outs .= "<line class='graph legend' x1='$x0' y1='$y' x2='$x1' y2='$y' style='stroke:". $this->color($i).";stroke-width:2px;'/>\n";
 			$x  = $x0 + 30;  
-			$outs .= "<text class='graph legend' style='fill:".style::value("svg_graph_legend")."' font-size='.9vw' x='$x' y='$y' text-anchor='right' >$t</text>\n";
+			$outs .= "<text class='graph legend' style='fill:".style::value("svg_graph_legend")."' font-size='.9vw' x='$x' y='$y' text-anchor='start' >$t</text>\n";
 			$i++;
 		}
 		
@@ -664,7 +664,7 @@ class svg {
 		#
 		# Draw xunits if required:
 		if ($this->param('xunits')) {
-			$outs .= "<text class='graph units xunits' style='fill: ".style::value("svg_graph_units_xunits")."' x='$x1'  y='". ($y0 + $margin/2) ."' text-anchor='middle'>".$this->locl->format($this->param('xunits'))."</text>\n";
+			$outs .= "<text class='graph units xunits' style='fill: ".style::value("svg_graph_units_xunit")."' x='$x1'  y='". ($y0 + $margin/2) ."' text-anchor='middle'>".$this->locl->format($this->param('xunits'))."</text>\n";
 		}
 
 /**
@@ -743,7 +743,7 @@ class svg {
 			$y  = $margin + 20 * ($i + 1);
 			$outs .= "<line class='graph legend' x1='$x0' y1='$y' x2='$x1' y2='$y' style='stroke:". $this->color($i).";stroke-width:2;'/>\n";
 			$x  = $x0 + 30;  
-			$outs .= "<text class='graph legend' style='fill: ".style::value("svg_graph_legend")."' x='$x' y='$y' text-anchor='right' >" . $this->locl->format($t) ."</text>\n";
+			$outs .= "<text class='graph legend' style='fill: ".style::value("svg_graph_legend")."' x='$x' y='$y' text-anchor='start' >" . $this->locl->format($t) ."</text>\n";
 			$i++;
 		}
 		$outs .= $this->fini();
