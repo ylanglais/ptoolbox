@@ -44,5 +44,6 @@ function sync_post(url, data) {
     ws.open("POST", url, false); //false means synchronous
     ws.setRequestHeader("Content-Type", "application/json; charset=utf-8");
     ws.send(JSON.stringify(data));
-    return JSON.parse(ws.response);
+	if (ws.respnse) return JSON.parse(ws.response);
+	return false;
 }
