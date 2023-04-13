@@ -45,3 +45,12 @@ function glist_view(id, data) {
 	d = { "ctrl": "gform", "id": id, "data": data };
 	load(id, "ctrl.php", d);
 }
+
+function glist_toggle_selected(classname) {
+	for (const e of document.getElementsByClassName(classname)) {
+		e.checked = !e.checked;
+	}
+}
+
+function glist_action() {
+}

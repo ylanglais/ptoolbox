@@ -29,16 +29,15 @@ if (!$a->has("datalink")) {
 	exit();
 }
 $datalink = $a->val("datalink");
-
-if (!preg_match("/^([^.]*)\.(.*)$/", $datalink, $m)) {
-	print("<h2>Bad datalink</h2></div>");
-	exit();
+if ($a->has("type")) {
+	$type = $a->val("type");
+} else {
+	$type = "db";
 }
-$base  = $m[1];
-$table = $m[2];
+dbg("type = $type");
 
 print("<table class='form'><tr><td>\n");
-print(glist(new prov("$base", "$table"), ['gform_id' => "gform_$page"]));
+print(glist(new prov($type, "$datalink"), ['gform_id' => "gform_$page"]));
 print("</td><td>\n");
 print("<div id='gform_$page'></div>\n");
 print("</td></tr></table>\n");

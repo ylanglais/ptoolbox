@@ -46,4 +46,7 @@ function layout_part($divid, $divclass, $part) {
 print("<div id='body'>\n");
 print(layout_part("heading", "heading", "heading"));
 print(layout_part("menu", "menu", "menu"));
-print("<div id='data_area'></div>\n</div>\n");
+print("<div id='data_area'></div>\n");
+#print("<div id='msg_area'></div>\n");
+print("</div>\n");
+
