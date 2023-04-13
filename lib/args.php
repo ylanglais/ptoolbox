@@ -13,7 +13,7 @@ class args {
 				$a = json_decode($b);
 			else $a = $b;
 		
-			if (is_array($a) || is_object($a)) foreach ($a as $k => $v) { $_POST[$k] = $v; dbg("$k => $v");}
+			if (is_array($a) || is_object($a)) foreach ($a as $k => $v) $_POST[$k] = $v;
 		}
 	}
 	function err() {

@@ -61,6 +61,10 @@ class form {
 		return ($this->vars = $vars);
 	}
 
+	function sql($string) {
+			
+	}
+
 	function data() {
 		return json_encode($this->vars);
 	}
@@ -79,8 +83,10 @@ class form {
 					   . date_db_to_human($this->vars->$n) . "'/></td></tr>\n";
 			} else if ($p["type"] == "string") {
 				$str .= "<td><input id='$n' name='$n' value='" . $this->vars->$n. "'/></td></tr>\n";
-			} else if ($p["type"] == "list") {
-				$str .= "<td><select name='$n' id='$n'>";
+			} else if ($p["type"] == "list" || $p["type"] == 'mlist') {
+				$m = ""; 
+				if ($p["type"] == 'mlist') $m = "multiple";
+				$str .= "<td><select name='$n' id='$n' $m>";
 				foreach ($p["values"] as $v) {
 					if ($this->vars->$n == $v) 
 						$sel="selected";
