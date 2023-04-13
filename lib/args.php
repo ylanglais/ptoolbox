@@ -6,14 +6,14 @@ require_once("lib/dbg_tools.php");;
  */
 class args {
 	function __construct() {
-		if (array_key_exists("CONTENT_TYPE", $_SERVER) && $_SERVER["CONTENT_TYPE"] == "application/json") {
+		if (array_key_exists("CONTENT_TYPE", $_SERVER) && substr($_SERVER["CONTENT_TYPE"], 0, 16) == "application/json") {
 			$b = file_get_contents('php://input');
 
 			if (is_string($b))
 				$a = json_decode($b);
 			else $a = $b;
 		
-			if (is_array($a) || is_object($a)) foreach ($a as $k => $v) { $_POST[$k] = $v; dbg("$k => $v");}
+			if (is_array($a) || is_object($a)) foreach ($a as $k => $v) $_POST[$k] = $v;
 		}
 	}
 	function err() {

@@ -3,6 +3,9 @@ require_once("lib/dbg_tools.php");
 require_once("lib/session.php");
 require_once("lib/query.php");
 
+function menu_esc($str) {
+	return str_replace("'", "\\'", $str);
+}
 function menu_content() {
 	global $_session_;
 	if (!isset($_session_)) $_session_ = new session();
@@ -22,30 +25,35 @@ function menu_content() {
 
 	if ($rstr == "") $rstr = "'user'";
 
-	function menu_new_table($label, $dlink) {
-		return "\t\t\t<li class='menuentry'><a class='menuentry' target='_blank' onclick='tdb_table(\"$label\", \"$dlink\");menu_onclick(this);'>$label</a></li>\n";
+	function menu_tdb_table($label, $dlink) {
+		$l = menu_esc($label);
+		return "<li class=\"menuentry\"><a class=\"menuentry\" target=\"_blank\" onclick=\"tdb_table('$l', '$dlink');menu_onclick(this);\">$label</a></li>";
 	}
 	function menu_new_page($label, $url) {
-		return "\t\t\t<li class='menuentry'><a class='menuentry' target='_blank' href='$url'>$label</a></li>\n";
+		return "<li class=\"menuentry\"><a class=\"menuentry\" target=\"_blank\" href='$url'>$label</a></li>";
 	}
 	function menu_tdb_page($label, $url) {
-		return "\t\t\t<li class='menuentry'><a class='menuentry' onclick='tdb_page(\"$url\", \"$label\");menu_onclick(this);'>$label</a></li>\n";
+		$l = menu_esc($label);
+		return "<li class=\"menuentry\"><a class=\"menuentry\" onclick=\"tdb_page('$url', '$label');menu_onclick(this);\">$label</a></li>";
 	}
 	function menu_tdb_hdr($label, $url) {
-		return "\t\t\t<li class='menuentry'><a class='menuentry' onclick='tdb_hdr(\"$url\",  \"$label\");menu_onclick(this);'>$label</a></li>\n";
+		$l = menu_esc($label);
+		return "<li class=\"menuentry\"><a class=\"menuentry\" onclick=\"tdb_hdr('$url', '$l');menu_onclick(this);\">$label</a></li>";
 	}
 	function menu_tdb_rpt($label, $rptname) {
-		return "\t\t\t<li class='menuentry'><a class='menuentry' onclick='tdb_rpt(\"$rptname\");menu_onclick(this);'>$label</a></li>\n";
+		$rn = menu_esc($rptname);
+		return "<li class=\"menuentry\"><a class=\"menuentry\" onclick=\"tdb_rpt('$rn');menu_onclick(this);\">$label</a></li>";
 	}
 	function menu_tdb_form($label, $url) {
-		return "\t\t\t<li class='menuentry'><a class='menuentry' onclick='tdb_form(\"$url\",  \"$label\");menu_onclick(this);'>$label</a></li>\n";
+		$l = menu_esc($label);
+		return "<li class=\"menuentry\"><a class=\"menuentry\" onclick=\"tdb_form('$url', '$l');menu_onclick(this);\">$label</a></li>";
 	}
 	$str = '<form id="menusubmit"  method="post" action="">
 		<input type="hidden" name="page" value="logout"/>
 		</form>
 		<ul id="menuul" class="menu">';
 
-	$q = new query("select f.name as folder ,p.name as page ,p.ptype ,p.datalink ,p.pagefile ,fp.perm_name as perm from tech.folder f ,tech.folder_page pf ,tech.folder_perm fp ,tech.page p ,tech.role r where f.id = pf.folder_id and p.id = pf.page_id and fp.folder_id = f.id and r.id = fp.role_id and r.name in ('admin', 'user', 'local') order by f.id, pf.page_order");
+	$q = new query("select f.name as folder ,p.name as page ,p.ptype ,p.datalink ,p.pagefile ,fp.perm_name as perm from param.folder f ,param.folder_page pf ,param.folder_perm fp ,param.page p ,tech.role r where f.id = pf.folder_id and p.id = pf.page_id and fp.folder_id = f.id and r.id = fp.role_id and r.name in ($rstr) order by f.id, pf.page_order");
 
 	$fold = "";
 
@@ -60,20 +68,16 @@ function menu_content() {
 			$menu_id++;
 			$str .= "\t<li class='menu'>\n\t\t<a class='menu' onclick='menu_show(\"menu_$menu_id\")'>$fold</a>\n\t\t<ul id='menu_$menu_id' class='menusub'>\n";
 		}
-
-		if 	    ($o->ptype    == "Table")    $str .= menu_new_table($o->page, $o->datalink); 
-		else if ($o->ptype    == "System")   $str .= menu_tdb_page($o->page,  $o->pagefile); 
-		//if      ($o->ptype == "new page") $str .= menu_new_page($o->label, $o->script);
-		//else if ($o->ptype == "tdb_page") $str .= menu_tdb_page($o->label, $o->script);
-		//else if ($o->ptype == "tdb_hdr" ) $str .= menu_tdb_hdr ($o->label, $o->script);
-		//else if ($o->ptype == "tdb_form") $str .= menu_tdb_form($o->label, $o->script);
-		//else if ($o->ptype == "tdb_rpt")  $str .= menu_tdb_rpt ($o->label, $o->script);
+		
+		if      ($o->ptype == "External") $str .= "\t\t\t". menu_new_page($o->page, $o->pagefile) . "\n";
+		else if ($o->ptype == "System")   $str .= "\t\t\t". menu_tdb_page($o->page, $o->pagefile) . "\n";
+		else if ($o->ptype == "Client")   $str .= "\t\t\t". menu_tdb_page($o->page, $o->pagefile) . "\n";
+		else if ($o->ptype == "Table" )   $str .= "\t\t\t". menu_tdb_table($o->page,$o->datalink) . "\n";
+		else if ($o->ptype == "Form")     $str .= "\t\t\t". menu_tdb_form($o->page, $o->pagefile) . "\n";
+		else if ($o->ptype == "Report")   $str .= "\t\t\t". menu_tdb_rpt ($o->page, $o->pagefile) . "\n";
 	}
 	$str .= "\t\t</ul>\n\t</li>\n";
 	$str .= "<script>timeout_set(60);</script>
-		<script>
-		
-		</script>
 		<!-- Menu Déconnexion -->
 		<li class='menu'>
 			<a class='menu' onclick='document.getElementById(\"menusubmit\").submit()'>Déconnexion</a> 
