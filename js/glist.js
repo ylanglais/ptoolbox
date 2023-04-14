@@ -8,7 +8,6 @@ function glist_go(id, pdat, opts, start, lines) {
 	data = { "ctrl": "glist", "prov": pdat, "opts": opts};
 	//console.log("glist_go("+ id + "," + JSON.stringify(data));
 	load(id, "ctrl.php", data);
-	//$("#" + id).load("glist_act.php", data );       
 }
 
 function glist_sort(el, pdat, opts, field) {
@@ -45,4 +44,13 @@ function glist_sort(el, pdat, opts, field) {
 function glist_view(id, data) {
 	d = { "ctrl": "gform", "id": id, "data": data };
 	load(id, "ctrl.php", d);
+}
+
+function glist_toggle_selected(classname) {
+	for (const e of document.getElementsByClassName(classname)) {
+		e.checked = !e.checked;
+	}
+}
+
+function glist_action() {
 }

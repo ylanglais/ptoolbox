@@ -183,6 +183,16 @@ class rpt {
 	function rpt_var($o) {
 		$this->var_set($o->var, $this->count_parse($o->val));
 	}
+/*
+	function rpt_textbox() (
+	}	
+	function rpt_param($o) {
+		$rpt_parm_types = [ "string", "int", "double", "date", "boolen" ];
+		if (!is_object($o)) return "";
+		if (!property_exists($o, "name")) return "";
+		if (!property_exists($o, "type")) return "";
+	}
+*/
 	function var_set($k, $v) {
 		$this->vars[$k] = $v;
 	}

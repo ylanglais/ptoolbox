@@ -17,9 +17,25 @@ function glist_dopts($dopts, $offset= false, $page = false) {
 function glist($prov, $opts = []) {
 	#
 	# Prepare options:
-	$dopts = [ "start" => 0, "page" => 25, "ln" => true, "hdr" => true, "ftr" => true, "sort" => false, "order" => "up", "id" => false , "gform_id" => false ];
+	$dopts = [ 
+		"start" 	=> 0, 
+		"page" 		=> 25, 
+		"ln" 		=> true, 
+		"hdr" 		=> true, 
+		"ftr" 		=> true, 
+		"sort" 		=> false, 
+		"order" 	=> "up", 
+		"id" 		=> false , 
+		"ronly" 	=> false, 
+		"msel" 		=> false, 
+		"gform_id" 	=> false 
+	];
+
 	if (is_array($opts)) {
-		foreach ($dopts as $k => $v) if (!array_key_exists($k, $opts)) $opts[$k] = $v;
+		foreach ($dopts as $k => $v) {
+			if (!array_key_exists($k, $opts)) 
+				$opts[$k] = $v;
+		}
 	} else $opts = $dopts;
 	
 	# 
@@ -46,6 +62,10 @@ function glist($prov, $opts = []) {
 	# Compute header / footer only if required:
 	if ($opts["hdr"] || $opts["ftr"]) { 
 		$hdr = "<tr>";
+
+		if ($opts["ronly"] === false) {
+			$hdr .= "<th><input id='cktoggle' type='checkbox' onclick='event.cancelBubble=true;glist_toggle_selected(\"gmsel_".$prov->name()."\")'<th>";
+		}
 		
 		#
 		# Line numbering if required:
@@ -72,6 +92,8 @@ function glist($prov, $opts = []) {
 	# Add localization support:
 	$locl = new locl();
 
+	$nr = $so = $pl = 0;
+
 	#
 	# Get data from provider from start offset + nb lines per page:
 	$all = $prov->query($opts["start"], $opts["page"], $opts["sort"], $opts["order"]);
@@ -79,7 +101,8 @@ function glist($prov, $opts = []) {
 		#
 		# No data present: 
 		$n = $nf;
-		if ($opts["ln"]) $n++;
+		if ($opts["ronly"] === false) $n++;
+		if ($opts["ln"])              $n++;
 		$html .= "<tr><td class='hdr' colspan='$n'>Pas de données</td></tr>\n";
 		$npages = 0;
 	} else {
@@ -100,7 +123,7 @@ function glist($prov, $opts = []) {
 		$cp = intdiv($so, $pl) + 1;	
 		
 		$i = $so;
-		$html .= "<tbody>";
+#		$html .= "<tbody>";
 
 		#
 		# Print all result from start offset (so) + page count (pl):
@@ -108,12 +131,12 @@ function glist($prov, $opts = []) {
 			$i++;
 
 			$qry = [];
-
 			if ($opts["gform_id"] !== false) {
+#dbg("a");
 				foreach ($keys as $k) {
+#dbg("k = $k");
 					if (!property_exists($o, $k)) {
 						if (!property_exists($o, "_hidden_$k")) {
-							$qry = [];
 							break;
 						}
 						$qry[$k] = $o->{"_hidden_$k"};
@@ -122,6 +145,8 @@ function glist($prov, $opts = []) {
 					}
 				}
 			}
+		
+#			dbg("---> " . json_encode($qry));
 
 			$html .= "<tr onmouseover='this.classList.add(\"over\")' onmouseout='this.classList.remove(\"over\")'";
 			if ($qry != []) {
@@ -129,14 +154,17 @@ function glist($prov, $opts = []) {
 				$html .= " onclick='glist_view(\"".$opts["gform_id"]."\", $vdata)'";
 			} 
 			$html .=">";
- 	
+
+			$__id = urlencode(json_encode($qry));
+		
+			if ($opts["ronly"] === false) $html .= "<td class='ckbox'><input id='ck $__id' class='gmsel_".$prov->name()."' type='checkbox' onclick='event.cancelBubble=true;'/></td>";
 			if ($opts["ln"]) $html .= "<td class='num'>".($i)."</td>";
 			
 			foreach ($fields as $k) {
 				$cl = "";
 				if (property_exists($o, $k)) { 
 					$v = $locl->format($o->$k);
-					if (is_float($v) || is_numeric($v) || substr($v, -1) == "%") $cl = "class='number'";
+					if (is_float($o->$k) || is_numeric($o->$k) || substr($o->$k, -1) == "%") $cl = "class='number'";
 				} else {
 					$v = "";
 				}
@@ -148,9 +176,11 @@ function glist($prov, $opts = []) {
 	}
 	#
 	# Append footer (copy of header) if required:
-	## if ($opts["ftr"]) $html .= $hdr; 
+	if ($opts["ftr"]) $html .= $hdr; 
 
-	$n = $nf; if ($opts["ln"]) $n++;
+	$n = $nf; 
+	if ($opts["ronly"] === false) $n++;
+	if ($opts["ln"]) $n++;
 	$n -=2;
 	$html .= "<tfoot><tr class='nav'><td class='navpad'></td><td class='hdr' colspan='$n'><div class='navigation'>";
 

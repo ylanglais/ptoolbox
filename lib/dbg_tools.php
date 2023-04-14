@@ -54,6 +54,9 @@ function _step() {
 #
 # Write to error_log:
 function _write($lvl, $s) {
+	if (is_object($s) || is_array($s)) {
+		$s = json_encode($s);
+	}
 	$file = caller(2);
 	if (php_sapi_name() === 'cli') {
 		error_log(timestamp() . " $lvl: $file $s");

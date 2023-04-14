@@ -6,24 +6,28 @@ require_once("lib/dbg_tools.php");;
  */
 class args {
 	function __construct() {
-		if (array_key_exists("CONTENT_TYPE", $_SERVER) && $_SERVER["CONTENT_TYPE"] == "application/json") {
-			$a = json_decode(file_get_contents('php://input'), true);
-			$a = json_decode(($b = file_get_contents('php://input')), true);
-			if (is_array($a)) 
-				foreach ($a as $k => $v) $_POST[$k] = $v;
+		if (array_key_exists("CONTENT_TYPE", $_SERVER) && substr($_SERVER["CONTENT_TYPE"], 0, 16) == "application/json") {
+			$b = file_get_contents('php://input');
+
+			if (is_string($b))
+				$a = json_decode($b);
+			else $a = $b;
+		
+			if (is_array($a) || is_object($a)) foreach ($a as $k => $v) $_POST[$k] = $v;
 		}
 	}
-	function _dbg() {
+	function err() {
 		foreach ($_POST as $k => $v) 
-			_err("\$_POST['$k'] = '$v'");
+			err("\$_POST['$k'] = '$v'");
 		foreach ($_GET as $k => $v) 
-			_err("\$_GET['$k'] = '$v'");
+			err("\$_GET['$k'] = '$v'");
 	}
+	function _dbg() { return dbg(); }
 	function dbg() {
 		foreach ($_POST as $k => $v) 
-			dbg_html("\$_POST['$k'] = '$v'");
+			dbg("\$_POST['$k'] = '$v'");
 		foreach ($_GET as $k => $v) 
-			dbg_html("\$_GET['$k'] = '$v'");
+			dbg("\$_GET['$k'] = '$v'");
 	}
 	/**
      * Get parameter $p from $_POST if it exists
