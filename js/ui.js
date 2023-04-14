@@ -136,7 +136,6 @@ var  UI = function(spec, data, actions) {
 		return data;
 	}
 
-
  	this.trigger = function(name) {
 		console.log("this.trigger("+ name + ")");
 		if (name == "cancel") {

@@ -36,6 +36,9 @@ function menu_content() {
 		$l = menu_esc($label);
 		return "<li class=\"menuentry\"><a class=\"menuentry\" onclick=\"tdb_page('$url', '$label');menu_onclick(this);\">$label</a></li>";
 	}
+	function menu_tdb_view($label, $entity) {
+		return "\t\t\t<li class='menuentry'><a class='menuentry' onclick='tdb_view(\"$entity\", \"$label\");menu_onclick(this);'>$label</a></li>\n";
+	}
 	function menu_tdb_hdr($label, $url) {
 		$l = menu_esc($label);
 		return "<li class=\"menuentry\"><a class=\"menuentry\" onclick=\"tdb_hdr('$url', '$l');menu_onclick(this);\">$label</a></li>";
@@ -75,6 +78,7 @@ function menu_content() {
 		else if ($o->ptype == "Table" )   $str .= "\t\t\t". menu_tdb_table($o->page,$o->datalink) . "\n";
 		else if ($o->ptype == "Form")     $str .= "\t\t\t". menu_tdb_form($o->page, $o->pagefile) . "\n";
 		else if ($o->ptype == "Report")   $str .= "\t\t\t". menu_tdb_rpt ($o->page, $o->pagefile) . "\n";
+		#else if ($o->ptype    == "View")     $str .= menu_tdb_view($o->page,  $o->datalink);
 	}
 	$str .= "\t\t</ul>\n\t</li>\n";
 	$str .= "<script>timeout_set(60);</script>

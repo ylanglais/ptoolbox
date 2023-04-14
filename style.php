@@ -64,6 +64,11 @@ div.menu {
 	overflow:  auto;
     box-shadow: 3px 3px 5px $shadow;
 }
+#ver {
+	position: sticky; 
+	right: 	  0px;
+	top: 	  100px; 
+}
 #msg_area { 
 	position: fixed;
 	bottom:     0px; 
