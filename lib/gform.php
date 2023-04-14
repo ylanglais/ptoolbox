@@ -15,8 +15,8 @@ function gform($prov, $req = false, $actions = null) {
 	$o = false;
 	 
 	if ($req !== false) {
-if (is_string($req)) dbg($req);
-else dbg(json_encode($req));
+#if (is_string($req)) dbg($req);
+#else dbg(json_encode($req));
 		$o = $p->get($req);
 	} 
 	$flds = $p->fields();
@@ -41,7 +41,7 @@ else dbg(json_encode($req));
 	}
 
 	$pdat = $prov->data();
-dbg(">>> $pdat");
+#dbg(">>> $pdat");
 
 #	$prec = $prov->req();
 	$html .= "<tr><td colspan='3'>";
@@ -86,7 +86,7 @@ function gform_ctrl() {
 
 	} else {
 		$action = false;
-dbg("no action");
+#dbg("no action");
 	}
 
 	#err(json_encode($data));

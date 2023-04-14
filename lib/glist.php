@@ -30,14 +30,17 @@ function glist($prov, $opts = []) {
 		"msel" 		=> false, 
 		"gform_id" 	=> false 
 	];
+	
+	if (is_object($opts)) $opts = (array) $opts;
 
 	if (is_array($opts)) {
 		foreach ($dopts as $k => $v) {
-			if (!array_key_exists($k, $opts)) 
-				$opts[$k] = $v;
+			if (!array_key_exists($k, $opts)) $opts[$k] = $v;
 		}
 	} else $opts = $dopts;
 	
+dbg("+++ " . json_encode($opts));
+dbg("1");
 	# 
 	# Gen identifier if not present:
 	if ($opts["id"] === false) $opts["id"]  = "glist_" . gen_elid();		
@@ -58,6 +61,7 @@ function glist($prov, $opts = []) {
 
 	$pdat = $prov->data();
 	$keys = $prov->keys();
+dbg("2");
 	#
 	# Compute header / footer only if required:
 	if ($opts["hdr"] || $opts["ftr"]) { 
@@ -84,6 +88,9 @@ function glist($prov, $opts = []) {
 		$hdr .= "</tr></thead>\n";
 	} else $hdr = "";
 
+dbg("3");
+	#
+	# Compute header / footer only if required:
 	#
 	# add header if required:
 	if ($opts["hdr"])  $html .= $hdr;
@@ -94,10 +101,15 @@ function glist($prov, $opts = []) {
 
 	$nr = $so = $pl = 0;
 
+dbg("3");
+	#
+	# Compute header / footer only if required:
 	#
 	# Get data from provider from start offset + nb lines per page:
+dbg(">>> " . json_encode($opts));
 	$all = $prov->query($opts["start"], $opts["page"], $opts["sort"], $opts["order"]);
 	if (!is_array($all) || (count($all) == 0)) {
+dbg("4");
 		#
 		# No data present: 
 		$n = $nf;
@@ -106,6 +118,7 @@ function glist($prov, $opts = []) {
 		$html .= "<tr><td class='hdr' colspan='$n'>Pas de données</td></tr>\n";
 		$npages = 0;
 	} else {
+dbg("5");
 		#
 		# Compute paging:
 		$pl = $opts["page"];
@@ -174,6 +187,7 @@ function glist($prov, $opts = []) {
 		}
 		$html .= "</tbody>";
 	}
+dbg("6");
 	#
 	# Append footer (copy of header) if required:
 	if ($opts["ftr"]) $html .= $hdr; 
@@ -218,14 +232,14 @@ function glist($prov, $opts = []) {
 }
 
 function glist_ctrl() {
-	#dbg("in glist_ctrl");
+	dbg("in glist_ctrl");
 	$a = new args();
 
 	$prov = $a->val("prov");
 	$opts = $a->val("opts");
 
-	#dbg(json_encode($prov));
-	#dbg(json_encode($opts));
+	dbg(json_encode($prov));
+	dbg(json_encode($opts));
 
 	return glist(new prov($prov), $opts);
 }

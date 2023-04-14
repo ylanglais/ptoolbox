@@ -12,11 +12,14 @@ class prov_db {
 		if (is_string($d) && substr($d, 0, 10) == "__prov_db_") {
 			$d = substr($d, 2);
 			if (($o = store::get($d)) !== false) { 
-				if (is_string($o)) { dbg($o);  $o = json_decode($o);}
+				if (is_string($o)) { 
+					#dbg($o);  
+					$o = json_decode($o);
+				}
 				foreach ($o as $k => $v) {
 					$this->$k = $v;
 				}
-				dbg("$this->id restored");
+				#dbg("$this->id restored");
 				$loaded = true;
 				$this->db  = new db($this->dsrc);
 			} else {
@@ -217,7 +220,7 @@ class prov_db {
 
 	function get($req) {
 		$w = [];
-		dbg(json_encode($req));
+		#dbg(json_encode($req));
 
 		foreach ($req as $k => $v) {
 			array_push($w, "$k = ". $this->quote($k, $v));
@@ -229,7 +232,7 @@ class prov_db {
 		return $q->obj();
 	}
 	function put($req) {
-		dbg("req = " . json_encode($req));
+		#dbg("req = " . json_encode($req));
 		$cols = [];
 		$vals = [];
 		//foreach ($req as $k => $v) {

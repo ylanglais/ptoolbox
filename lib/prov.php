@@ -60,6 +60,14 @@ class prov {
 		if ($this->prov == null) return null;
 		return $this->prov->name();
 	}
+	function defval($data) {
+		if ($this->prov == null) return null;
+		return $this->prov->defval($data);
+	}
+	function quote($data) {
+		if ($this->prov == null) return null;
+		return $this->prov->quote($data);
+	}
 	function get($data) {
 		if ($this->prov == null) return null;
 		return $this->prov->get($data);

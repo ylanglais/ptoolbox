@@ -44,4 +44,3 @@ function sync_post(url, data) {
 	if (ws.response) return JSON.parse(ws.response);
 	return false;
 }
->>>>>>> 2f3afc8402a84f617b2a7ad1d998d4a6b4ffa982

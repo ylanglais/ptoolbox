@@ -34,7 +34,7 @@ if ($a->has("type")) {
 } else {
 	$type = "db";
 }
-dbg("type = $type");
+#dbg("type = $type");
 
 print("<table class='form'><tr><td>\n");
 print(glist(new prov($type, "$datalink"), ['gform_id' => "gform_$page"]));
