@@ -86,7 +86,7 @@ function gform_ctrl() {
 
 	} else {
 		$action = false;
-#dbg("no action");
+		#dbg("no action");
 	}
 
 	#err(json_encode($data));

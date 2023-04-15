@@ -38,9 +38,7 @@ function glist($prov, $opts = []) {
 			if (!array_key_exists($k, $opts)) $opts[$k] = $v;
 		}
 	} else $opts = $dopts;
-	
-dbg("+++ " . json_encode($opts));
-dbg("1");
+
 	# 
 	# Gen identifier if not present:
 	if ($opts["id"] === false) $opts["id"]  = "glist_" . gen_elid();		
@@ -61,7 +59,7 @@ dbg("1");
 
 	$pdat = $prov->data();
 	$keys = $prov->keys();
-dbg("2");
+
 	#
 	# Compute header / footer only if required:
 	if ($opts["hdr"] || $opts["ftr"]) { 
@@ -88,7 +86,6 @@ dbg("2");
 		$hdr .= "</tr></thead>\n";
 	} else $hdr = "";
 
-dbg("3");
 	#
 	# Compute header / footer only if required:
 	#
@@ -101,15 +98,13 @@ dbg("3");
 
 	$nr = $so = $pl = 0;
 
-dbg("3");
 	#
 	# Compute header / footer only if required:
 	#
 	# Get data from provider from start offset + nb lines per page:
-dbg(">>> " . json_encode($opts));
+#dbg(">>> " . json_encode($opts));
 	$all = $prov->query($opts["start"], $opts["page"], $opts["sort"], $opts["order"]);
 	if (!is_array($all) || (count($all) == 0)) {
-dbg("4");
 		#
 		# No data present: 
 		$n = $nf;
@@ -118,7 +113,6 @@ dbg("4");
 		$html .= "<tr><td class='hdr' colspan='$n'>Pas de données</td></tr>\n";
 		$npages = 0;
 	} else {
-dbg("5");
 		#
 		# Compute paging:
 		$pl = $opts["page"];
@@ -145,9 +139,7 @@ dbg("5");
 
 			$qry = [];
 			if ($opts["gform_id"] !== false) {
-#dbg("a");
 				foreach ($keys as $k) {
-#dbg("k = $k");
 					if (!property_exists($o, $k)) {
 						if (!property_exists($o, "_hidden_$k")) {
 							break;
@@ -187,7 +179,6 @@ dbg("5");
 		}
 		$html .= "</tbody>";
 	}
-dbg("6");
 	#
 	# Append footer (copy of header) if required:
 	if ($opts["ftr"]) $html .= $hdr; 
@@ -232,7 +223,7 @@ dbg("6");
 }
 
 function glist_ctrl() {
-	dbg("in glist_ctrl");
+	#dbg("in glist_ctrl");
 	$a = new args();
 
 	$prov = $a->val("prov");

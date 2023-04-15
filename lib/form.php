@@ -4,7 +4,7 @@ require_once("lib/args.php");
 
 class form {
 	function __construct($spec) {
-		$vars = [ "name", "url", "params", "actions" ];
+		$vars = [ "name", "fname", "params", "actions" ];
 		foreach ($vars as $v) {
 			if (key_exists($v, $spec)) $this->$v = $spec[$v];
 		}
@@ -105,6 +105,23 @@ class form {
 		$str .= "</td></tr>\n</table>\n</div>\n<div id='".$this->name."_data'></div>\n";
 		return $str;
 	}
+}
+
+function form_ctrl() {
+	$a = new args();
+	if (!$a->has("fname")) {
+		err("No form specified");
+		print("No form   specified");
+		return;
+	}
+	$fname = $a->val("fname");
+	if ($a->has("titre")) {
+		$titre = $a->val("titre");
+	} else {
+		$titre = $fname;
+	}
+	if (!file_exists("forms/$fname")) print("no form named $fname");
+	include("forms/$fname");
 }
 
 	

@@ -3,6 +3,8 @@ function form_load(name, form, action) {
 	form = JSON.parse(form);
 	namedata = name + "_data";
 	let data = {};
+	data["fname"] = form.fname;
+	data["ctrl"] = "form"; 
 	data["form"]   = true;
 	data["action"] = action;
 	for (i in form.params) {
@@ -27,8 +29,7 @@ function form_load(name, form, action) {
 			data[i] = document.getElementById(i).value;
 		}
 	}	
-	//console.log(">>>call " + form.url + " with " + JSON.stringify(data)); 
-	$("#"+namedata).load(form.url, data);
+	load(namedata, "ctrl.php", data);
 }
 
 

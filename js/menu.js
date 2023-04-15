@@ -94,4 +94,42 @@ function menu_onclick(el) {
 	menu_entry_cur = el;
 }
 
+/*
+function menu_get_data(what) {
+	let fromdate = document.getElementById('fromdate').value;
+	let todate   = document.getElementById('todate').value;
+	load("data_area", what, {'fromdate': $("#fromdate").val(), 'todate': $("#todate").val()});
+}
+function menu_hdr(module, titre) {
+	load("data_area", "tdb.php", {'module': module, 'titre': titre});
+}
+*/
+function menu_form(fname, titre) {
+	load("data_area", "ctrl.php", {'ctrl': 'form', 'fname': fname, 'titre': titre});
+}
+function menu_rpt(rptname) {
+	var r = sync_post("ctrl.php", {"ctrl": "stats", "stats_key": rptname});
+	if (r == false) {
+		document.getElementById("data_area").innerHTML = '<div id="a_' + rptname + '" style=" position:absolute;top: 0px; left:0px;width:100%;height:100%;opacity:0.3;z-index:100;background:#000;"><div style="position:absolute; top: 45%;width:100%;text-align: center; vertical-align: middle;color: white;"><img src="images/wait.gif" width="100px"/><br/>Computing...</div></div>';
+	} else {
+		document.getElementById("data_area").innerHTML = '<div id="a_' + rptname + '" style=" position:absolute;top: 0px; left:0px;width:100%;height:100%;opacity:0.3;z-index:100;background:#000;"><div style="position:absolute; top: 45%;width:100%;text-align: center; vertical-align: middle;color: white;"><progress id="tt" max="100" value="0"></progress><br/>Computing...</div></div>';
+		step = r.max * 10.;
+		inter = setInterval(function() { 
+			e = document.getElementById('tt');
+			if (!e) clearInterval(inter);
+			else {
+				e.value += 1; 
+				e.innerHTML = "" + e.value + "%";
+				if (e.value == 100) clearInterval(inter);
+			}
+		}, step);
+	}
+	load("data_area", "ctrl.php", {'ctrl': 'rpt', 'rptname': rptname});
+}
+function menu_page(page) {
+	load("data_area", page); 
+}
+function menu_table(page, datalink) {
+	load("data_area", "ctrl.php", {"ctrl": "gui", "page": page, "datalink": datalink}); 
+}
 

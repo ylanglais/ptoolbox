@@ -25,31 +25,31 @@ function menu_content() {
 
 	if ($rstr == "") $rstr = "'user'";
 
-	function menu_tdb_table($label, $dlink) {
+	function menu_table($label, $dlink) {
 		$l = menu_esc($label);
-		return "<li class=\"menuentry\"><a class=\"menuentry\" target=\"_blank\" onclick=\"tdb_table('$l', '$dlink');menu_onclick(this);\">$label</a></li>";
+		return "<li class=\"menuentry\"><a class=\"menuentry\" target=\"_blank\" onclick=\"menu_table('$l', '$dlink');menu_onclick(this);\">$label</a></li>";
 	}
-	function menu_new_page($label, $url) {
+	function menu_external($label, $url) {
 		return "<li class=\"menuentry\"><a class=\"menuentry\" target=\"_blank\" href='$url'>$label</a></li>";
 	}
-	function menu_tdb_page($label, $url) {
+	function menu_page($label, $url) {
 		$l = menu_esc($label);
-		return "<li class=\"menuentry\"><a class=\"menuentry\" onclick=\"tdb_page('$url', '$label');menu_onclick(this);\">$label</a></li>";
+		return "<li class=\"menuentry\"><a class=\"menuentry\" onclick=\"menu_page('$url', '$label');menu_onclick(this);\">$label</a></li>";
 	}
-	function menu_tdb_view($label, $entity) {
-		return "\t\t\t<li class='menuentry'><a class='menuentry' onclick='tdb_view(\"$entity\", \"$label\");menu_onclick(this);'>$label</a></li>\n";
+	function menu_view($label, $entity) {
+		return "\t\t\t<li class='menuentry'><a class='menuentry' onclick='menu_view(\"$entity\", \"$label\");menu_onclick(this);'>$label</a></li>\n";
 	}
-	function menu_tdb_hdr($label, $url) {
+	function menu_hdr($label, $url) {
 		$l = menu_esc($label);
-		return "<li class=\"menuentry\"><a class=\"menuentry\" onclick=\"tdb_hdr('$url', '$l');menu_onclick(this);\">$label</a></li>";
+		return "<li class=\"menuentry\"><a class=\"menuentry\" onclick=\"menu_hdr('$url', '$l');menu_onclick(this);\">$label</a></li>";
 	}
-	function menu_tdb_rpt($label, $rptname) {
+	function menu_rpt($label, $rptname) {
 		$rn = menu_esc($rptname);
-		return "<li class=\"menuentry\"><a class=\"menuentry\" onclick=\"tdb_rpt('$rn');menu_onclick(this);\">$label</a></li>";
+		return "<li class=\"menuentry\"><a class=\"menuentry\" onclick=\"menu_rpt('$rn');menu_onclick(this);\">$label</a></li>";
 	}
-	function menu_tdb_form($label, $url) {
+	function menu_form($label, $url) {
 		$l = menu_esc($label);
-		return "<li class=\"menuentry\"><a class=\"menuentry\" onclick=\"tdb_form('$url', '$l');menu_onclick(this);\">$label</a></li>";
+		return "<li class=\"menuentry\"><a class=\"menuentry\" onclick=\"menu_form('$url', '$l');menu_onclick(this);\">$label</a></li>";
 	}
 	$str = '<form id="menusubmit"  method="post" action="">
 		<input type="hidden" name="page" value="logout"/>
@@ -72,13 +72,13 @@ function menu_content() {
 			$str .= "\t<li class='menu'>\n\t\t<a class='menu' onclick='menu_show(\"menu_$menu_id\")'>$fold</a>\n\t\t<ul id='menu_$menu_id' class='menusub'>\n";
 		}
 		
-		if      ($o->ptype == "External") $str .= "\t\t\t". menu_new_page($o->page, $o->pagefile) . "\n";
-		else if ($o->ptype == "System")   $str .= "\t\t\t". menu_tdb_page($o->page, $o->pagefile) . "\n";
-		else if ($o->ptype == "Client")   $str .= "\t\t\t". menu_tdb_page($o->page, $o->pagefile) . "\n";
-		else if ($o->ptype == "Table" )   $str .= "\t\t\t". menu_tdb_table($o->page,$o->datalink) . "\n";
-		else if ($o->ptype == "Form")     $str .= "\t\t\t". menu_tdb_form($o->page, $o->pagefile) . "\n";
-		else if ($o->ptype == "Report")   $str .= "\t\t\t". menu_tdb_rpt ($o->page, $o->pagefile) . "\n";
-		#else if ($o->ptype    == "View")     $str .= menu_tdb_view($o->page,  $o->datalink);
+		if      ($o->ptype == "External") $str .= "\t\t\t". menu_external($o->page, $o->pagefile) . "\n";
+		else if ($o->ptype == "System")   $str .= "\t\t\t". menu_page($o->page, $o->pagefile) . "\n";
+		else if ($o->ptype == "Client")   $str .= "\t\t\t". menu_page($o->page, $o->pagefile) . "\n";
+		else if ($o->ptype == "Table" )   $str .= "\t\t\t". menu_table($o->page,$o->datalink) . "\n";
+		else if ($o->ptype == "Form")     $str .= "\t\t\t". menu_form($o->page, $o->pagefile) . "\n";
+		else if ($o->ptype == "Report")   $str .= "\t\t\t". menu_rpt ($o->page, $o->pagefile) . "\n";
+		#else if ($o->ptype    == "View")     $str .= menu_iew($o->page,  $o->datalink);
 	}
 	$str .= "\t\t</ul>\n\t</li>\n";
 	$str .= "<script>timeout_set(60);</script>
