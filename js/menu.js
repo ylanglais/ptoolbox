@@ -110,9 +110,9 @@ function menu_form(fname, titre) {
 function menu_rpt(rptname) {
 	var r = sync_post("ctrl.php", {"ctrl": "stats", "stats_key": rptname});
 	if (r == false) {
-		document.getElementById("data_area").innerHTML = '<div id="a_' + rptname + '" style=" position:absolute;top: 0px; left:0px;width:100%;height:100%;opacity:0.3;z-index:100;background:#000;"><div style="position:absolute; top: 45%;width:100%;text-align: center; vertical-align: middle;color: white;"><img src="images/wait.gif" width="100px"/><br/>Computing...</div></div>';
+		document.getElementById("data_area").innerHTML = '<div id="a_' + rptname + '" class="data_modal"><div class="data_modal_hourglass"><img src="images/wait.gif" width="100px"/><br/>Computing...</div></div>';
 	} else {
-		document.getElementById("data_area").innerHTML = '<div id="a_' + rptname + '" style=" position:absolute;top: 0px; left:0px;width:100%;height:100%;opacity:0.3;z-index:100;background:#000;"><div style="position:absolute; top: 45%;width:100%;text-align: center; vertical-align: middle;color: white;"><progress id="tt" max="100" value="0"></progress><br/>Computing...</div></div>';
+		document.getElementById("data_area").innerHTML = '<div id="a_' + rptname + '" class="data_modal"><div class="data_modal_hourglass"><progress id="tt" max="100" value="0"></progress><br/>Computing...</div></div>';
 		step = r.max * 10.;
 		inter = setInterval(function() { 
 			e = document.getElementById('tt');

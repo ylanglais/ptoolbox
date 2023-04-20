@@ -112,6 +112,24 @@ div.minical {
 div.data_area {
     box-shadow: 3px 3px 5px $shadow;
 }
+div.data_modal {
+	position: absolute;
+	top: 0px; 
+	left: 0px;
+	width: 100%;
+	height: 100%;
+	opacity: 0.3;
+	z-index: 100;
+	background: #000;
+}
+div.data_modal_hourglass {
+	position:absolute; 
+	top: 45%;
+	width: 100%;
+	text-align: center; 
+	vertical-align: middle;
+	color: white;
+}
 th.minical.month {
 	text-align: center;
 	vertical-align: middle;
