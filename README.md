@@ -7,6 +7,9 @@ wsd			Répertoire des drivers pour connexions des applications web (actito, emar
 api			Répertoire pour exposer des API
 parts		Répertoire contenant le éléments graphiques des pages (layout, header, menu, tailer)
 scripts 	Outils divers
+reports		Generic reports definition directory		
+forms		Generic forms definition directory
+usr			User pages
 
 
 lib
@@ -39,15 +42,53 @@ user.php			user management
 util.php			various utils
 
 
+Database description:
+audit			schema containing audit data
+	action			log actions on entities
+	connection		user connections	
+db  			Shema containing datastructure version,
+	changelog		list of database patches
+history			Shema to store historised tables
+param			Shema for all application paramters
+	entity			Definition of entities
+	field
+	folder
+	folder_page
+	folder_perm
+	fragment
+	glist	
+	item
+	list
+	page
+	page_perm
+	rights			Difinition of rights on tables and entities (per role, user, ...);
+	style
+	wfaction
+	wfcheck
+	workflow
+public
+ref
+	page_type
+	perm
+stats
+	duration
+tech
+	dbs
+	role
+	user
+	user_role
 
-Pages are defined in tech.page table.
-Page is defined by an id, a category (folder), a name, a label, a script, a launcher;
+public
+ref  
+stats
+tech
 
-launchers are :
-	new page : 	external url opened in new tab/window (script is the external url)
-	tdb_page :  a page fully defined in script column 
-	tdb_form :	an automatic form defined by the script 
-	tdb_rpt:	an automatic report define by the json defined in script
+
+
+Pages are defined in param.page table.
+Page is defined by an id, a name, a page type, a datalink, a pagefile;
+
+	
 
 
 

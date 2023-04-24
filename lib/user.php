@@ -7,7 +7,6 @@ require_once("lib/util.php");
 require_once("lib/auth_local.php");
 require_once("lib/auth_ldap.php");
 
-
 class user {
 	private $id;
 	private $login;
@@ -18,6 +17,8 @@ class user {
 	private $since;
 	private $until;
 	private $roles;
+	private $rights;
+
 	//public $session;
 
 	function __construct() { 
@@ -26,6 +27,7 @@ class user {
 		$this->user_role_table = "usr_rol";
 		$this->user_id         = "usr_id";
 		$this->role_id		   = "rol_id";
+		$this->rights = [];
 
 		if (file_exists("conf/user.php")) {
 			include("conf/user.php");
@@ -47,6 +49,9 @@ class user {
 	function dbg() {
 		foreach (get_class_vars("address") as $k => $v)	
 			dbg_html($k . ": " . eval("return \$this->$k;"));
+	}
+	function id() {
+		return $this->id;
 	}
 	function roles() {
 		return $this->roles;
@@ -89,6 +94,29 @@ class user {
 		}
 		if ($this->source == "local" && !in_array("local", $this->roles)) array_push($this->roles, "local");
 	}
+	function load_rights() {
+		dbg("SELECT type, link, perm from param.right where role_id in (select $this->role_id from $this->user_role_table where $this->user_id = '$this->id')");
+		$q =  new query("SELECT type, link, perm from param.right where role_id in (select $this->role_id from $this->user_role_table where $this->user_id = '$this->id')");
+		$tab = [];
+		$ent = [];
+		while ($o = $q->obj()) {
+			if      ($o->type == 'table')  $tab[$o->link] = $o->perm;
+			else if ($o->type == 'entity') $ent[$o->link] = $o->perm;
+		}
+		$q =  new query("SELECT type, link, perm from param.right where user_id = $this->id");
+		while ($o = $q->obj()) {
+			if      ($o->type == 'table')  $tab[$o->link] = $o->perm;
+			else if ($o->type == 'entity') $ent[$o->link] = $o->perm;
+		}
+		$this->rights["table"]  = $tab;
+		$this->rights["entity"] = $ent;
+	}
+	function right_on($type, $link) {
+		if (is_array($this->rights) && array_key_exists($type, $this->rights) && array_key_exists($link, $this->rights[$type])) {
+			return $this->rights[$type][$link];
+		}
+		return 'NONE';
+	}
 	function auth_check($login, $passwd, $ip) {
 		if ($login == "admin") {
 			$auth = new auth_local();
@@ -103,6 +131,7 @@ class user {
 			$this->since    = "1970-01-01";
 			$this->until    = "";
 			$this->load_roles();
+			$this->load_rights();
 			array_push($this->roles, "local");
 			return true;
 		} else {
@@ -127,6 +156,7 @@ class user {
 				}
 				$this->source = "ldap";
 				$this->load_roles();
+				$this->load_rights();
 				
 				return true;
 			} else { _warn("ldap not matching"); }
@@ -136,7 +166,6 @@ class user {
 			if ($auth->check($login, $passwd)) {
 				$q = new query("SELECT * from $this->user_table where login = :login and passwd is not null", [":login" => "$login"] );
 				if (($dat = $q->data()) == null) {
-					//dbg_html("no data");
 					audit_login_error($login, $ip, 'bad_user');
 					return false;
 				}

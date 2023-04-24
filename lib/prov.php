@@ -29,17 +29,18 @@ class prov {
 			}
 		}
 	}
-
 	function type() {
 		if ($this->prov == null) return null;
 		return $this->prov->type;	
 	}
-
 	function datalink() {
 		if ($this->prov == null) return null;
 		return $this->prov->datalink;
 	}
-
+	function perm() {
+		if ($this->prov == null) return null;
+		return $this->prov->perm();	
+	}
 	function count() {
 		if ($this->prov == null) return null;
 		return $this->prov->count();
@@ -60,13 +61,21 @@ class prov {
 		if ($this->prov == null) return null;
 		return $this->prov->name();
 	}
+	function iskey($data) {
+		if ($this->prov == null) return null;
+		return $this->prov->iskey($data);
+	}
 	function defval($data) {
 		if ($this->prov == null) return null;
 		return $this->prov->defval($data);
 	}
-	function quote($data) {
+	function nullable($data) {
 		if ($this->prov == null) return null;
-		return $this->prov->quote($data);
+		return $this->prov->nullable($data);
+	}
+	function quote($field, $val) {
+		if ($this->prov == null) return null;
+		return $this->prov->quote($field, $val);
 	}
 	function get($data) {
 		if ($this->prov == null) return null;

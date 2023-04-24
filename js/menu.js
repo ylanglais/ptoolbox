@@ -19,7 +19,7 @@ function menu_onresize() {
 
 function menu_reload() {
 	//console.log("in menu_reload()");
-	$('#divmenu').load("divmenu", "menu.php", {}, function() {
+	$('#divmenu').load("divmenu", "parts/menu.php", {}, function() {
 		m = menu_cur;
 		s = menu_sub_cur;
 		e = menu_entry_cur;
@@ -131,5 +131,8 @@ function menu_page(page) {
 }
 function menu_table(page, datalink) {
 	load("data_area", "ctrl.php", {"ctrl": "gui", "page": page, "datalink": datalink}); 
+}
+function menu_view(page, datalink) {
+	load("data_area", "ctrl.php", {"ctrl": "gui", "page": page, "type": "entity", "datalink": datalink}); 
 }
 

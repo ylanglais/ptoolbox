@@ -545,6 +545,12 @@ table.heading, tr.heading{
 	padding: 0px;
 
 }
+td.enver {
+	border: 0px;
+	margin: 0px;
+	color:   $normal;
+	text-align: right;
+}
 td.heading {
 	border: 0px;
 	margin: 0px;

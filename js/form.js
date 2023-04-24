@@ -32,4 +32,3 @@ function form_load(name, form, action) {
 	load(namedata, "ctrl.php", data);
 }
 
-

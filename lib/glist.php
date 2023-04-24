@@ -39,6 +39,7 @@ function glist($prov, $opts = []) {
 		}
 	} else $opts = $dopts;
 
+
 	# 
 	# Gen identifier if not present:
 	if ($opts["id"] === false) $opts["id"]  = "glist_" . gen_elid();		
@@ -49,16 +50,32 @@ function glist($prov, $opts = []) {
 	$html = "<table class='glist' id='$id'>\n";
 
 	#
+	# Check permission:
+	$perm = $prov->perm(); 
+	if ($perm == 'NONE') {
+		err("no permission");
+		return $html . "<tr><td> No data </td></tr></table>\n";
+	}	
+	
+	#
+	# Check if rights are more restricted than asked:
+	if ($opts["ronly"] == false && $perm == 'RONLY') $opts["ronly"] = true;
+
+	#
 	# Check if provider is set/data present:
 	if (!is_object($prov))  return $html . "<tr><td> No data </td></tr></table>\n";
 
 	#
 	# Get fields:
 	$fields = $prov->fields();
+	if ($fields === false) return $html . "<tr><td> No data </td></tr></table>\n";
 	$nf     = count($fields);
 
 	$pdat = $prov->data();
+#dbg("++++ $pdat");
 	$keys = $prov->keys();
+dbg("+++ KEYS = " .json_encode ($keys));
+	if ($keys == []) $keys = $fields;
 
 	#
 	# Compute header / footer only if required:
@@ -102,7 +119,6 @@ function glist($prov, $opts = []) {
 	# Compute header / footer only if required:
 	#
 	# Get data from provider from start offset + nb lines per page:
-#dbg(">>> " . json_encode($opts));
 	$all = $prov->query($opts["start"], $opts["page"], $opts["sort"], $opts["order"]);
 	if (!is_array($all) || (count($all) == 0)) {
 		#
@@ -151,11 +167,10 @@ function glist($prov, $opts = []) {
 				}
 			}
 		
-#			dbg("---> " . json_encode($qry));
 
 			$html .= "<tr onmouseover='this.classList.add(\"over\")' onmouseout='this.classList.remove(\"over\")'";
 			if ($qry != []) {
-				$vdata = '{ "prov": '. $pdat . ', "req": '. json_encode($qry) . ', }';
+				$vdata = '{ "prov": '. $pdat . ', "req": '. json_encode($qry) . ', "opts": '.json_encode($opts) .'}';
 				$html .= " onclick='glist_view(\"".$opts["gform_id"]."\", $vdata)'";
 			} 
 			$html .=">";
@@ -223,7 +238,6 @@ function glist($prov, $opts = []) {
 }
 
 function glist_ctrl() {
-	#dbg("in glist_ctrl");
 	$a = new args();
 
 	$prov = $a->val("prov");

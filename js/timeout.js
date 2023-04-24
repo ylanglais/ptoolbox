@@ -5,7 +5,7 @@
 var timeout_value;
 var timeout_id;
 function timeout_set(minutes) {
-	console.log("Start timer");
+	//console.log("Start timer");
     window.onload = timeout_reset;
 
 	timeout_value = minutes;
@@ -30,9 +30,10 @@ function timeout_logout(what) {
 	if (what == null) {
 		console.log("timeout")
 	} else {
-		console.log(what);
+		//console.log(what);
 	}
-	$("#menusubmit").submit();
+	let subm = document.getElementById("menusubmit");
+	if (subm != null) subm.submit();
 }
 function timeout_reset() {
 	sec = 1000;

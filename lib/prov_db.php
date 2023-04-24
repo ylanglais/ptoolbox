@@ -3,11 +3,14 @@ require_once("lib/db.php");
 require_once("lib/query.php");
 require_once("lib/dbg_tools.php");
 require_once("lib/store.php");
+require_once("lib/session.php");
+require_once("lib/audit.php");
 
 class prov_db { 
 	function __construct($d, $table = null, $filter = null) {
+		$this->init = false;
 		$loaded = false;
-		$flds = [ "id", "dsrc", "table", "filter", "cols", "fields", "keys", "count", "type" ];
+		$flds   = [ "id", "dsrc", "table", "filter", "cols", "fields", "keys", "count", "type", "perm" ];
 
 		if (is_string($d) && substr($d, 0, 10) == "__prov_db_") {
 			$d = substr($d, 2);
@@ -32,6 +35,21 @@ class prov_db {
 				print("<h2>Bad datalink</h2></div>");
 				exit();
 			}
+
+			global $_session_;
+			if (!isset($_session_)) $_sessions_ = new session();
+
+			if ($_session_->isnew()) {
+				err("No session");
+				return;
+			}
+			$perm = $_session_->user->right_on("table", $d);
+			if ($perm != 'RONLY' && $perm != 'ALL') {
+				audit_log("WARNING: ". $_session_->user->login(). " attempted to access table $d without due permission"); 
+				err("WARNING: ". $_session_->user->login(). " attempted to access table $d without due permission"); 
+				return;
+			}
+
 			$base  = $m[1];
 			$table = $m[2];
 
@@ -46,11 +64,12 @@ class prov_db {
 			$this->keys   = [];
 			$this->count  = false;
 			$this->filter = $filter;
+			$this->perm   = $perm;
 
 			$this->db  = new db($this->dsrc);
 
 			if ($this->cols   == []) $this->cols   = $this->db->table_columns($table);
-			if ($this->keys   == []) $this->keys   = $this->db->table_keys($table);
+			if ($this->keys   == []) $this->keys   = (array) $this->db->table_keys($table);
 			if ($this->fields == []) foreach ($this->cols as $f => $d) array_push($this->fields, $f);
 
 			$o = (object) [];
@@ -62,19 +81,24 @@ class prov_db {
 			else foreach ($d as $k => $v) $this->$k = $v;
 		} else {
 			err("\$d is " . gettype($d));
-			
 		}
+#dbg("prov_db: " .json_encode($this));
+		$this->init = true;
 	}
-
 	function name() {
+		if ($this->init === false) return false;
 		return $this->table;
 	}
-
 	function fields() {
+		if ($this->init === false) return false;
 		return $this->fields;
 	}
-
+	function perm() {
+		if ($this->init === false) return false;
+		return $this->perm;
+	}
 	function quote($f, $v) {
+		if ($this->init === false) return false;
 		if (property_exists($this->cols, $f)) {
 			switch($this->cols->$f->data_type) {
 				case "int":
@@ -109,34 +133,39 @@ class prov_db {
 	}
 
 	function defval($f) {
-		if (array_key_exists($f, $this->cols)) {
-			return $this->cols[$f]["column_default"];
+		if ($this->init === false) return false;
+		if (property_exists($this->cols, $f)) {
+			return $this->cols->{$f}->column_default;
 		}
 		return "";
 	}
 	function nullable($f) {
-		if (array_key_exists($f, $this->cols)) {
-			return $this->cols[$f]["is_nullable"];
+		if ($this->init === false) return false;
+		if (property_exists($this->cols, $f)) {
+			return $this->cols->{$f}->is_nullable;
 		}
 		return false;	
 	}
 	function iskey($f) {
+		if ($this->init === false) return false;
 		if (array_key_exists($f, $this->keys)) return true;
 		return false;
 	}
 
 	function keys() {
+		if ($this->init === false) return false;
 		return $this->keys;
 	}
 
 	function key_to_id($key) {
-		return urlencode(json_encode($o));
+		return urlencode(json_encode($key));
 	}
 	function id_to_key($id) {
 		return json_decode(urldecode($id));
 	}
 
 	function _whereclause() {
+		if ($this->init === false) return false;
 		$q = "";
 		if ($this->filter != null && is_array($this->filter->conditions) && $this->filter->conditions != []) {
 			# condition is based on a key value pair with %:
@@ -145,8 +174,8 @@ class prov_db {
 			foreach ($this->filter->conditions as $k => $v) {
 				if ($i > 0) $q .= " and";
 				$i++;
-				if (array_key_exists($k, 	$this->cols)) {
-					switch($this->cols[$k]["data_type"]) {
+				if (property_exists($this->cols, $k)) {
+					switch($this->cols->$k->data_type) {
 					case "int":
 					case "int2":
 					case "int4":
@@ -179,6 +208,7 @@ class prov_db {
 	}
 
 	function count() {
+		if ($this->init === false) return false;
 		if ($this->count !== false) return $this->count;
 		$sql = "select count(*) as count from $this->table " . $this->_whereclause();
 		$q = new query($this->db, $sql);
@@ -188,6 +218,7 @@ class prov_db {
 	}
 
 	function query($start = 0, $limit = 25, $sortby = false, $order = false) {
+		if ($this->init === false) return false;
 		$q = "select ";
 		if ($this->filter != null && is_array($this->filter->fields) && $this->filter->fields != []) {
 			$this->fields = $this->filter->filelds;
@@ -219,19 +250,26 @@ class prov_db {
 	}
 
 	function get($req) {
+		if ($this->init === false) return false;
 		$w = [];
 		#dbg(json_encode($req));
 
 		foreach ($req as $k => $v) {
-			array_push($w, "$k = ". $this->quote($k, $v));
+			if ($v == null) array_push($w, "$k is null"); 
+			else            array_push($w, "$k = ". $this->quote($k, $v));
 		}
 		$where = " where " . implode(" and ", $w);
-		#dbg("select * from $this->table $where");
+		dbg("select * from $this->table $where");
 		$q = new query($this->db, "select * from $this->table $where");
 		
 		return $q->obj();
 	}
 	function put($req) {
+		if ($this->init === false) return false;
+		if ($this->perm == 'RONLY') {
+			err("cannot insert readonly data");
+			return false;
+		}
 		#dbg("req = " . json_encode($req));
 		$cols = [];
 		$vals = [];
@@ -242,10 +280,10 @@ class prov_db {
 			if (property_exists($req, $f)) {
 				array_push($cols, $f);
 				array_push($vals,  $this->quote($f, $req->$f));
-			} else if (array_key_exists("column_default", $this->cols[$f])) {
+			} else if (property_exists($this->cols->$f, "column_default")) {
 				array_push($cols, $f);
-				array_push($vals, "$k = ". $this->quote($f, $this->cols[$f]["column_default"]));
-			} else if ( $this->cols[$f] === false) {
+				array_push($vals, "$k = ". $this->quote($f, $this->cols->$f->column_default));
+			} else if ($this->cols->$f === false) {
 				return false;
 			}
 		}
@@ -259,6 +297,11 @@ class prov_db {
 		return true;
 	}
 	function update($req) {
+		if ($this->init === false) return false;
+		if ($this->perm == 'RONLY') {
+			err("cannot update readonly data");
+			return false;
+		}
 		$upd = [];
 		$key = [];
 		$whr = [];
@@ -277,7 +320,7 @@ class prov_db {
 		}
 		
 		foreach ($this->fields as $f) {
-			if (!property_exists($req, $f)) continue;
+			if (!property_exists($req, $f))  continue;
 			if ( array_key_exists($f, $key)) continue;
 			if ($o->$f == $req->$f) 	     continue;
 			array_push($upd, "$f = " . $this->quote($f, $req->$f));
@@ -295,6 +338,11 @@ class prov_db {
 	}
 
 	function del($req) {
+		if ($this->init === false) return false;
+		if ($this->perm == 'RONLY') {
+			err("cannot delete readonly data");
+			return false;
+		}
 		$w = [];
 		foreach ($req as $k => $v) {
 			array_push($w, "$k = ". $this->quote($k, $v));
@@ -307,10 +355,12 @@ class prov_db {
 		return $q->obj();
 	}
 	function data() {
+		if ($this->init === false) return false;
 		return '"'. "__" . $this->id . '"';
 	} 
 
 	function view() {
+		if ($this->init === false) return false;
 		return null;
 	}
 }

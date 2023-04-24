@@ -37,7 +37,7 @@ function menu_content() {
 		return "<li class=\"menuentry\"><a class=\"menuentry\" onclick=\"menu_page('$url', '$label');menu_onclick(this);\">$label</a></li>";
 	}
 	function menu_view($label, $entity) {
-		return "\t\t\t<li class='menuentry'><a class='menuentry' onclick='menu_view(\"$entity\", \"$label\");menu_onclick(this);'>$label</a></li>\n";
+		return "\t\t\t<li class='menuentry'><a class='menuentry' onclick='menu_view(\"$label\", \"$entity\");menu_onclick(this);'>$label</a></li>\n";
 	}
 	function menu_hdr($label, $url) {
 		$l = menu_esc($label);
@@ -78,7 +78,7 @@ function menu_content() {
 		else if ($o->ptype == "Table" )   $str .= "\t\t\t". menu_table($o->page,$o->datalink) . "\n";
 		else if ($o->ptype == "Form")     $str .= "\t\t\t". menu_form($o->page, $o->pagefile) . "\n";
 		else if ($o->ptype == "Report")   $str .= "\t\t\t". menu_rpt ($o->page, $o->pagefile) . "\n";
-		#else if ($o->ptype    == "View")     $str .= menu_iew($o->page,  $o->datalink);
+		else if ($o->ptype == "View")     $str .= "\t\t\t". menu_view($o->page, $o->datalink) . "\n";
 	}
 	$str .= "\t\t</ul>\n\t</li>\n";
 	$str .= "<script>timeout_set(60);</script>

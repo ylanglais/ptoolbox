@@ -37,7 +37,7 @@ class _pgsql {
 		} else {
 			$schema = "public";
 		}
-		return "SELECT c.column_name as column_name FROM information_schema.table_constraints tc JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_name) JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema AND tc.table_name = c.table_name AND ccu.column_name = c.column_name WHERE  tc.table_catalog = current_database() and tc.table_name = '$table' and tc.table_schema = '$schema' and constraint_type = 'PRIMARY KEY'";
+		return "with t as (SELECT c.column_name as column_name FROM information_schema.table_constraints tc JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_name) JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema AND tc.table_name = c.table_name AND ccu.column_name = c.column_name WHERE  tc.table_catalog = current_database() and tc.table_name = '$table' and tc.table_schema = '$schema' and constraint_type = 'PRIMARY KEY') select * from t union all SELECT c.column_name as column_name FROM information_schema.table_constraints tc JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_name) JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema AND tc.table_name = c.table_name AND ccu.column_name = c.column_name WHERE  tc.table_catalog = current_database() and tc.table_name = '$table' and tc.table_schema = '$schema' and constraint_type = 'UNIQUE' and (select count(*) from t) = 0";
 		//return "SELECT distinct column_name FROM information_schema.key_column_usage WHERE table_catalog = current_database() and table_schema = '$schema' and table_name = '$table'";
 	}
 	static function fkeys_qry($table) {

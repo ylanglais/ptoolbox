@@ -4,7 +4,7 @@ require_once("lib/args.php");
 require_once("lib/prov.php");
 require_once("lib/util.php");
 
-function gform($prov, $req = false, $actions = null) {
+function gform($prov, $req = false, $opts = null) {
 	$html = "";
 
 	$id   = gen_elid();
@@ -16,17 +16,18 @@ function gform($prov, $req = false, $actions = null) {
 	 
 	if ($req !== false) {
 #if (is_string($req)) dbg($req);
-#else dbg(json_encode($req));
+#else dbg("req:    ". json_encode($req));
 		$o = $p->get($req);
 	} 
 	$flds = $p->fields();
-
 	$html .= "<table class='form'>\n";
 	foreach ($flds as $f) {
 		$html .= "<tr><th><label for='$f'>$f</label></th>";
 
 		$cl = "class=''";
 		$vl = "value=''";
+
+
 
 		if ($o && property_exists($o, $f)) {
 			$vl = "value='". $o->$f."'";
@@ -44,11 +45,14 @@ function gform($prov, $req = false, $actions = null) {
 #dbg(">>> $pdat");
 
 #	$prec = $prov->req();
-	$html .= "<tr><td colspan='3'>";
-	$html .= "<input type='button' value='New'    onclick='gform_action(\"$id\", $pdat, \"new\")'/>\n";
-	$html .= "<input type='button' value='Update' onclick='gform_action(\"$id\", $pdat, \"update\")'/>\n";
-	$html .= "<input type='button' value='Delete' onclick='gform_action(\"$id\", $pdat, \"delete\")'/>\n";
-	$html .= "</td></tr></table>\n";
+	if (is_object($opts) && property_exists($opts, "ronly") && $opts->ronly !== true) {
+		$html .= "<tr><td colspan='3'>";
+		$html .= "<input type='button' value='New'    onclick='gform_action(\"$id\", $pdat, \"new\")'/>\n";
+		$html .= "<input type='button' value='Update' onclick='gform_action(\"$id\", $pdat, \"update\")'/>\n";
+		$html .= "<input type='button' value='Delete' onclick='gform_action(\"$id\", $pdat, \"delete\")'/>\n";
+		$html .= "</td></tr>";
+	}
+	$html .= "</table>\n";
 	$html .= "</div>\n";	
 	return $html;
 }
@@ -64,7 +68,6 @@ function gform_ctrl() {
 	$data = $a->val("data");
 
 	if (is_string($data)) $data = json_decode($data);
-	#dbg("data: " . json_encode($data));
 
 	$prov = new prov($data->prov);
 	if ($a->has("action")) {
@@ -79,8 +82,11 @@ function gform_ctrl() {
 			dbg_message("unknown action $action");
 		}
 		#do action
+		
 
 		// reload gui!!!
+
+
 		
 		return;
 
@@ -91,5 +97,5 @@ function gform_ctrl() {
 
 	#err(json_encode($data));
 	
-	print(gform($prov, $data->req));
+	print(gform($prov, $data->req, $data->opts));
 }

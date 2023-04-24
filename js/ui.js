@@ -1,4 +1,3 @@
-
 var  UI = function(spec, data, actions) {
 	this.spec = spec;
 	this.data = data;
@@ -170,5 +169,3 @@ var  UI = function(spec, data, actions) {
 	this.change = function() {
 	}
 }
-
-

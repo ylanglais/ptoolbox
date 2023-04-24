@@ -1,5 +1,6 @@
 <?php
 require_once("lib/query.php");
+require_once("lib/util.php");
 
 
 function _schema() {
@@ -39,5 +40,13 @@ function audit_login($sid, $login, $ip) {
 function audit_logout($sid) {
 	$t  = _schema() . "connection";
 	new query("update $t set until=now(), State='logout' where id = '$sid' and State = 'login' and since = (select max(since) from $t where id = '$sid' and State = 'login')");
+}
+/** 
+ * function to log message to table audit.log
+ * @param $msg		the message to log
+ */
+
+function audit_log($msg) {
+	new query("insert into audit.log values (to_char(now(), 'YYYY-MM-DD HH24:MI:SS.MS'), '" . esc($msg) . "')"); 
 }
 ?> 

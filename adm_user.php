@@ -49,6 +49,7 @@ function roles_show($uid) {
 	$out .= "</table>\n";
 	$out .= "
 <script>
+console.log('in 1');
 	r_adm = $r_adm;
 	function roles_toggle_selected(r) {
 		if (r.classList.contains('selected')) {
@@ -66,8 +67,7 @@ function roles_show($uid) {
 			}
 		}
 		return rids;
-	}
-	
+	}	
 	var o_roles = roles_read();
 </script>
 ";
@@ -105,20 +105,21 @@ function adm_user_ui($a, $uid) {
 	print("<script>var o_data = $data;\n</script>\n");	
 	?>
 		<script>
+		console.log("in 2");
 		function adm_user_data() {
-			uid     = $("#uid").val();
-			login   = $("#login").val();
-			mail    = $("#mail").val();
-			name    = $("#name").val();
-			surname = $("#surname").val();
+			uid     = document.getElementById("uid").value;
+			login   = document.getElementById("login").value;
+			mail    = document.getElementById("mail").value;
+			name    = document.getElementById("name").value;
+			surname = document.getElementById("surname").value;
 
 			if (document.getElementById("active").checked) 
 				active = 'Y';
 			else 
 				active = 'N';
 
-			since   = $("#since").val();
-			until   = $("#until").val();
+			since   = document.getElementById("since").value;
+			until   = document.getElementById("until").value;
 			dat = {'uid': uid, 'login': login, 'mail': mail, 'name': name, 'surname': surname, 'active': active, 'since': since, 'until': until};
 			return dat;
 		}
@@ -158,9 +159,9 @@ function adm_user_ui($a, $uid) {
 			if (dat.login == o_data.login || dat.login == "" || (r =  adm_db_check("getusrdata.php", dat.login)) != null) {
 				$("#create").hide();
 				if (r !== null) { 
-					$("#login").addClass("conflict");
+					document.getElementById("login").classList.add("conflict");
 				} else  {
-					$("#login").removeClass("conflict");
+					document.getElementById("login")classList..remove("conflict");
 				}
 				
 				return false;	
@@ -172,9 +173,9 @@ function adm_user_ui($a, $uid) {
 			var dat = adm_user_data();
 			var rol = roles_read();
 			if (dat.login  == "") {
-				$("#login").addClass("required");
+				document.getElementById("login").classList.add("required");
 			} else {
-				$("#login").removeClass("required");
+				document.getElementById("login").classList.remove("required");
 			}
 			adm_can_update(dat, rol);
 			adm_can_create(dat, rol);
@@ -226,41 +227,6 @@ $("#slav").height($("#mastr").height());
 }
 
 function adm_user_list() {
-	?>
-		<script> 
-		function adm_user_form_data() {
-			var formd  = {};
-			formd.user = {};
-			formd.user.uid     = $("#uid"    ).val();
-			formd.user.login   = $("#login"  ).val();
-			formd.user.mail    = $("#mail"   ).val();
-			formd.user.name    = $("#name"   ).val();
-			formd.user.surname = $("#surname").val();
-			formd.user.active  = $("#active" ).prop('checked');
-			formd.user.since   = $("#since"  ).val();
-			formd.user.until   = $("#until"  ).val();
-			formd.roles        = roles_read();
-			return formd;
-		}
-		function adm_user_cancel() {
-			$("#data_area").load('adm_user.php', null);
-		}
-		function adm_user_open(id) {
-			$("#data_area").load('adm_user.php', {'uid': id });
-		}
-		function adm_user_new() {
-			$("#data_area").load('adm_user.php', {'newuser': true });
-		}
-		function adm_user_create() {
-			var data = adm_user_form_data();
-			$("#data_area").load('adm_user.php', {'act': 'create', 'data': data});
-		}
-		function adm_user_update() {
-			var data = adm_user_form_data();
-			$("#data_area").load('adm_user.php', {'act': 'update', 'data': data});
-		}
-		</script>
-	<?php
 	$q = new query("select * from tech.user");
 	print ("<table class='glist'>\n");
 	$hdr = "<tr><th>#</th><th>Login</th><th>Email</th><th>Actif</th><th>Depuis</th><th>Jusqu'à</th></tr>\n";
@@ -287,9 +253,45 @@ function adm_user_list() {
 	print("</table>\n");
 }
 
+?>
+<div id='user'>
+<script>
+console.log("in 3");
+function adm_user_form_data() {
+	var formd  = {};
+	formd.user = {};
+	formd.user.uid     = document.getElementById("uid").value;
+	formd.user.login   = document.getElementById("login").value;
+	formd.user.mail    = document.getEmementById("mail").value;
+	formd.user.name    = document.getElementById("name" ).value;
+	formd.user.surname = document.getElementById("surname" ).value;
+	formd.user.active  = document.getElementById("#active" ).checked
+	formd.user.since   = document.getElemen("since"  ).value;
+	formd.user.until   = document.getElemen("until"  ).value;
+	formd.roles        = roles_read();
+	return formd;
+}
+function adm_user_cancel() {
+	load("data_area", "adm_user.php", null);
+}
+function adm_user_open(id) {
+	load("data_area", "adm_user.php", {"uid": id });
+}
+function adm_user_new() {
+	load("data_area", "adm_user.php", {"newuser": true });
+}
+function adm_user_create() {
+	var data = adm_user_form_data();
+	load("data_area", "adm_user.php", {"act": "create", "data": data});
+}
+function adm_user_update() {
+	var data = adm_user_form_data();
+	load("data_area", "adm_user.php", {"act": "update", "data": data});
+}
+</script>
+<h1>Gestion des utilisateurs</h1><br/>
 
-print("<div id='user'>\n"); 
-print("<h1>Gestion des utilisateurs</h1><br/>\n");
+<?php
 $a = new args(); 
 if (($uid = $a->post("uid")) !== false || $a->post("newuser") == true) {
 	adm_user_ui($a, $uid);

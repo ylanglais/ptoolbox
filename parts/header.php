@@ -4,7 +4,8 @@ header('Cache-Control: max-age=1, must-revalidate');
 require_once("lib/style.php");
 $title = style::value("application_title");
 ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
 <head xmlns="http://www.w3.org/1999/xhtml" lang="fr">
 <title><?php echo $title ?></title>
 <meta name="robots"      content="none" />
