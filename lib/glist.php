@@ -28,6 +28,7 @@ function glist($prov, $opts = []) {
 		"id" 		=> false , 
 		"ronly" 	=> false, 
 		"msel" 		=> false, 
+		"parentid"	=> false, 
 		"gform_id" 	=> false 
 	];
 	
@@ -43,7 +44,7 @@ function glist($prov, $opts = []) {
 	# 
 	# Gen identifier if not present:
 	if ($opts["id"] === false) $opts["id"]  = "glist_" . gen_elid();		
-	$id = $opts["id"];
+	$opts["parentid"] = $id = $opts["id"];
 
 	#
 	# Prepare table:
@@ -72,9 +73,7 @@ function glist($prov, $opts = []) {
 	$nf     = count($fields);
 
 	$pdat = $prov->data();
-#dbg("++++ $pdat");
 	$keys = $prov->keys();
-dbg("+++ KEYS = " .json_encode ($keys));
 	if ($keys == []) $keys = $fields;
 
 	#

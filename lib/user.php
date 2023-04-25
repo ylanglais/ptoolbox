@@ -95,7 +95,6 @@ class user {
 		if ($this->source == "local" && !in_array("local", $this->roles)) array_push($this->roles, "local");
 	}
 	function load_rights() {
-		dbg("SELECT type, link, perm from param.right where role_id in (select $this->role_id from $this->user_role_table where $this->user_id = '$this->id')");
 		$q =  new query("SELECT type, link, perm from param.right where role_id in (select $this->role_id from $this->user_role_table where $this->user_id = '$this->id')");
 		$tab = [];
 		$ent = [];
@@ -112,8 +111,13 @@ class user {
 		$this->rights["entity"] = $ent;
 	}
 	function right_on($type, $link) {
-		if (is_array($this->rights) && array_key_exists($type, $this->rights) && array_key_exists($link, $this->rights[$type])) {
+		if (is_array($this->rights) 
+			&& array_key_exists($type, $this->rights) 
+			&& is_array($this->rights[$type]) 
+			&& array_key_exists($link, $this->rights[$type])) {
 			return $this->rights[$type][$link];
+		} else {
+			err("Error occured w/ $type, $link: " . json_encode($this->rights));
 		}
 		return 'NONE';
 	}

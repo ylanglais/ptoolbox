@@ -10,16 +10,16 @@ function gform($prov, $req = false, $opts = null) {
 	$id   = gen_elid();
 	$html .= "<div class='gform' id='$id'>\n";
 
-	$p = new prov($prov);
+#dbg("prov = " . json_encode($prov));
 
 	$o = false;
 	 
 	if ($req !== false) {
 #if (is_string($req)) dbg($req);
 #else dbg("req:    ". json_encode($req));
-		$o = $p->get($req);
+		$o = $prov->get($req);
 	} 
-	$flds = $p->fields();
+	$flds = $prov->fields();
 	$html .= "<table class='form'>\n";
 	foreach ($flds as $f) {
 		$html .= "<tr><th><label for='$f'>$f</label></th>";
@@ -31,10 +31,10 @@ function gform($prov, $req = false, $opts = null) {
 
 		if ($o && property_exists($o, $f)) {
 			$vl = "value='". $o->$f."'";
-		} else if (($rr = $p->defval($f)) != "") {
+		} else if (($rr = $prov->defval($f)) != "") {
 			$vl = "value=" . $p->quote($f, $rr);
 			$cl = "class='defval'";
-		} else if (!$p->nullable($f) || $p->iskey($f)) {
+		} else if (!$prov->nullable($f) || $prov->iskey($f)) {
 			$cl = "class='required'";
 		}
 		#$html .= "<td><input name='$f' id='$f' type='text' onchange='gform_(\"$table->module\", this)' $cl $vl/></td></tr>\n";

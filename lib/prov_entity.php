@@ -5,41 +5,42 @@ require_once("lib/query.php");
 
 class prov_entity {
 	function __construct($entity = null, $filter = null) {
-		$this->entid  = $entity;
-		$this->init   = false;
-		$this->type   = "entity";
-		$this->name   = $name = $entity;
-		$this->tables = [];
-		$this->fields = [];
-		$this->qry    = (object) [];
-		$this->slist  = [];
-		$this->joins  = [];
-		$this->keys   = [];
-		$this->perm   = 'NONE';
-		$this->ent    = false;
-		$restored     = false;
+		$this->id    = $entity;
+		$this->init     = false;
+		$this->type     = "entity";
+		$this->name     = "";
+		$this->tables   = (object)[];
+		$this->fields   = [];
+		$this->cols     = (object)[];
+		$this->fragment = (object)[];
+		$this->qry      = (object)[];
+		$this->slist    = [];
+		$this->joins    = [];
+		$this->keys     = [];
+		$this->perm     = 'NONE';
+		$this->ent      = false;
+		$restored       = false;
 
+#dbg(json_encode(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10)));
+#dbg($entity);
 		if (is_string($entity) && substr($entity, 0, 14) == "__prov_entity_") { 
 			if (($o = store::get($entity)) !== false) { 
-				if (is_array($o)) {
+				if (is_array($o) || is_object($o)) {
 					foreach ($o as $k => $v) {
 						$this->$k = $v;
 					}
-					dbg("$entity restored");
-					$restore = true;
+					##dbg("$entity restored");
+					$restored = true;
 				} else {
 					err("\$o is ".gettype ($o). " and contains " . json_encode($o));
+					exit();
 				}
 			} else {
 				err("cannot restore $d");
 				print("<h2>Bad data</h2></div>");
 				exit();
 			}
-			if ($restored === false) {
-				$enity = substr($entity, 14);
-			}
-		} 
-		if (!$restored) {
+		} else {
 			global $_session_;
 			if (!isset($_session_)) $_sessions_ = new session();
 
@@ -47,32 +48,32 @@ class prov_entity {
 				err("No session");
 				return;
 			}
-			$perm = $_session_->user->right_on("entity", $name);
+			$this->name = $entity;
+
+			$perm = $_session_->user->right_on("entity", $this->name);
 
 			if ($perm != 'RONLY' && $perm != 'ALL') {
-				audit_log("WARNING: ". $_session_->user->login(). " attempted to access entity $name without due permission"); 
-				err("WARNING: ". $_session_->user->login(). " attempted to access entity $name without due permission"); 
+				audit_log("WARNING: ". $_session_->user->login(). " attempted to access entity $this->name without due permission"); 
+				err("WARNING: ". $_session_->user->login(). " attempted to access entity $this->name without due permission"); 
 				return;
 			}
 			$this->perm = $perm;
 
-			$q = new query("select * from param.entity where name = '$name'");
+			$q = new query("select * from param.entity where name = '$this->name'");
 			if (($o = $q->obj()) === false) {
-				err("no entity named '$name'");
+				err("no entity named '$this->name'");
 				return;	
 			}
 			$this->ent = (object)[];
 			foreach ($o as $k => $v) $this->ent->$k = $v;
 
 			$this->ent->dsrc = $this->_ckds($this->ent->dsrc);
-			$this->entid     = "__prov_entity__" . $name;
+			$this->id     = "__prov_entity__" . $this->name;
 
 			$this->_add_table($this->ent->dsrc, $this->ent->tname);
 
-
-			$this->fragment = [];
 			$this->refs     = [];
-			$q = new query("select * from param.fragment where entity = '$name'");
+			$q = new query("select * from param.fragment where entity = '$this->name'");
 			#
 			# entity:
 			# type: fragment type 
@@ -83,58 +84,64 @@ class prov_entity {
 			# name:
 			#  
 				
-/***
-select 
-	ref.title.value as "Intitulé", 
-	public.person.first_name as "Prénom", 
-	public.person.last_name  as "Nom", 
-	ref.gender.value as "Genre" 
-from 
-	public.person 
-	left join ref.title  on ref.title.id  = public.person.title 
-	left join ref.gender on ref.gender.id = public.person.gender;
-***/
+			/***
+			select 
+				ref.title.value as "Intitulé", 
+				public.person.first_name as "Prénom", 
+				public.person.last_name  as "Nom", 
+				ref.gender.value as "Genre" 
+			from 
+				public.person 
+				left join ref.title  on ref.title.id  = public.person.title 
+				left join ref.gender on ref.gender.id = public.person.gender;
+			***/
 			$db = new db();
 			$keys = (array) $db->table_keys($this->ent->tname);
 
 			while ($o = $q->obj()) {
-				$this->fragment[$o->name] = (object)[];
+				$this->fragment->{$o->name} = (object)[];
 				foreach ($o as $k => $v) { 
-					if ($k != 'name' && $v != null) $this->fragment[$o->name]->$k = $v;
+					#if ($k != 'name' && $v != null) 
+					$this->fragment->{$o->name}->{$k} = $v;
 				}
-				if ($this->fragment[$o->name]->type == "column") {
-					$this->cols[$o->name] = $this->tables[$this->entid]->cols[$o->cname];	
-					array_push($this->fields, $o->name);
+				if ($this->fragment->{$o->name}->type == "column") {
+					$this->cols->{$o->name} = $this->tables->{$this->id}->cols[$o->cname];
+					array_pysh($this->fields, $o->name);
 					array_push($this->slist, $this->ent->tname . ".$o->cname as \"$o->name\"");
 					if (in_array($o->name, $keys)) array_push($this->keys, $o->name);
-				} else if ($this->fragment[$o->name]->type == "reference") {
+				} else if ($this->fragment->{$o->name}->type == "reference") {
 					$tid = $this->_tid($o->fsrc, $o->ftname);
 					$this->_add_table($o->fsrc, $o->ftname);
-					$this->cols[$o->name] = $this->tables[$tid]->cols[$o->flname];
-					if (in_array($o->cname, $keys)) array_push($this->keys, $o->cname);
+#dbg(print_r($this->tables->{$tid}, true));
+#dbg("--->>> $o->flname");
+#dbg("---<<< $o->name");
+#dbg($this->cols);
+					$this->cols->{$o->name} = $this->tables->{$tid}->cols[$o->flname];
+					if (in_array($o->cname, $keys)) array_push($this->keys, $o->name);
 					array_push($this->fields, $o->name);
 					array_push($this->slist, "$o->ftname.$o->flname as \"$o->name\"");
 					array_push($this->joins, "left join $o->ftname on " . $this->ent->tname . ".$o->cname = $o->ftname.$o->finame");
-				} else if ($this->fragment[$o->name]->type == "vallist") {
-				} else if ($this->fragment[$o->name]->type == "entity") {
-				} else if ($this->fragment[$o->name]->type == "entity") {
+				} else if ($this->fragment->{$o->name}->type == "vallist") {
+				} else if ($this->fragment->{$o->name}->type == "values") {
+				} else if ($this->fragment->{$o->name}->type == "entity") {
+				} else if ($this->fragment->{$o->name}->type == "entitylist") {
 				} else {
 				}
 			}
+			store::put($this->id, $this);
 		}
-dbg(">>> $entity: ". json_encode($this));
-		store::put($this->entid, $this);
+#dbg(">>> $entity: ". json_encode($this));
 		$this->init = true;
 	}
 	private function _add_table($ds, $tn) {
-		if (!is_array($this->tables)) $this->tables = [];
+		if (!is_object($this->tables)) $this->tables = (object)[];
 		$dt        = (object)[] ;
 		$ds        = $this->_ckds($ds);
 		$dt->dsrc  = $ds;
 		$dt->table = $tn;
 		$dt->cols  = $this->_get_table_cols($ds, $tn);
 
-		$this->tables[$this->_tid($ds,$tn)] = $dt;
+		$this->tables->{$this->_tid($ds,$tn)} = $dt;
 	}
 	private function _ckds($ds) {
 		if ($ds == null || $ds == "null" || $ds == "") return "default";
@@ -149,7 +156,6 @@ dbg(">>> $entity: ". json_encode($this));
 		$d = new db($ds);
 		return $d->table_columns($tname);
 	}
-
 	function name() {
 		return $this->name;
 	}	
@@ -162,6 +168,7 @@ dbg(">>> $entity: ". json_encode($this));
 	}
 	function quote($f, $v) {
 		if ($this->init === false) return false;
+#dbg(print_r($this->$this->cols, TRue));
 		if (property_exists($this->cols, $f)) {
 			switch($this->cols->$f->data_type) {
 				case "int":
@@ -225,9 +232,9 @@ dbg(">>> $entity: ". json_encode($this));
 	function id_to_key($id) {
 		return json_decode(urldecode($id));
 	}
-function type() {
-	return $this->type;
-}
+	function type() {
+		return $this->type;
+	}
 	function _whereclause() {
 		if ($this->init === false) return false;
 		$q = "";
@@ -287,12 +294,33 @@ function type() {
 		return ($this->count = $o->count);
 	}
 	function get($req) {
+		if ($this->init === false) return false;
+		$w = [];
+		foreach ($req as $k => $v) {
+			if ($this->fragment->{$k}->type == "column") {
+				if ($v == null) array_push($w, "$k is null"); 
+				else            array_push($w, "$k = ". $this->quote($k, $v));
+			} else if ($this->fragment->{$k}->type == "reference") {
+				$k = $this->fragment->{$k}->ftname . ".". $this->fragment->{$k}->flname;
+				if ($v == null) array_push($w, "$k is null"); 
+				else            array_push($w, "$k = ". $this->quote($k, $v));
+			}
+		}
+		$where = " where " . implode(" and ", $w);
+		#dbg("select * from $this->table $where");
+		$s = "select " . implode(', ', $this->slist) . " from ". $this->ent->tname . " " . implode(' ', $this->joins) . " $where";
+		$q = new query($s);		
+		return $q->obj();
+
 	}
 	function put() {
+		if ($this->init === false) return false;
 	}
 	function update($req) {
+		if ($this->init === false) return false;
 	}
 	function del() {
+		if ($this->init === false) return false;
 	}
 	function query($start = 0, $stop = 25, $sortby = false, $order = false) {
 		$s = "select " . implode(', ', $this->slist) . " from ". $this->ent->tname . " " . implode(' ', $this->joins) . " offset $start limit $stop";
@@ -300,8 +328,9 @@ function type() {
 		return $q->all();	
 	}
 	function data() {
-		dbg( '"'. $this->entid . '"');
-		return '"'. $this->entid . '"';
+		if ($this->init === false) return false;
+		#dbg( '"'. $this->id . '"');
+		return '"'. $this->id . '"';
 	} 
 
 	function view() {

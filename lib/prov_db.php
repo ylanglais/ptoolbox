@@ -82,7 +82,6 @@ class prov_db {
 		} else {
 			err("\$d is " . gettype($d));
 		}
-#dbg("prov_db: " .json_encode($this));
 		$this->init = true;
 	}
 	function name() {
@@ -259,7 +258,7 @@ class prov_db {
 			else            array_push($w, "$k = ". $this->quote($k, $v));
 		}
 		$where = " where " . implode(" and ", $w);
-		dbg("select * from $this->table $where");
+		#dbg("select * from $this->table $where");
 		$q = new query($this->db, "select * from $this->table $where");
 		
 		return $q->obj();
