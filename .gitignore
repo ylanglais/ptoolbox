@@ -1,5 +1,5 @@
 .cookies
-*.sql
+./*.sql
 test/*
 conf/*.php
 doc/*

@@ -116,9 +116,7 @@ class user {
 			&& is_array($this->rights[$type]) 
 			&& array_key_exists($link, $this->rights[$type])) {
 			return $this->rights[$type][$link];
-		} else {
-			err("Error occured w/ $type, $link: " . json_encode($this->rights));
-		}
+		} 
 		return 'NONE';
 	}
 	function auth_check($login, $passwd, $ip) {

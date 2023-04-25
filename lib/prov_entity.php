@@ -41,29 +41,20 @@ class prov_entity {
 				exit();
 			}
 		} else {
-			global $_session_;
-			if (!isset($_session_)) $_sessions_ = new session();
-
-			if ($_session_->isnew()) {
-				err("No session");
-				return;
-			}
-			$this->name = $entity;
-
-			$perm = $_session_->user->right_on("entity", $this->name);
-
+			$perm = get_perm("entity", $entity);
 			if ($perm != 'RONLY' && $perm != 'ALL') {
-				audit_log("WARNING: ". $_session_->user->login(). " attempted to access entity $this->name without due permission"); 
-				err("WARNING: ". $_session_->user->login(). " attempted to access entity $this->name without due permission"); 
-				return;
+				$s =  "Attempted access to entity $entity without due permission";
+				audit_log("SECURITY", $s);
+				err("SECURITY: " . get_user(). " $s");
 			}
 			$this->perm = $perm;
 
-			$q = new query("select * from param.entity where name = '$this->name'");
+			$q = new query("select * from param.entity where name = '$entity'");
 			if (($o = $q->obj()) === false) {
-				err("no entity named '$this->name'");
+				err("no entity named '$entity'");
 				return;	
 			}
+			$this->name = $entity;
 			$this->ent = (object)[];
 			foreach ($o as $k => $v) $this->ent->$k = $v;
 

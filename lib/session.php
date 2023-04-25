@@ -7,6 +7,24 @@ require_once("lib/args.php");
 function session_prjnomcmp($a, $b) {
 	return strcmp($a->nom, $b->nom);
 }	
+
+function get_user() {
+	global $_session_;
+	if (!is_object($_session_) 
+		|| !property_exists($_session_, "user")
+		|| !is_object($_session_->user))
+		return "unknown";
+
+	return $_session_->user->login();
+}
+function get_perm($type, $link) {
+	global $_session_;
+	if (!is_object($_session_) 
+		|| !property_exists($_session_, "user")
+		|| !is_object($_session_->user))
+		return "NONE";
+	return $_session_->user->right_on($type, $link);
+}
 	
 class session {
 	private $sid;	

@@ -36,17 +36,11 @@ class prov_db {
 				exit();
 			}
 
-			global $_session_;
-			if (!isset($_session_)) $_sessions_ = new session();
-
-			if ($_session_->isnew()) {
-				err("No session");
-				return;
-			}
-			$perm = $_session_->user->right_on("table", $d);
+			$perm = get_perm("table", $d);
 			if ($perm != 'RONLY' && $perm != 'ALL') {
-				audit_log("WARNING: ". $_session_->user->login(). " attempted to access table $d without due permission"); 
-				err("WARNING: ". $_session_->user->login(). " attempted to access table $d without due permission"); 
+				$s =  "Attempted access to table $d without due permission";
+				audit_log("SECURITY", $s);
+				err("SECURITY: ". get_user(). " $s");
 				return;
 			}
 

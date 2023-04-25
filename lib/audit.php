@@ -1,7 +1,8 @@
 <?php
 require_once("lib/query.php");
 require_once("lib/util.php");
-
+require_once("lib/session.php");
+require_once("lib/util.php");
 
 function _schema() {
 	static $audit_schema = null;
@@ -46,7 +47,10 @@ function audit_logout($sid) {
  * @param $msg		the message to log
  */
 
-function audit_log($msg) {
-	new query("insert into audit.log values (to_char(now(), 'YYYY-MM-DD HH24:MI:SS.MS'), '" . esc($msg) . "')"); 
+function audit_log($level, $msg) {
+	$ip  = get_ip();
+	if ($ip === false) $ip = 'no ip';
+	$usr = get_user();
+	new query("insert into audit.log values (to_char(now(), 'YYYY-MM-DD HH24:MI:SS.MS'), '$ip',  '$usr', '$level', '" . esc($msg) . "')"); 
 }
 ?> 
