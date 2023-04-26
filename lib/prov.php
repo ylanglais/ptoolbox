@@ -65,6 +65,14 @@ class prov {
 		if ($this->prov == null) return null;
 		return $this->prov->iskey($data);
 	}
+	function has_fk($data) {
+		if ($this->prov == null) return null;
+		return $this->prov->has_fk($data);
+	}
+	function datatype($data) {
+		if ($this->prov == null) return null;
+		return $this->prov->datatype($data);
+	}
 	function defval($data) {
 		if ($this->prov == null) return null;
 		return $this->prov->defval($data);

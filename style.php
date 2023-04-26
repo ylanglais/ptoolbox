@@ -755,6 +755,28 @@ table.subform {
 label {
 	margin: 4px;
 }
+select {
+	color: $normal;
+	background-color: $bg;
+	border: 0px;
+ 	box-shadow: -1px -1px 2px $normal; 
+	margin: 2px;
+	margin-left: 4px;
+	margin-right: 4px;
+	font-family: $fontfamily;
+	font-size: 10pt;
+}
+option {
+	color: $normal;
+	background-color: $bg;
+	border: 0px;
+/* 	box-shadow: -1px -1px 2px $normal; */
+	margin: 2px;
+	margin-left: 4px;
+	margin-right: 4px;
+	font-family: $fontfamily;
+	font-size: 10pt;
+}
 input {
 	color: $normal;
 	background-color: $bg;

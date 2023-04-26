@@ -10,7 +10,7 @@ class prov_db {
 	function __construct($d, $table = null, $filter = null) {
 		$this->init = false;
 		$loaded = false;
-		$flds   = [ "id", "dsrc", "table", "filter", "cols", "fields", "keys", "count", "type", "perm" ];
+		$flds   = [ "id", "dsrc", "table", "filter", "cols", "fields", "keys", "fkeys", "count", "type", "perm" ];
 
 		if (is_string($d) && substr($d, 0, 10) == "__prov_db_") {
 			$d = substr($d, 2);
@@ -56,6 +56,7 @@ class prov_db {
 			$this->cols   = [];
 			$this->fields = [];
 			$this->keys   = [];
+			$this->fkeys  = [];
 			$this->count  = false;
 			$this->filter = $filter;
 			$this->perm   = $perm;
@@ -64,7 +65,16 @@ class prov_db {
 
 			if ($this->cols   == []) $this->cols   = $this->db->table_columns($table);
 			if ($this->keys   == []) $this->keys   = (array) $this->db->table_keys($table);
+			if ($this->fkeys  == []) $this->fkeys  = (array) $this->db->table_fkeys($table);
 			if ($this->fields == []) foreach ($this->cols as $f => $d) array_push($this->fields, $f);
+			#dbg($this->fkeys);
+			foreach ($this->fkeys as $fk) {
+				#dbg($fk);
+				$this->cols[$fk->col]->ftable = $fk->ftable;
+				$this->cols[$fk->col]->fcol   = $fk->fcol;
+				#$this->cols->{$fk->col}->ftable = $fk->ftable;
+				#$this->cols->{$fk->col}->fcol   = $fk->fcol;
+			}
 
 			$o = (object) [];
 			foreach ($flds as $k) $o->$k = $this->$k;
@@ -76,6 +86,8 @@ class prov_db {
 		} else {
 			err("\$d is " . gettype($d));
 		}
+#
+#file_put_contents(".dmp/$this->table.json", json_encode($this,  JSON_PRETTY_PRINT));
 		$this->init = true;
 	}
 	function name() {
@@ -93,6 +105,9 @@ class prov_db {
 	function quote($f, $v) {
 		if ($this->init === false) return false;
 		if (property_exists($this->cols, $f)) {
+			if ($v === null  || $v == "null") {
+				return "null";
+			}
 			switch($this->cols->$f->data_type) {
 				case "int":
 				case "int2":
@@ -117,10 +132,6 @@ class prov_db {
 					return "'$v'";
 					break;
 			}
-			if ($v == null  || $v == "null") {
-				#dbg("v is null");
-				return "null";
-			}
 		}
 		return "'" . esc($v) . "'";
 	}
@@ -144,7 +155,20 @@ class prov_db {
 		if (array_key_exists($f, $this->keys)) return true;
 		return false;
 	}
-
+	function has_fk($f) {
+		if ($this->init === false) return false;
+		if (property_exists($this->cols, $f) && property_exists($this->cols->{$f}, "ftable")) {
+			return [ "ftable" => $this->cols->{$f}->ftable,"fcol" => $this->cols->{$f}->fcol];
+		}
+		return false;
+	}
+	function datatype($f) {
+		if ($this->init === false) return false;
+		if (property_exists($this->cols, $f)) {
+			return $this->cols->{$f}->data_type;
+		}
+		return false;
+	}
 	function keys() {
 		if ($this->init === false) return false;
 		return $this->keys;
@@ -252,27 +276,30 @@ class prov_db {
 			else            array_push($w, "$k = ". $this->quote($k, $v));
 		}
 		$where = " where " . implode(" and ", $w);
-		#dbg("select * from $this->table $where");
+		dbg("select * from $this->table $where");
 		$q = new query($this->db, "select * from $this->table $where");
 		
 		return $q->obj();
 	}
-	function put($req) {
+	function put($data) {
 		if ($this->init === false) return false;
 		if ($this->perm == 'RONLY') {
 			err("cannot insert readonly data");
 			return false;
 		}
-		#dbg("req = " . json_encode($req));
+		if (!is_object($data) || !property_exists($data, "data")) {
+			err("Incomplete data");
+			return false;
+		}
+		$dat = $data->data;
+
 		$cols = [];
 		$vals = [];
-		//foreach ($req as $k => $v) {
-			//array_push($vals, "$k = ". $this->quote($k, $v));
-		//}
+
 		foreach ($this->fields as $f) {
-			if (property_exists($req, $f)) {
+			if (property_exists($dat, $f)) {
 				array_push($cols, $f);
-				array_push($vals,  $this->quote($f, $req->$f));
+				array_push($vals,  $this->quote($f, $dat->$f));
 			} else if (property_exists($this->cols->$f, "column_default")) {
 				array_push($cols, $f);
 				array_push($vals, "$k = ". $this->quote($f, $this->cols->$f->column_default));
@@ -281,7 +308,6 @@ class prov_db {
 			}
 		}
 		$sql = "insert into $this->table (".  implode(",", $cols) . ") values (". implode(",", $vals) .")";
-		#dbg("sql=<<$sql>>");
 		
 		$q = new query($this->db, $sql);
 		if ($q->nrows() != 1) {
@@ -289,39 +315,47 @@ class prov_db {
 		}
 		return true;
 	}
-	function update($req) {
+	function update($data) {
 		if ($this->init === false) return false;
 		if ($this->perm == 'RONLY') {
 			err("cannot update readonly data");
 			return false;
 		}
-		$upd = [];
-		$key = [];
+		if (!is_object($data) 
+			|| !property_exists($data, "data")
+			|| !property_exists($data, "ori")) {
+			err("Incomplete data (".json_encode($data).")");
+			return false;
+		}
+		#
+		# Do I *REALLY* nead req since I already have ori ???:
+		$ori = $data->ori;
+		$dat = $data->data;
+
+		$set = [];
 		$whr = [];
 	
+		# create where clause:
 		foreach ($this->keys as $k) {
-			if (!property_exists($req, $k)) {
+			if (!property_exists($ori, $k)) {
 				err("missing key field $k");
 				return false;
 			}
-			$key[$k] = $req->$k;
-			array_push($whr, "$k = " .$this->quote($k, $req->$k));
+			
+			$v = $ori->$k;
+			if ($v == 'null' || $v === null) array_push($whr, "$k is null"); 
+			else                             array_push($whr, "$k = ". $this->quote($k, $v));
 		}
-		
-		if (($o = $this->get($key)) === false) {
-			return $this->put($req);
-		}
-		
-		foreach ($this->fields as $f) {
-			if (!property_exists($req, $f))  continue;
-			if ( array_key_exists($f, $key)) continue;
-			if ($o->$f == $req->$f) 	     continue;
-			array_push($upd, "$f = " . $this->quote($f, $req->$f));
-		}
-		
-		$sql = "update $this->table set " . implode(",", $upd) . " where " . implode (" and ", $whr);
 
-		#dbg("sql=<<$sql>>");
+		foreach ($this->fields as $f) {
+			if ($ori->$f != $dat->$f) {
+				array_push($set, "$f = " . $this->quote($f, $dat->$f));
+			}
+		}
+		
+		$sql = "update $this->table set " . implode(",", $set) . " where " . implode (" and ", $whr);
+
+		dbg("$sql");
 		
 		$q = new query($this->db, $sql);
 		if ($q->nrows() != 1) {
@@ -330,19 +364,26 @@ class prov_db {
 		return true;
 	}
 
-	function del($req) {
+	function del($data) {
 		if ($this->init === false) return false;
 		if ($this->perm == 'RONLY') {
 			err("cannot delete readonly data");
 			return false;
 		}
+		if (!is_object($data) || !property_exists($data, "data")) {
+			err("Incomplete data");
+			return false;
+		}
+		$dat = $data->data;
+
 		$w = [];
-		foreach ($req as $k => $v) {
-			array_push($w, "$k = ". $this->quote($k, $v));
+		foreach ($dat as $k => $v) {
+			if ($v == null || $v == 'null') array_push($w, "$k is null"); 
+			else            array_push($w, "$k = ". $this->quote($k, $v));
 		}
 		$where = " where " . implode(" and ", $w);
 		$sql = "delete from $this->table $where";
-		#dbg("sql=<<$sql>>");
+		dbg("$sql");
 		$q = new query($this->db, $sql);
 		
 		return $q->obj();

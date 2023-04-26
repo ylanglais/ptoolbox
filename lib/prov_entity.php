@@ -199,6 +199,13 @@ class prov_entity {
 		}
 		return "";
 	}
+	function datatype($f) {
+		if ($this->init === false) return false;
+		if (property_exists($this->cols, $f)) {
+			return $this->cols->{$f}->data_type;
+		}
+		return false;
+	}
 	function nullable($f) {
 		if ($this->init === false) return false;
 		if (property_exists($this->cols, $f)) {
@@ -211,12 +218,17 @@ class prov_entity {
 		if (array_key_exists($f, $this->keys)) return true;
 		return false;
 	}
-
+	function has_fk($f) {
+		if ($this->init === false) return false;
+		if (property_exists($this->cols, $f) && property_exists($this->cols->{$f}, "ftable")) {
+			return [ "ftable" => $this->cols->{$f}->ftable,"fcol" => $this->cols->{$f}->fcol];
+		}
+		return false;
+	}
 	function keys() {
 		if ($this->init === false) return false;
 		return $this->keys;
 	}
-
 	function key_to_id($key) {
 		return urlencode(json_encode($key));
 	}
@@ -306,6 +318,8 @@ class prov_entity {
 	}
 	function put() {
 		if ($this->init === false) return false;
+
+		
 	}
 	function update($req) {
 		if ($this->init === false) return false;

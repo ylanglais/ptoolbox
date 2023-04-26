@@ -6,6 +6,7 @@ function gform_data(id) {
 	for (i of inps) {
 		if (i.type == "button") continue;
 		if (i.type == "submit") continue;
+		if (i.type == "hidden") continue;
 		if (i.type == "checkbox") {
 			if (i.checked == true) {
 				data[i.id] = true;
@@ -23,19 +24,24 @@ function gform_data(id) {
 	// Select
 	inps = div.getElementsByTagName('select');
 	for (i of inps) {
-		data[i.id] = i.option[i.selected];
+		//console.log("i.options[" + i.selectedIndex + "].value: "+ i.options[i.selectedIndex].value );
+		data[i.id] = i.options[i.selectedIndex].value;
+		if (data[i.id] == 'null' || data[i.id] == '') data[i.id] = null;
 	}
 	// textarea
 	inps = div.getElementsByTagName('textarea');
 	for (i of inps) {
-		data[i.id] = i.values;
+		data[i.id] = i.value;
 	}
 	// return data
 	return data;
 }
 function gform_action(id, pdata, action) {
 	var gfdat = gform_data(id);
-	var data = { "ctrl": "gform", "data": { "data": gfdat, "prov": pdata }, "action": action};
-	console.log(JSON.stringify(data));
-	load(id, "ctrl.php", data);
+	//var req   = JSON.parse(document.getElementById("__req__").value);
+	var ori   = JSON.parse(document.getElementById("__ori__").value);
+	var data  = { "data": gfdat, "prov": pdata, "ori": ori };
+	var ctrl = { "ctrl": "gform", "data": data, "action": action};
+	console.log(JSON.stringify(ctrl));
+	load(id, "ctrl.php", ctrl);
 }

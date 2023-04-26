@@ -10,41 +10,64 @@ function gform($prov, $req = false, $opts = null) {
 	$id   = gen_elid();
 	$html .= "<div class='gform' id='$id'>\n";
 
-#dbg("prov = " . json_encode($prov));
-
 	$o = false;
 	 
 	if ($req !== false) {
-#if (is_string($req)) dbg($req);
-#else dbg("req:    ". json_encode($req));
+		# Load requested data:
 		$o = $prov->get($req);
 	} 
 	$flds = $prov->fields();
 	$html .= "<table class='form'>\n";
+	#$html .= "<input type='hidden' id='__req__' value='".json_encode($req)."'/>";
+	$html .= "<input type='hidden' id='__ori__' value='".json_encode($o)  ."'/>";
+
 	foreach ($flds as $f) {
 		$html .= "<tr><th><label for='$f'>$f</label></th>";
 
 		$cl = "class=''";
 		$vl = "value=''";
 
-
-
+		$dv = $prov->defval($f);
 		if ($o && property_exists($o, $f)) {
+			$dv = $o->$f;
 			$vl = "value='". $o->$f."'";
-		} else if (($rr = $prov->defval($f)) != "") {
-			$vl = "value=" . $p->quote($f, $rr);
+		} else if ($dv != "") {
+			$vl = "value=" . $prov->quote($f, $defv);
 			$cl = "class='defval'";
 		} else if (!$prov->nullable($f) || $prov->iskey($f)) {
 			$cl = "class='required'";
 		}
+
+		$dt = $prov->datatype($f);
 		#$html .= "<td><input name='$f' id='$f' type='text' onchange='gform_(\"$table->module\", this)' $cl $vl/></td></tr>\n";
-		$html .= "<td><input name='$f' id='$f' type='text' $cl $vl/></td></tr>\n";
+		
+		if ($dt == "bool") {
+			$c = "";
+			if ($dv === true) $c = "checked";
+			$html .= "<td><input name='$f' id='$f' type='checkbox' $c $cl/></td></tr>\n";
+		} else if (($fk = $prov->has_fk($f)) !== false) {
+			$ft = $fk["ftable"];
+			$fc = $fk["fcol"];
+			$s = "select distinct $fc as opt from $ft order by 1";
+			$html .= "<td><select name='$f' id='$f' $cl>\n";
+			$c = "";
+			if ($prov->nullable($f) == "YES") {
+				if ($dv === null) $c = "selected";
+				$html .= "\t<option value='null' $c></option>\n";	
+			}
+			$q = new query($s);
+			while($opt = $q->obj()) {
+				$c = "";
+				if ($dv === $opt->opt) $c = "selected"; 
+				$html .= "\t<option value='$opt->opt' $c>$opt->opt</option>\n";
+			}
+			$html .= "</select></td>\n";
+		} else {
+			$html .= "<td><input name='$f' id='$f' type='text' $cl $vl/></td></tr>\n";
+		}
 	}
 
 	$pdat = $prov->data();
-#dbg(">>> $pdat");
-
-#	$prec = $prov->req();
 	if (is_object($opts) && property_exists($opts, "ronly") && $opts->ronly !== true) {
 		$html .= "<tr><td colspan='3'>";
 		$html .= "<input type='button' value='New'    onclick='gform_action(\"$id\", $pdat, \"new\")'/>\n";
@@ -73,11 +96,11 @@ function gform_ctrl() {
 	if ($a->has("action")) {
 		$action = $a->val("action");
 		if ($action == "new") {
-			$prov->put($data->data);
+			$prov->put($data);
 		} else if ($action == "delete") {	
-			$prov->del($data->data);
+			$prov->del($data);
 		} else if ($action == "update") {	
-			$prov->update($data->data);
+			$prov->update($data);
 		} else {
 			dbg_message("unknown action $action");
 		}
