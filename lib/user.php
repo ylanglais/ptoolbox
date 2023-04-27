@@ -107,6 +107,7 @@ class user {
 			if      ($o->type == 'table')  $tab[$o->link] = $o->perm;
 			else if ($o->type == 'entity') $ent[$o->link] = $o->perm;
 		}
+
 		$this->rights["table"]  = $tab;
 		$this->rights["entity"] = $ent;
 	}
@@ -198,6 +199,7 @@ class user {
 
 				$this->source = "local";
 				$this->load_roles();
+				$this->load_rights();
 				return true;
 			} 
 		} 
