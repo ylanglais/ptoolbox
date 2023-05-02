@@ -18,7 +18,9 @@ function gform($prov, $req = false, $opts = null) {
 	} 
 	$flds = $prov->fields();
 	$html .= "<table class='form'>\n";
-	#$html .= "<input type='hidden' id='__req__' value='".json_encode($req)."'/>";
+	if (property_exists($opts, "parentid"))
+		$html .= "<input type='hidden'  id='__parentid__' value='$opts->parentid'/>";
+	$html .= "<input type='hidden' id='opts' value='".json_encode($opts)."'/>";
 	$html .= "<input type='hidden' id='__ori__' value='".json_encode($o)  ."'/>";
 
 	foreach ($flds as $f) {
@@ -32,7 +34,7 @@ function gform($prov, $req = false, $opts = null) {
 			$dv = $o->$f;
 			$vl = "value='". $o->$f."'";
 		} else if ($dv != "") {
-			$vl = "value=" . $prov->quote($f, $defv);
+			$vl = "value=" . $prov->quote($f, $dv);
 			$cl = "class='defval'";
 		} else if (!$prov->nullable($f) || $prov->iskey($f)) {
 			$cl = "class='required'";

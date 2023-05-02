@@ -1,11 +1,10 @@
 function glist_go(id, pdat, opts, start, lines) {
-	//console.log(JSON.stringify(opts));
+	//console.log(">>>> " + JSON.stringify(opts));
 	if (start != null) opts.start = start ;
 	if (lines != null) opts.page  = lines ;
-	console.log(JSON.stringify(opts));
 	
 	data = { "ctrl": "glist", "prov": pdat, "opts": opts};
-	//console.log("glist_go("+ id + "," + JSON.stringify(data));
+	//console.log("----> glist_go("+ id + "," + JSON.stringify(data));
 	load(id, "ctrl.php", data);
 }
 function glist_sort(el, pdat, opts, field) {

@@ -53,7 +53,7 @@ class prov_db {
 
 			$this->table  = $table;
 			$this->filter = $filter;
-			$this->cols   = [];
+			$this->cols   = (object)[];
 			$this->fields = [];
 			$this->keys   = [];
 			$this->fkeys  = [];
@@ -63,17 +63,20 @@ class prov_db {
 
 			$this->db  = new db($this->dsrc);
 
-			if ($this->cols   == []) $this->cols   = $this->db->table_columns($table);
-			if ($this->keys   == []) $this->keys   = (array) $this->db->table_keys($table);
-			if ($this->fkeys  == []) $this->fkeys  = (array) $this->db->table_fkeys($table);
+			if ($this->cols   == (object)[]) $this->cols   = (object) $this->db->table_columns($table);
+			if ($this->keys   == []) $this->keys   		   = (array) $this->db->table_keys($table);
+			if ($this->fkeys  == []) $this->fkeys          = (array) $this->db->table_fkeys($table);
 			if ($this->fields == []) foreach ($this->cols as $f => $d) array_push($this->fields, $f);
 			#dbg($this->fkeys);
+			# Make sute to take all fields as key if no key defined (dangerous => no unicity):
+			if ($this->keys == []) $this->keys = $this->fields;
+
 			foreach ($this->fkeys as $fk) {
 				#dbg($fk);
-				$this->cols[$fk->col]->ftable = $fk->ftable;
-				$this->cols[$fk->col]->fcol   = $fk->fcol;
-				#$this->cols->{$fk->col}->ftable = $fk->ftable;
-				#$this->cols->{$fk->col}->fcol   = $fk->fcol;
+				#$this->cols[$fk->col]->ftable = $fk->ftable;
+				#$this->cols[$fk->col]->fcol   = $fk->fcol;
+				$this->cols->{$fk->col}->ftable = $fk->ftable;
+				$this->cols->{$fk->col}->fcol   = $fk->fcol;
 			}
 
 			$o = (object) [];
@@ -105,15 +108,16 @@ class prov_db {
 	function quote($f, $v) {
 		if ($this->init === false) return false;
 		if (property_exists($this->cols, $f)) {
-			if ($v === null  || $v == "null") {
-				return "null";
-			}
 			switch($this->cols->$f->data_type) {
+				case "bool":
+				case "boolean":
+					if ($v === true) return 'true';
+					return 'false';
+					break;
 				case "int":
 				case "int2":
 				case "int4":
 				case "integer":
-				case "boolean":
 				case "smallint":
 				case "bigint":
 				case "decimal":
@@ -132,6 +136,9 @@ class prov_db {
 					return "'$v'";
 					break;
 			}
+		}
+		if ($v === null  || $v == "null") {
+			return "null";
 		}
 		return "'" . esc($v) . "'";
 	}
@@ -269,27 +276,35 @@ class prov_db {
 	function get($req) {
 		if ($this->init === false) return false;
 		$w = [];
-		#dbg(json_encode($req));
-
 		foreach ($req as $k => $v) {
-			if ($v == null) array_push($w, "$k is null"); 
-			else            array_push($w, "$k = ". $this->quote($k, $v));
+			$t = $this->cols->{$k}->data_type;
+			if ($t == 'bool' || $t == 'boolean') {
+				if ($v == true) array_push($w, "$k = true");
+				else 			array_push($w, "$k = false");
+			} else if ($v == null || $v == "null") {
+				array_push($w, "$k is null"); 
+			} else {
+	           array_push($w, "$k = ". $this->quote($k, $v));
+			}
 		}
 		$where = " where " . implode(" and ", $w);
-		dbg("select * from $this->table $where");
+		#dbg("select * from $this->table $where");
 		$q = new query($this->db, "select * from $this->table $where");
 		
 		return $q->obj();
 	}
 	function put($data) {
-		if ($this->init === false) return false;
+		if ($this->init === false) {
+			err("provider not initialized");
+			return '{"status": false; "error": "provider not initialized"}';
+		}
 		if ($this->perm == 'RONLY') {
 			err("cannot insert readonly data");
-			return false;
+			return '{"status": false; "error": "cannot insert readonly data"}';
 		}
 		if (!is_object($data) || !property_exists($data, "data")) {
 			err("Incomplete data");
-			return false;
+			return '{"status": false; "error": "incomplete data"}';
 		}
 		$dat = $data->data;
 
@@ -304,27 +319,33 @@ class prov_db {
 				array_push($cols, $f);
 				array_push($vals, "$k = ". $this->quote($f, $this->cols->$f->column_default));
 			} else if ($this->cols->$f === false) {
-				return false;
+				err("$f is a required column");
+				return '{"status": false; "error": "'. $f. '" is a required column"}';
 			}
 		}
 		$sql = "insert into $this->table (".  implode(",", $cols) . ") values (". implode(",", $vals) .")";
-		
+		#dbg($sql);
 		$q = new query($this->db, $sql);
 		if ($q->nrows() != 1) {
-			return false;
+			err("$sql : " . $q->err);
+			return  '{"status": false, "query": "'.$sql.'", "error": "'.$q->err().'"}';
 		}
 		return true;
 	}
 	function update($data) {
-		if ($this->init === false) return false;
+		if ($this->init === false) {
+			err("provider not initialized");
+			return '{"status": false; "error": "provider not initialized"}';
+		}
 		if ($this->perm == 'RONLY') {
 			err("cannot update readonly data");
-			return false;
+			return '{"status": false; "error": "cannot insert readonly data"}';
 		}
 		if (!is_object($data) 
 			|| !property_exists($data, "data")
 			|| !property_exists($data, "ori")) {
 			err("Incomplete data (".json_encode($data).")");
+			return '{"status": false; "error": "incomplete data"}';
 			return false;
 		}
 		#
@@ -334,17 +355,17 @@ class prov_db {
 
 		$set = [];
 		$whr = [];
-	
+
 		# create where clause:
 		foreach ($this->keys as $k) {
 			if (!property_exists($ori, $k)) {
 				err("missing key field $k");
-				return false;
+				return '{"status": false, "error": "missing key field '. $k .'"}';
 			}
 			
-			$v = $ori->$k;
+			$v = $this->quote($k, $ori->$k);
 			if ($v == 'null' || $v === null) array_push($whr, "$k is null"); 
-			else                             array_push($whr, "$k = ". $this->quote($k, $v));
+			else                             array_push($whr, "$k = $v");
 		}
 
 		foreach ($this->fields as $f) {
@@ -355,44 +376,49 @@ class prov_db {
 		
 		$sql = "update $this->table set " . implode(",", $set) . " where " . implode (" and ", $whr);
 
-		dbg("$sql");
-		
 		$q = new query($this->db, $sql);
 		if ($q->nrows() != 1) {
-			return false;
+			$e = $q->err();
+			err("$sql : $e");
+			return  '{"status": false, "query": "'.$sql.'", "error": "'.$e.'"}';
 		}
 		return true;
 	}
-
 	function del($data) {
-		if ($this->init === false) return false;
+		if ($this->init === false) {
+			err("provider not initialized");
+			return '{"status": false; "error": "provider not initialized"}';
+		}
 		if ($this->perm == 'RONLY') {
 			err("cannot delete readonly data");
-			return false;
+			return '{"status": false; "error": "cannot insert readonly data"}';
 		}
 		if (!is_object($data) || !property_exists($data, "data")) {
 			err("Incomplete data");
-			return false;
+			return '{"status": false; "error": "incomplete data"}';
 		}
 		$dat = $data->data;
 
 		$w = [];
 		foreach ($dat as $k => $v) {
+			$v =$this->quote($k, $v);
 			if ($v == null || $v == 'null') array_push($w, "$k is null"); 
-			else            array_push($w, "$k = ". $this->quote($k, $v));
+			else            array_push($w, "$k = $v");
 		}
 		$where = " where " . implode(" and ", $w);
 		$sql = "delete from $this->table $where";
-		dbg("$sql");
 		$q = new query($this->db, $sql);
 		
-		return $q->obj();
+		if (($r = $q->obj()) === false) {
+			err("$sql : " . $q->err());
+			return  '{"status": false, "query": "'.$sql.'", "error": "'.$q->err().'"}';
+		}
+		return true;
 	}
 	function data() {
 		if ($this->init === false) return false;
 		return '"'. "__" . $this->id . '"';
 	} 
-
 	function view() {
 		if ($this->init === false) return false;
 		return null;

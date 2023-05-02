@@ -46,9 +46,10 @@ function glist($prov, $opts = []) {
 	if ($opts["id"] === false) $opts["id"]  = "glist_" . gen_elid();		
 	$opts["parentid"] = $id = $opts["id"];
 
+	$html = "<input type='hidden' id='".$id."_opts' value='". json_encode($opts) . "'/>\n";
 	#
 	# Prepare table:
-	$html = "<table class='glist' id='$id'>\n";
+	$html .= "<table class='glist' id='$id'>\n";
 
 	#
 	# Check permission:
@@ -181,9 +182,16 @@ function glist($prov, $opts = []) {
 			
 			foreach ($fields as $k) {
 				$cl = "";
+				$type = $prov->datatype($k);
 				if (property_exists($o, $k)) { 
-					$v = $locl->format($o->$k);
-					if (is_float($o->$k) || is_numeric($o->$k) || substr($o->$k, -1) == "%") $cl = "class='number'";
+					if ($type == "bool") {
+						$v = $o->$k;
+						if ($v == 't' || $v == true) $v = "&#9745;" ; # "☐";
+						else $v = "&#9744;" ; #"☑"
+					} else {
+						$v = $locl->format($o->$k);
+						if (is_float($o->$k) || is_numeric($o->$k) || substr($o->$k, -1) == "%") $cl = "class='number'";
+					}
 				} else {
 					$v = "";
 				}
@@ -239,11 +247,9 @@ function glist($prov, $opts = []) {
 function glist_ctrl() {
 	$a = new args();
 
+
 	$prov = $a->val("prov");
 	$opts = $a->val("opts");
-
-	dbg(json_encode($prov));
-	dbg(json_encode($opts));
 
 	return glist(new prov($prov), $opts);
 }

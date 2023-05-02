@@ -4,15 +4,12 @@ function gform_data(id) {
 	if (div == null) return {};
 	var inps = div.getElementsByTagName('input');
 	for (i of inps) {
+		// console.log("input type: " + i.type + ", id: " + i.id + ", name: " + i.name + ", value: " + i.value + ", checked: " + i.checked);
 		if (i.type == "button") continue;
 		if (i.type == "submit") continue;
 		if (i.type == "hidden") continue;
 		if (i.type == "checkbox") {
-			if (i.checked == true) {
-				data[i.id] = true;
-			} else {
-				data[i.id] = false;
-			}
+			data[i.id] = i.checked;
 		} else if (i.type == "radio") {
 			if (i.checked == true) {
 				data[i.name] = i.value;
@@ -42,6 +39,8 @@ function gform_action(id, pdata, action) {
 	var ori   = JSON.parse(document.getElementById("__ori__").value);
 	var data  = { "data": gfdat, "prov": pdata, "ori": ori };
 	var ctrl = { "ctrl": "gform", "data": data, "action": action};
-	console.log(JSON.stringify(ctrl));
 	load(id, "ctrl.php", ctrl);
+	let sopt = document.getElementById("opts").value;
+	let opts = JSON.parse(sopt);
+	glist_go(opts.parentid, pdata, opts, opts.start, opts.lines); 
 }
