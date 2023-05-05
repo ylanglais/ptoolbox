@@ -106,15 +106,7 @@ function gform_ctrl() {
 		} else {
 			dbg_message("unknown action $action");
 		}
-		#do action
-		
-
-		// reload gui!!!
-
-
-		
 		return;
-
 	} else {
 		$action = false;
 		#dbg("no action");

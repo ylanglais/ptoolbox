@@ -50,6 +50,7 @@ class prov_entity {
 			$this->perm = $perm;
 
 			$q = new query("select * from param.entity where name = '$entity'");
+
 			if (($o = $q->obj()) === false) {
 				err("no entity named '$entity'");
 				return;	
@@ -61,10 +62,11 @@ class prov_entity {
 			$this->ent->dsrc = $this->_ckds($this->ent->dsrc);
 			$this->id     = "__prov_entity__" . $this->name;
 
+			$this->ent->tid = $this->_tid($this->ent->dsrc, $this->ent->tname);
 			$this->_add_table($this->ent->dsrc, $this->ent->tname);
 
 			$this->refs     = [];
-			$q = new query("select * from param.fragment where entity = '$this->name'");
+			$q = new query("select * from param.fragment where entity = '$this->name' order by forder");
 			#
 			# entity:
 			# type: fragment type 
@@ -89,6 +91,7 @@ class prov_entity {
 			$db = new db();
 			$keys = (array) $db->table_keys($this->ent->tname);
 
+			
 			while ($o = $q->obj()) {
 				$this->fragment->{$o->name} = (object)[];
 				foreach ($o as $k => $v) { 
@@ -96,8 +99,14 @@ class prov_entity {
 					$this->fragment->{$o->name}->{$k} = $v;
 				}
 				if ($this->fragment->{$o->name}->type == "column") {
-					$this->cols->{$o->name} = $this->tables->{$this->id}->cols[$o->cname];
-					array_pysh($this->fields, $o->name);
+/*
+dbg(">> " . $this->ent->tname);
+dbg(">> " . $this->id);
+dbg(">> " . $o->name);
+dbg($this->tables);
+*/
+					$this->cols->{$o->name} = $this->tables->{$this->ent->tid}->cols[$o->cname];
+					array_push($this->fields, $o->name);
 					array_push($this->slist, $this->ent->tname . ".$o->cname as \"$o->name\"");
 					if (in_array($o->name, $keys)) array_push($this->keys, $o->name);
 				} else if ($this->fragment->{$o->name}->type == "reference") {
@@ -108,6 +117,8 @@ class prov_entity {
 #dbg("---<<< $o->name");
 #dbg($this->cols);
 					$this->cols->{$o->name} = $this->tables->{$tid}->cols[$o->flname];
+					$this->cols->{$o->name}->ftable = $o->ftname;
+					$this->cols->{$o->name}->fcol   = $o->flname;
 					if (in_array($o->cname, $keys)) array_push($this->keys, $o->name);
 					array_push($this->fields, $o->name);
 					array_push($this->slist, "$o->ftname.$o->flname as \"$o->name\"");
@@ -282,14 +293,6 @@ class prov_entity {
 	}
 	function count() {
 		if ($this->init  === false) return false;
-/***
-		if ($this->count !== false) return $this->count;
-		$sql = "select count(*) as count from $this->table " . $this->_whereclause();
-		$q = new query($this->db, $sql);
-		$o = $q->obj();
-		if ($o === false || !is_object($o) || !property_exists($o, "count")) return ($this->count = 0);
-		return ($this->count = $o->count);
-***/
 		$s = "select count(*) from ". $this->ent->tname . " " . implode(' ', $this->joins) ;
 		$q = new query($s);
 		$o = $q->obj();
@@ -316,19 +319,96 @@ class prov_entity {
 		return $q->obj();
 
 	}
-	function put() {
-		if ($this->init === false) return false;
+	function put($data) {
+		if ($this->init === false) {
+			err("provider not initialized");
+			return '{"status": false; "error": "provider not initialized"}';
+		}
+		if ($this->perm == 'RONLY') {
+			err("cannot insert readonly data");
+			return '{"status": false; "error": "cannot insert readonly data"}';
+		}
+		if (!is_object($data) || !property_exists($data, "data")) {
+			err("Incomplete data");
+			return '{"status": false; "error": "incomplete data"}';
+		}
+		#dbg($data);
+		$flds = [];
+		$vals = [];
 
-		
+dbg($data);
+		foreach ($this->fragment as $k => $f) {
+#dbg("$k -> " . json_encode($f));
+#dbg(":::: "  . $data->data->{$k});
+			if (property_exists($data->data, $k)) {
+dbg("---> $k");
+				array_push($flds, $f->cname);
+				if ($f->type == "column") {
+					array_push($vals, $this->quote($f->cname, $data->data->{$k}));
+				} else if ($f->type == "reference") {
+					$v = $this->quote($f->cname, $data->data->{$k});
+					if ($v == "null" || $v == null) $w = " is null";
+					else $w = " = $v";
+					$s = "select $f->finame from $f->ftname where $f->flname $w";
+					dbg($s);
+					$q = new query($s);
+					if ($q->nrows() != 1) {
+						
+						# if table is not RO, then create it:  
+					} else {
+						$o = $q->obj();
+						array_push($vals, $this->quote($f->cname, $o->{$f->finame}));
+					}
+				} 
+			} 
+			
+		}
+		$s = "insert into " . $this->ent->tname . " (" . implode($flds, ",") . ") values (" . implode($vals, ",") . ")";
+		$q = new query($s);
+dbg($s);
+		if ($q->nrows() != 1) {
+			err("$sql : " . $q->err());
+			return  '{"status": false, "query": "'.$sql.'", "error": "'.$q->err().'"}';
+		}
+		return true;
 	}
-	function update($req) {
-		if ($this->init === false) return false;
+	function update($data) {
+		if ($this->init === false) {
+			err("provider not initialized");
+			return '{"status": false; "error": "provider not initialized"}';
+		}
+		if ($this->perm == 'RONLY') {
+			err("cannot insert readonly data");
+			return '{"status": false; "error": "cannot insert readonly data"}';
+		}
+		if (!is_object($data) || !property_exists($data, "data")) {
+			err("Incomplete data");
+			return '{"status": false; "error": "incomplete data"}';
+		}
+		return true;
 	}
-	function del() {
-		if ($this->init === false) return false;
+	function del($data) {
+		if ($this->init === false) {
+			err("provider not initialized");
+			return '{"status": false; "error": "provider not initialized"}';
+		}
+		if ($this->perm == 'RONLY') {
+			err("cannot insert readonly data");
+			return '{"status": false; "error": "cannot insert readonly data"}';
+		}
+		if (!is_object($data) || !property_exists($data, "data")) {
+			err("Incomplete data");
+			return '{"status": false; "error": "incomplete data"}';
+		}
+		return true;
 	}
 	function query($start = 0, $stop = 25, $sortby = false, $order = false) {
-		$s = "select " . implode(', ', $this->slist) . " from ". $this->ent->tname . " " . implode(' ', $this->joins) . " offset $start limit $stop";
+		$s = "select " . implode(', ', $this->slist) . " from ". $this->ent->tname . " " . implode(' ', $this->joins);
+		if ($sortby !== false) {
+			$s .= " order by \"$sortby\"";
+			if ($order !== 'up') $s .= " desc";
+		}
+		$s .= " offset $start limit $stop";
 		$q = new query($s);
 		return $q->all();	
 	}

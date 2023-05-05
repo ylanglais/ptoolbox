@@ -128,16 +128,18 @@ class prov_db {
 				case "smallserial":
 				case "serial":
 				case "bigserial":
+					if ($v == "") return "null";
 					return $v;
 					break;
 				case "date":
 				case "time":
 				case "datetime":
+					if ($v == "") return "null";
 					return "'$v'";
 					break;
 			}
 		}
-		if ($v === null  || $v == "null") {
+		if ($v === null  || $v == "null" || $v == "") {
 			return "null";
 		}
 		return "'" . esc($v) . "'";
@@ -327,7 +329,7 @@ class prov_db {
 		#dbg($sql);
 		$q = new query($this->db, $sql);
 		if ($q->nrows() != 1) {
-			err("$sql : " . $q->err);
+			err("$sql : " . $q->err());
 			return  '{"status": false, "query": "'.$sql.'", "error": "'.$q->err().'"}';
 		}
 		return true;
