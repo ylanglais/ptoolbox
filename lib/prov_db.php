@@ -128,7 +128,7 @@ class prov_db {
 				case "smallserial":
 				case "serial":
 				case "bigserial":
-					if ($v == "") return "null";
+					if ($v === "") return "null";
 					return $v;
 					break;
 				case "date":
@@ -139,7 +139,7 @@ class prov_db {
 					break;
 			}
 		}
-		if ($v === null  || $v == "null" || $v == "") {
+		if ($v === null  || $v === 'null' || $v == "") {
 			return "null";
 		}
 		return "'" . esc($v) . "'";
@@ -280,17 +280,18 @@ class prov_db {
 		$w = [];
 		foreach ($req as $k => $v) {
 			$t = $this->cols->{$k}->data_type;
+			#dbg("$k => $v ($t vs ".gettype($v).")");
 			if ($t == 'bool' || $t == 'boolean') {
-				if ($v == true) array_push($w, "$k = true");
-				else 			array_push($w, "$k = false");
-			} else if ($v == null || $v == "null") {
+				if ($v === true) array_push($w, "$k = true");
+				else 			 array_push($w, "$k = false");
+			} else if (gettype($v) == 'null' || $v === 'null' || $v === null) {
 				array_push($w, "$k is null"); 
 			} else {
 	           array_push($w, "$k = ". $this->quote($k, $v));
 			}
 		}
 		$where = " where " . implode(" and ", $w);
-		#dbg("select * from $this->table $where");
+		dbg("select * from $this->table $where");
 		$q = new query($this->db, "select * from $this->table $where");
 		
 		return $q->obj();
@@ -326,7 +327,7 @@ class prov_db {
 			}
 		}
 		$sql = "insert into $this->table (".  implode(",", $cols) . ") values (". implode(",", $vals) .")";
-		#dbg($sql);
+		dbg($sql);
 		$q = new query($this->db, $sql);
 		if ($q->nrows() != 1) {
 			err("$sql : " . $q->err());
