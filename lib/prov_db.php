@@ -128,7 +128,7 @@ class prov_db {
 				case "smallserial":
 				case "serial":
 				case "bigserial":
-					if ($v === "") return "null";
+					if ($v === "" || $v === null) return "null";
 					return $v;
 					break;
 				case "date":
@@ -291,7 +291,7 @@ class prov_db {
 			}
 		}
 		$where = " where " . implode(" and ", $w);
-		dbg("select * from $this->table $where");
+		#dbg("select * from $this->table $where");
 		$q = new query($this->db, "select * from $this->table $where");
 		
 		return $q->obj();

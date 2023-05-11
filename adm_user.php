@@ -36,41 +36,17 @@ function roles_show($uid) {
 	$q = new query("select id, name from tech.role");
 	$roles = [];
 	$out .= "<table id='roles' class='subform' width='100%' onclick='adm_user_check()'>\n";
-	$r_adm = -1;
+	#$r_adm = -1;
 	while ($r = $q->obj()) {
 		$c = "";
 		if (in_array($r->id, $ur)) {
 			$c = "class='selected'";
 		}
-		$out .=	"<tr id='role$r->id' onclick='roles_toggle_selected(this)' $c><td onmouseover='this.classList.add(\"tdover\")' onmouseout='this.classList.remove(\"tdover\")'>$r->name</td></tr>\n";
-		if ($r->name == 'admin') $r_adm = $r->id;
-		else $r_adm = 0;
+		$out .=	"<tr id='role$r->id' onclick='adm_user_roles_toggle_selected(this)' $c><td onmouseover='this.classList.add(\"tdover\")' onmouseout='this.classList.remove(\"tdover\")'>$r->name</td></tr>\n";
+		#if ($r->name == 'admin') $r_adm = $r->id;
+		#else $r_adm = 0;
 	}
 	$out .= "</table>\n";
-	$out .= "
-<script>
-console.log('in 1');
-	r_adm = $r_adm;
-	function roles_toggle_selected(r) {
-		if (r.classList.contains('selected')) {
-			r.classList.remove('selected');
-		} else {
-			r.classList.add('selected');
-		} 
-	}
-	function roles_read() {
-		var rows = document.getElementById('roles').tBodies[0].rows;
-		var rids = [];
-		for (r = 0; r < rows.length; r++) {
-			if (rows[r].classList.contains('selected')) {
-				rids.push(rows[r].id.substr('role'.length));
-			}
-		}
-		return rids;
-	}	
-	var o_roles = roles_read();
-</script>
-";
 	return $out;
 }
 
@@ -102,91 +78,7 @@ function adm_user_ui($a, $uid) {
 
 	$data = "{ 'uid': '$uid', 'login': '$login', 'mail': '$mail', 'name': '$name', 'surname': '$surname', 'active': '$active', 'since': '$since', 'until': '$until' }";
 	print("<div style='height: 100%'>");
-	print("<script>var o_data = $data;\n</script>\n");	
-	?>
-		<script>
-		console.log("in 2");
-		function adm_user_data() {
-			uid     = document.getElementById("uid").value;
-			login   = document.getElementById("login").value;
-			mail    = document.getElementById("mail").value;
-			name    = document.getElementById("name").value;
-			surname = document.getElementById("surname").value;
-
-			if (document.getElementById("active").checked) 
-				active = 'Y';
-			else 
-				active = 'N';
-
-			since   = document.getElementById("since").value;
-			until   = document.getElementById("until").value;
-			dat = {'uid': uid, 'login': login, 'mail': mail, 'name': name, 'surname': surname, 'active': active, 'since': since, 'until': until};
-			return dat;
-		}
-		function adm_user_changed(dat, rol) {
-			if (dat.login   != o_data.login)   return true;
-			if (dat.mail    != o_data.mail)    return true;
-			if (dat.name    != o_data.name)    return true;
-			if (dat.surname != o_data.surname) return true;
-			if (dat.active  != o_data.active)  return true;
-			if (dat.since   != o_data.since)   return true;
-			if (dat.until   != o_data.until)   return true;
-
-			if (JSON.stringify(rol) != JSON.stringify(o_roles))   return true;
-	
-			return false;
-		}
-		function adm_can_update(dat, rol) {
-			if (dat.uid   ==  '' || dat.login ==  '' || !adm_user_changed(dat, rol)) {
-				$("#update").hide();
-				return false;
-			}
-			$("#update").show();
-			return true;
-		}
-		function adm_db_check(url, login) {
-			var r = $.ajax({ 
-				type: "POST",
-				url: url, 
-				dataType: 'json', 
-				data: {'login': login}, 
-				async: false, 
-			}).responseJSON;
-			return r;
-		}
-		function adm_can_create(dat) {
-			r = null;
-			if (dat.login == o_data.login || dat.login == "" || (r =  adm_db_check("getusrdata.php", dat.login)) != null) {
-				$("#create").hide();
-				if (r !== null) { 
-					document.getElementById("login").classList.add("conflict");
-				} else  {
-					document.getElementById("login")classList..remove("conflict");
-				}
-				
-				return false;	
-			}
-			$("#create").show();
-			return true;
-		}
-		function adm_user_check() {
-			var dat = adm_user_data();
-			var rol = roles_read();
-			if (dat.login  == "") {
-				document.getElementById("login").classList.add("required");
-			} else {
-				document.getElementById("login").classList.remove("required");
-			}
-			adm_can_update(dat, rol);
-			adm_can_create(dat, rol);
-
-			if (rol.indexOf("" + r_adm) > -1) 
-				$("#slav").hide();
-			else
-				$("#slav").show();
-		}
-		</script>
-	<?php
+	print("<input type='hidden' id='o_data' value='$data'/>");
 	print("<input type='hidden' id='uid' value='$uid'/>");
 	print("<table class='form' id='mastr'>\n");
 	if ($login == "") 
@@ -204,8 +96,8 @@ function adm_user_ui($a, $uid) {
 		$chk="";
 	print("<tr><th><label for='active'>Actif</label></th><td><input id='active' type='checkbox' $chk onchange='adm_user_check();'/></td></tr>");
 
-	print("<tr><th><label for='since'>Depuis</label></th><td><input id='since' type='text' name='since'size='16' pattern='[0-3][0-9]/[0-1][0-9]/[12][0-9][0-9][0-9]' placeholder='jj/mm/aaaa' value='$since' onchange='adm_user_check();'/></td><tr>\n");
-	print("<tr><th><label for='until'>Jusqu'à</label></th><td><input id='until' type='text' name='until'  size='16' pattern='[0-3][0-9]/[0-1][0-9]/[12][0-9][0-9][0-9]' placeholder='jj/mm/aaaa' value='$until' onchange='adm_user_check();'/></td><tr>\n");
+	print("<tr><th><label for='since'>Depuis </label></th><td><input id='since' type='text' name='since' size='16' pattern='[0-3][0-9]/[0-1][0-9]/[12][0-9][0-9][0-9]' placeholder='jj/mm/aaaa' value='$since' onchange='adm_user_check();'/></td><tr>\n");
+	print("<tr><th><label for='until'>Jusqu'à</label></th><td><input id='until' type='text' name='until' size='16' pattern='[0-3][0-9]/[0-1][0-9]/[12][0-9][0-9][0-9]' placeholder='jj/mm/aaaa' value='$until' onchange='adm_user_check();'/></td><tr>\n");
 
 	print("<tr><th>Roles  </th><td><div class='scrollable'>" . roles_show($uid)   . "</div></td></tr>\n");
 	print("<tr><td colspan='2'>\n");
@@ -215,13 +107,6 @@ function adm_user_ui($a, $uid) {
 	} 
 	print("<input type='button' value='Annuler' onclick='adm_user_cancel();'/>");
 	print("</table>\n");
-?>
-<script>
-adm_user_check();
-$("#slavdiv").height("" + (parseInt($("#mastr").height()) - 10) + "px");
-$("#slav").height($("#mastr").height());
-</script>
-<?php
 	print("</div>\n");
 	print("</div>\n");
 }
@@ -253,45 +138,9 @@ function adm_user_list() {
 	print("</table>\n");
 }
 
-?>
-<div id='user'>
-<script>
-console.log("in 3");
-function adm_user_form_data() {
-	var formd  = {};
-	formd.user = {};
-	formd.user.uid     = document.getElementById("uid").value;
-	formd.user.login   = document.getElementById("login").value;
-	formd.user.mail    = document.getEmementById("mail").value;
-	formd.user.name    = document.getElementById("name" ).value;
-	formd.user.surname = document.getElementById("surname" ).value;
-	formd.user.active  = document.getElementById("#active" ).checked
-	formd.user.since   = document.getElemen("since"  ).value;
-	formd.user.until   = document.getElemen("until"  ).value;
-	formd.roles        = roles_read();
-	return formd;
-}
-function adm_user_cancel() {
-	load("data_area", "adm_user.php", null);
-}
-function adm_user_open(id) {
-	load("data_area", "adm_user.php", {"uid": id });
-}
-function adm_user_new() {
-	load("data_area", "adm_user.php", {"newuser": true });
-}
-function adm_user_create() {
-	var data = adm_user_form_data();
-	load("data_area", "adm_user.php", {"act": "create", "data": data});
-}
-function adm_user_update() {
-	var data = adm_user_form_data();
-	load("data_area", "adm_user.php", {"act": "update", "data": data});
-}
-</script>
-<h1>Gestion des utilisateurs</h1><br/>
 
-<?php
+print("<div id='user'>\n"); 
+print("<h1>Gestion des utilisateurs</h1><br/>\n");
 $a = new args(); 
 if (($uid = $a->post("uid")) !== false || $a->post("newuser") == true) {
 	adm_user_ui($a, $uid);
@@ -299,8 +148,8 @@ if (($uid = $a->post("uid")) !== false || $a->post("newuser") == true) {
 	if (($act = $a->post("act")) !== false) {
 		$d   = (object) $a->post("data");	
 		$usr = (object) $d->user;
-		if ($usr->active) $active = 'Y';
-		else              $active = 'N';
+		if      ($usr->active === True ) $active = 'Y';
+		else if ($usr->active === false) $active = 'N';
 		if ($usr->since != '') 
 			$since = "'". date_human_to_db($usr->since) . "'";
 		else 

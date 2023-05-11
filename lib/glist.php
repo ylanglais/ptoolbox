@@ -185,6 +185,7 @@ function glist($prov, $opts = []) {
 				$type = $prov->datatype($k);
 				if (property_exists($o, $k)) { 
 					if ($type == "bool") {
+						$cl = "class='ckbx'";
 						$v = $o->$k;
 						if ($v == 't' || $v == true) $v = "&#9745;" ; # "☐";
 						else $v = "&#9744;" ; #"☑"

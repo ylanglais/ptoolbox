@@ -166,8 +166,6 @@ th.minical.pre, td.minical.pre {
 	color:  $reverse_fg;
 }
 
-
-
 /* 
  * Paragraph definitions: 
  */
@@ -362,13 +360,23 @@ li.menusub {
 	cursor: pointer;
 }
 ul.menusub {
-	display: none;
+	width:  200px;
+	height: 0px;
+	max-height: 0px;
+	transition: height .4s, opacity 0.4s;
+	opacity: 1;
 	background: white;
 	color: $normal;
 	font-weight: normal;
 	font-size: 11pt;
 	overflow: auto;
     box-shadow: inset 1px 1px 2px $shadow;
+}
+ul.menusub.current {
+	width: 300px;	
+	height: auto;
+	opacity: 1;
+	transition: max-height .4s, height .4s, opacity 0.4s;
 }
 ul.menusubsub {
 	display: none;
@@ -630,6 +638,9 @@ td.right {
 }
 td.number {
 	text-align: right;
+}
+td.ckbx {
+	text-align: center; 
 }
 td.num {
 	text-align: right;  

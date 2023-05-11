@@ -95,9 +95,14 @@ class user {
 		if ($this->source == "local" && !in_array("local", $this->roles)) array_push($this->roles, "local");
 	}
 	function load_rights() {
-		$q =  new query("SELECT type, link, perm from param.right where role_id in (select $this->role_id from $this->user_role_table where $this->user_id = '$this->id')");
 		$tab = [];
 		$ent = [];
+		$q =  new query("SELECT type, link, perm from param.right where role_id = 0");
+		while ($o = $q->obj()) {
+			if      ($o->type == 'table')  $tab[$o->link] = $o->perm;
+			else if ($o->type == 'entity') $ent[$o->link] = $o->perm;
+		}
+		$q =  new query("SELECT type, link, perm from param.right where role_id in (select $this->role_id from $this->user_role_table where $this->user_id = '$this->id')");
 		while ($o = $q->obj()) {
 			if      ($o->type == 'table')  $tab[$o->link] = $o->perm;
 			else if ($o->type == 'entity') $ent[$o->link] = $o->perm;

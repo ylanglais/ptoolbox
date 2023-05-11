@@ -1,4 +1,4 @@
-function _load(id, url, params, completef) {
+function __load(id, url, params, completef) {
 	var xhr = new XMLHttpRequest();
 
 	xhr.id = id;
@@ -21,7 +21,12 @@ function _load(id, url, params, completef) {
 	}
 	xhr.send(JSON.stringify(params));
 }
-function load(id, url, params) {
+async function load(id, url, params) {
+	const response = await fetch(url, { method: "POST", credentials: 'same-origin', cache: 'no-cache', headers: {  'Content-Type': 'application/json' }, body: JSON.stringify(params) });
+	const text     = await response.text();
+	document.getElementById(id).innerHTML = text;
+}
+function _load(id, url, params) {
 	fetch(url, { method: "POST", credentials: 'same-origin', cache: 'no-cache', headers: {  'Content-Type': 'application/json' }, body: JSON.stringify(params) } )
 	.then(response => response.text())
 	.then(html     => { document.getElementById(id).innerHTML = html; })
@@ -44,3 +49,4 @@ function sync_post(url, data) {
 	if (ws.response) return JSON.parse(ws.response);
 	return false;
 }
+
