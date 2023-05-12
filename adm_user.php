@@ -24,27 +24,17 @@ function adm_user_new_id() {
 	return $q->obj()->newid;
 }
 
-function roles_show($uid) {
+function roles_show($uid, $ur) {
 	$out = "";
-	$ur = [];
-	if ($uid != "") {
-		$q = new query("select role_id from tech.user_role where user_id = '$uid'");
-		while ($o = $q->obj()) {
-			array_push($ur, $o->role_id);
-		}
-	}
 	$q = new query("select id, name from tech.role");
 	$roles = [];
 	$out .= "<table id='roles' class='subform' width='100%' onclick='adm_user_check()'>\n";
-	#$r_adm = -1;
 	while ($r = $q->obj()) {
 		$c = "";
 		if (in_array($r->id, $ur)) {
 			$c = "class='selected'";
 		}
 		$out .=	"<tr id='role$r->id' onclick='adm_user_roles_toggle_selected(this)' $c><td onmouseover='this.classList.add(\"tdover\")' onmouseout='this.classList.remove(\"tdover\")'>$r->name</td></tr>\n";
-		#if ($r->name == 'admin') $r_adm = $r->id;
-		#else $r_adm = 0;
 	}
 	$out .= "</table>\n";
 	return $out;
@@ -53,6 +43,7 @@ function roles_show($uid) {
 #
 #
 function adm_user_ui($a, $uid) {
+	$roles  = [];
 	if ($uid === false) {
 		$uid = "";
 		if (($login   = $a->post("login"))   === false) $login   = "";
@@ -62,6 +53,7 @@ function adm_user_ui($a, $uid) {
 		if (($active  = $a->post("active"))  === false) $active  = ""; 
 		if (($since   = $a->post("since"))   === false) $since   = date_db_to_human(today());
 		if (($until   = $a->post("until"))   === false) $until   = ""; 
+		$roles = [];
 	} else {
 		$q       = new query("select * from tech.user where id = '$uid'");
 		$o       = $q->obj();
@@ -74,11 +66,19 @@ function adm_user_ui($a, $uid) {
 		else                 $since = "";
 		if ($o->until != "") $until = date_db_to_human($o->until);
 		else                 $until = "";
+
+		$q = new query("select role_id from tech.user_role where user_id = '$uid' order by 1");
+		while ($o = $q->obj()) {
+			array_push($roles, $o->role_id);
+		}
 	};
 
-	$data = "{ 'uid': '$uid', 'login': '$login', 'mail': '$mail', 'name': '$name', 'surname': '$surname', 'active': '$active', 'since': '$since', 'until': '$until' }";
+	if ($active === true) $act = "true";
+	else                  $act = "false";
+
+	$data = "{ \"uid\": \"$uid\", \"login\": \"$login\", \"mail\": \"$mail\", \"name\": \"$name\", \"surname\": \"$surname\", \"active\": $act, \"since\": \"$since\", \"until\": \"$until\", \"roles\": [".implode(',', $roles)."]  }";
 	print("<div style='height: 100%'>");
-	print("<input type='hidden' id='o_data' value='$data'/>");
+	print("<input type='hidden' id='o_data' value='". $data ."'/>");
 	print("<input type='hidden' id='uid' value='$uid'/>");
 	print("<table class='form' id='mastr'>\n");
 	if ($login == "") 
@@ -90,20 +90,17 @@ function adm_user_ui($a, $uid) {
 	print("<tr><th><label for='mail' >Email</label></th><td><input id='mail'    type='text' value='$mail'         onchange='adm_user_check();'/></td></tr>");
 	print("<tr><th><label for='name'>Prénom</label></th><td><input id='name'    type='text' value='$name'    $req onchange='adm_user_check();'/></td></tr>");
 	print("<tr><th><label for='surname'>Nom</label></th><td><input id='surname' type='text' value='$surname' $req onchange='adm_user_check();'/></td></tr>");
-	if ($active = "" || $active = true) 
-		$chk="checked";
-	else  
-		$chk="";
+	$chk=""; if ($active === true) $chk="checked";
 	print("<tr><th><label for='active'>Actif</label></th><td><input id='active' type='checkbox' $chk onchange='adm_user_check();'/></td></tr>");
 
 	print("<tr><th><label for='since'>Depuis </label></th><td><input id='since' type='text' name='since' size='16' pattern='[0-3][0-9]/[0-1][0-9]/[12][0-9][0-9][0-9]' placeholder='jj/mm/aaaa' value='$since' onchange='adm_user_check();'/></td><tr>\n");
 	print("<tr><th><label for='until'>Jusqu'à</label></th><td><input id='until' type='text' name='until' size='16' pattern='[0-3][0-9]/[0-1][0-9]/[12][0-9][0-9][0-9]' placeholder='jj/mm/aaaa' value='$until' onchange='adm_user_check();'/></td><tr>\n");
 
-	print("<tr><th>Roles  </th><td><div class='scrollable'>" . roles_show($uid)   . "</div></td></tr>\n");
+	print("<tr><th>Roles  </th><td><div class='scrollable'>" . roles_show($uid, $roles)   . "</div></td></tr>\n");
 	print("<tr><td colspan='2'>\n");
 	print("<input id='create' type='button' value='Créer' onclick='adm_user_create();'/>");
 	if ($uid != "") { 
-		print("<input id='update' type='button' value='Modifier' onclick='adm_user_update();'/>");
+		print("<input id='update' type='button' value='Modifier' onclick='adm_user_update();' style='display: none'/>");
 	} 
 	print("<input type='button' value='Annuler' onclick='adm_user_cancel();'/>");
 	print("</table>\n");
@@ -127,8 +124,10 @@ function adm_user_list() {
 			else                 $since = '';
 			if ($o->until != "") $until = date_db_to_human($o->until);
 			else                 $until = '';
-			print("<td class='num'>$i</td><td>$o->login</td><td>$o->mail</td><td align='center'>$o->active</td><td align='center'>$since</td><td align='center'>$until</td></tr>\n");
+			if ($o->active === true) $active = "&#9745;"; 
+			else                     $active = "&#9744;";
 
+			print("<td class='num'>$i</td><td>$o->login</td><td>$o->mail</td><td align='center'>$active</td><td align='center'>$since</td><td align='center'>$until</td></tr>\n");
 			print("</tr>\n");
 			$i++;
 		}
@@ -148,8 +147,8 @@ if (($uid = $a->post("uid")) !== false || $a->post("newuser") == true) {
 	if (($act = $a->post("act")) !== false) {
 		$d   = (object) $a->post("data");	
 		$usr = (object) $d->user;
-		if      ($usr->active === True ) $active = 'Y';
-		else if ($usr->active === false) $active = 'N';
+		if ($usr->active === true) $active = 'true';
+		else  						$active = 'false';
 		if ($usr->since != '') 
 			$since = "'". date_human_to_db($usr->since) . "'";
 		else 
@@ -171,15 +170,13 @@ if (($uid = $a->post("uid")) !== false || $a->post("newuser") == true) {
 				foreach ($rol as $r)  new query("insert into tech.user_role values ($nid, '$r')");
 				$auth = new auth_local();
 				$auth->update($usr->login, 'ChangeMe');
-				#print("<pre>sql = $sql\n</pre>\n");
 			}
 		} else if ($act == "update") {
-			$sql = "update tech.user set login = '$usr->login', mail = '$usr->mail', name = '$usr->name', surname = '$usr->surname', active = '$active', since = $since, until = $until where id = '$usr->uid'";
+			$sql = "update tech.user set login = '$usr->login', mail = '$usr->mail', name = '$usr->name', surname = '$usr->surname', active = $active, since = $since, until = $until where id = '$usr->uid'";
 			new query($sql);
 
 			new query("delete from tech.user_role where user_id = $usr->uid");
 			foreach ($rol as $r)  new query("insert into tech.user_role values ($usr->uid, $r)");
-			#print("<pre>sql = $sql\n</pre>\n");
 		} 
 	}
 	adm_user_list();

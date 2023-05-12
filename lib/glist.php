@@ -187,8 +187,8 @@ function glist($prov, $opts = []) {
 					if ($type == "bool") {
 						$cl = "class='ckbx'";
 						$v = $o->$k;
-						if ($v == 't' || $v == true) $v = "&#9745;" ; # "☐";
-						else $v = "&#9744;" ; #"☑"
+						if ($v == 't' || $v == true) $v = "&#9745;" ; 
+						else $v = "&#9744;";
 					} else {
 						$v = $locl->format($o->$k);
 						if (is_float($o->$k) || is_numeric($o->$k) || substr($o->$k, -1) == "%") $cl = "class='number'";

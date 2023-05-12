@@ -10,10 +10,10 @@ function adm_user_roles_read() {
 	var rids = [];
 	for (r = 0; r < rows.length; r++) {
 		if (rows[r].classList.contains('selected')) {
-			rids.push(rows[r].id.substr('role'.length));
+			rids.push(parseInt(rows[r].id.substr('role'.length)));
 		}
 	}
-	return rids;
+	return rids.sort(function(a, b) {return a - b;});
 }
 function adm_user_form_data() {
 	var formd  = {};
@@ -24,23 +24,13 @@ function adm_user_form_data() {
 	formd.user.name    = document.getElementById("name"   ).value;
 	formd.user.surname = document.getElementById("surname").value;
 
-	if (document.getElementById("active").checked) formd.user.active = 'Y';
-	else                                           formd.user.active = 'N';
+	if (document.getElementById("active").checked) formd.user.active = true;
+	else                                           formd.user.active = false;
 
 	formd.user.since   = document.getElementById("since"  ).value;
 	formd.user.until   = document.getElementById("until"  ).value;
 	formd.roles        = adm_user_roles_read();
 
-/*
-	formd.user.login   = $("#login"  ).val();
-	formd.user.mail    = $("#mail"   ).val();
-	formd.user.name    = $("#name"   ).val();
-	formd.user.surname = $("#surname").val();
-	formd.user.active  = $("#active" ).prop("checked");
-	formd.user.since   = $("#since"  ).val();
-	formd.user.until   = $("#until"  ).val();
-	formd.roles        = adm_user_roles_read();
-*/
 	return formd;
 }
 function adm_user_cancel() {
@@ -68,34 +58,30 @@ function adm_user_data() {
 	surname = document.getElementById("surname").value;
 
 	if (document.getElementById("active").checked) 
-		active = 'Y';
+		active = true;
 	else 
-		active = 'N';
+		active = false;
 
 	since   = document.getElementById("since").value;
 	until   = document.getElementById("until").value;
 	dat = {'uid': uid, 'login': login, 'mail': mail, 'name': name, 'surname': surname, 'active': active, 'since': since, 'until': until};
-console.log("data: " + JSON.stringify(dat));
 	return dat;
 }
 function adm_user_changed(dat, rol) {
-	var od = document.getElementById("o_data");
+	var od = JSON.parse(document.getElementById("o_data").value);
 	if (od == null) {
 		console.log("no original data");
 		return false;
 	}
 
-	console.log("original data: " + od.value);
-
-	if (dat.login   != od.value.login)   return true;
-	if (dat.mail    != od.value.mail)    return true;
-	if (dat.name    != od.value.name)    return true;
-	if (dat.surname != od.value.surname) return true;
-	if (dat.active  != od.value.active)  return true;
-	if (dat.since   != od.value.since)   return true;
-	if (dat.until   != od.value.until)   return true;
-
-	if (JSON.stringify(rol) != JSON.stringify(od.value.roles))   return true;
+	if (dat.login   != od.login)   return true;
+	if (dat.mail    != od.mail)    return true;
+	if (dat.name    != od.name)    return true;
+	if (dat.surname != od.surname) return true;
+	if (dat.active  != od.active)  return true;
+	if (dat.since   != od.since)   return true;
+	if (dat.until   != od.until)   return true;
+	if (JSON.stringify(rol) != JSON.stringify(od.roles))  return true;
 
 	return false;
 }
@@ -144,11 +130,4 @@ function adm_user_check() {
 	}
 	adm_can_update(dat, rol);
 	adm_can_create(dat, rol);
-
-	/*
-	if (rol.indexOf("" + r_adm) > -1) 
-		$("#slav").hide();
-	else
-		$("#slav").show();
-	*/
 }
