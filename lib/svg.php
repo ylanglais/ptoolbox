@@ -114,7 +114,7 @@ class svg {
 		$this->Oy     = $height / 2;
 		$this->size   = min($width, $height);
 		$this->scale  = $this->size / 2;
-		$this->colors = ['#8eb021', '#ffd351', '#3b7fc4', '#d04437', '#FFF400', '#654982', '#f691b2', '#999999', '#815b3a', '#f79232', '#59afe1', '#f15c75', '#00FF26', '#0500FF', '#FF0900', '#E8FF00', '#00FFD3', '#9400FF', '#FF0legend4', '#FFC800', '#B5FF00', '#2A7C9C', '#2C2A9C', '#722A9C', '#9C2A9C', '#9C2A63', '#9C2A2A', '#9C772A', '#979C2A', '#649C2A'];
+		$this->colors = ['#8eb021', '#ffd351', '#3b7fc4', '#d04437', '#FFF400', '#654982', '#f691b2', '#999999', '#815b3a', '#f79232', '#59afe1', '#f15c75', '#00FF26', '#0500FF', '#FF0900', '#E8FF00', '#00FFD3', '#9400FF', '#FF04', '#FFC800', '#B5FF00', '#2A7C9C', '#2C2A9C', '#722A9C', '#9C2A9C', '#9C2A63', '#9C2A2A', '#9C772A', '#979C2A', '#649C2A'];
 		$this->ncolors = count($this->colors);
 
 		$r = false;
@@ -217,9 +217,9 @@ class svg {
 			}
 		#	_err("$i vs cmax: $cmax\n");
 			if (!($i % $lblsteps)) {
-				#$outs .= "<text x='$x'  y='". ($y0 + $tick) ."' font-size='.7vw' text-anchor='middle' alignment-baseline='before-edge'>". $xlbls[$i]."</text>\n";
+				#$outs .= "<text x='$x'  y='". ($y0 + $tick) ."' font-size='70%' text-anchor='middle' alignment-baseline='before-edge'>". $xlbls[$i]."</text>\n";
 				$outs .= "<line class='graph ticks xticks' x1='$x' y1='". ($y0 + $tick/2)."' x2='$x' y2='".($y0 - $tick/2)."' style='stroke:".style::value("svg_graph_ticks_xticks")."; stroke-width:1;'/>\n";
-				$outs .= "<text class='graph label xlabel' style='fill:".style::value('svg_graph_label_xlabel')."' font-size='.7vw' x='$x'  y='". ($y0 + 2*$tick) ."' text-anchor='middle' dominant-baseline='middle'>". $xlbls[$i]."</text>\n";
+				$outs .= "<text class='graph label xlabel' style='fill:".style::value('svg_graph_label_xlabel')."' x='$x'  y='". ($y0 + 2*$tick) ."' text-anchor='middle' dominant-baseline='middle'>". $xlbls[$i]."</text>\n";
 				if ($this->param('xgrid')) {
 					$outs .= "<line class='graph grid xgrid' style='stroke:".style::value('svg_graph_grid_xgrid')."; stroke-width: .5px;'  x1='$x' y1='$y0' x2='$x' y2='$y1'/>\n";
 				} 
@@ -248,7 +248,7 @@ class svg {
 				$ri = $this->reduce($i);
 			else 
 				$ri = $i;
-			$outs .= "<text class='graph label ylabel' style='fill:".style::value("svg_graph_label_ylabel")."' x='". ($x0 - $tick) . "' y='$y' font-size='.7vw' text-anchor='end' >$ri</text>\n";
+			$outs .= "<text class='graph label ylabel' style='fill:".style::value("svg_graph_label_ylabel")."' x='". ($x0 - $tick) . "' y='$y' alignment-baseline='middle' text-anchor='end' >$ri</text>\n";
 		}
 		if ($i * $yscale + $y0 > $y1) {
 			$y = $i * $yscale + $y0;
@@ -261,7 +261,7 @@ class svg {
 				$ri = $this->reduce($i);
 			else
 				$ri = $i;
-			$outs .= "<text class='graph label ylabel' style='fill:".style::value('svg_graph_label_ylabel')."' x='". ($x0 - $tick) . "' y='$y' font-size='.7vw' text-anchor='end' >$ri</text>\n";
+			$outs .= "<text class='graph label ylabel' style='fill:".style::value('svg_graph_label_ylabel')."' x='". ($x0 - $tick) . "' y='$y' alignment-baseline='middle' text-anchor='end' >$ri</text>\n";
 		}
 
 		$s = 0;
@@ -286,10 +286,10 @@ class svg {
 		foreach (array_keys($values) as $t) {
 			$x0 = $this->Ox + 7 * $this->xscale / 16;
 			$x1 = $x0 + 20;  
-			$y  = $margin + 20 * ($i + 1);
+			$y  = $margin + 10 * ($i + 1);
 			$outs .= "<line class='graph legend' x1='$x0' y1='$y' x2='$x1' y2='$y' style='stroke:". $this->color($i).";stroke-width:2px;'/>\n";
 			$x  = $x0 + 30;  
-			$outs .= "<text class='graph legend' style='fill:".style::value("svg_graph_legend")."' font-size='.9vw' x='$x' y='$y' text-anchor='start' >$t</text>\n";
+			$outs .= "<text class='graph legend' style='fill:".style::value("svg_graph_legend")."' x='$x' y='$y' text-anchor='start' >$t</text>\n";
 			$i++;
 		}
 		
@@ -424,7 +424,7 @@ class svg {
 			} else  if (!$this->param('xnoreduce')) {
 				$X = $this->reduce($X, $this->param('xdatatype'));
 			}
-			$outs .= "<text class='graph label xlabel' style='fill:".style::value('svg_graph_label_xlabel')."' x='$xx'  y='". ($yy0 + 2*$tick) ."' font-size='.7vw' text-anchor='middle'>$X</text>\n";
+			$outs .= "<text class='graph label xlabel' style='fill:".style::value('svg_graph_label_xlabel')."' x='$xx'  y='". ($yy0 + 2*$tick) ."' text-anchor='middle'>$X</text>\n";
 		}
 		return $outs;
 	}
@@ -452,7 +452,7 @@ class svg {
 			} else if (!$this->param('xnoreduce')) {
 				$X = $this->reduce($X, $this->param('xdatatype'));
 			}
-			$outs .= "<text class='graph label xlabel' style='fill: ".style::value("svg_graph_label_xlabel")."' x='$xx'  y='". ($yy0 + 2*$tick) ."' font-size='.7vw' text-anchor='middle'>$X</text>\n";
+			$outs .= "<text class='graph label xlabel' style='fill: ".style::value("svg_graph_label_xlabel")."' x='$xx'  y='". ($yy0 + 2*$tick) ."' text-anchor='middle'>$X</text>\n";
 		}
 		return $outs;
 	}
@@ -712,11 +712,11 @@ class svg {
 			} else if (!$this->param('ynoreduce')) {
 				$Y = $this->reduce($Y, $this->param('ydatatype'));
 			}
-			$outs .= "<text class='graph label ylabel' style='fill: ".style::value("svg_graph_label_ylabel")."' font-size='.7vw' x='". ($xx0 - $tick) . "' y='$yy' text-anchor='end'>".$this->locl->format($Y)."</text>\n";
+			$outs .= "<text class='graph label ylabel' style='fill: ".style::value("svg_graph_label_ylabel")."' x='". ($xx0 - $tick) . "' y='$yy' alignment-baseline='middle' text-anchor='end'>".$this->locl->format($Y)."</text>\n";
 		}
 
 		if ($this->param('yunits')) {
-			$outs .= "<text class='graph units yunits' style='fill: ".style::value("svg_graph_units_xunit")."' text-size='.7vw'  x='$x0'  y='". ($y1 - $margin/2) ."' text-anchor='middle'>".$this->locl->format($this->param('yunits'))."</text>\n";
+			$outs .= "<text class='graph units yunits' style='fill: ".style::value("svg_graph_units_xunit")."' text-size='70%'  x='$x0'  y='". ($y1 - $margin/2) ."' text-anchor='middle'>".$this->locl->format($this->param('yunits'))."</text>\n";
 		}
 			
 		$s = 0;
@@ -740,7 +740,7 @@ class svg {
 		foreach (array_keys($values) as $t) {
 			$x0 = 3 / 4 * $this->width;
 			$x1 = $x0 + 20;  
-			$y  = $margin + 20 * ($i + 1);
+			$y  = $margin + 10 * ($i + 1);
 			$outs .= "<line class='graph legend' x1='$x0' y1='$y' x2='$x1' y2='$y' style='stroke:". $this->color($i).";stroke-width:2;'/>\n";
 			$x  = $x0 + 30;  
 			$outs .= "<text class='graph legend' style='fill: ".style::value("svg_graph_legend")."' x='$x' y='$y' text-anchor='start' >" . $this->locl->format($t) ."</text>\n";
@@ -777,7 +777,7 @@ class svg {
 			# $outs .= "<path d='M $x0 $y0 A $this->Ox $this->scale 0 $lf 1 $x1 $y1 L $this->Ox $this->Oy 0' fill='" .  $this->color($i) .  "' onmouseover='document.getElementById(\"".$labels[$i]."\").style.visibility = \"visible\"' onmouseout='document.getElementById(\"".$labels[$i]."\").style.visibility = \"hidden\"'/>\n";
 			if ($v > .03 ) {
 				# $outs .= "<text x='$xt' y='$yt' text-anchor='middle' >".$labels[$i]."</text>\n";
-				$text .= "<text id='".$this->noquo($labels[$i])."' class='graph pie legend' font-size='.5vw' x='$xt' y='$yt' dominant-baseline='middle' text-anchor='middle' >".$this->locl->format($labels[$i])."</text>\n";
+				$text .= "<text id='".$this->noquo($labels[$i])."' class='graph pie legend' x='$xt' y='$yt' dominant-baseline='middle' text-anchor='middle' >".$this->locl->format($labels[$i])."</text>\n";
 			}
 			$i++;
 			$a0 = $a1;

@@ -18,10 +18,13 @@ if ($a->has("ctrl")) {
 	#dbg("ctrl = $ctrl");
 	$f = "lib/$ctrl.php";
 	if (!file_exists($f)) {
-		err("$f does not exist");
-		exit();
+		$f = "usr/lib/$ctrl.php";	
+		if (!file_exists($f)) {
+			err("$f does not exist");
+			exit();
+		}
 	}
-	include("lib/$ctrl.php");
+	include($f);
 	$fct = $ctrl . "_ctrl";
 	if (!function_exists($fct)) {
 		err("$f has no $fct");

@@ -86,6 +86,7 @@ class style {
 		foreach (self::$data as $k => $d) {
 			if ($d->type == "color") {
 				yield $k => self::value($k);
+				#dbg("$k => " . self::value($k));
 			}
 		}		
 	}	

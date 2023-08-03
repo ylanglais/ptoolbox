@@ -1,14 +1,15 @@
 <?php
 function ssg($host, $cmd) {
-	$l = gethostname();
+	#$l = gethostname();
 	$out = [];
 	$xit = 0;
+	$bin = "ssh";
 	exec("$bin $host '$cmd'", $out, $xit);
 	if ($xit != 0 && count($out) == 0) return false;
 	return $out;
 }
 function scpg($host, $src, $dst) {
-	$l = gethostname();
+	#$l = gethostname();
 	$bin = "scp";
 	$xit = 0;
 	$out = [];

@@ -5,6 +5,7 @@ require_once("lib/db.php");
 require_once("lib/query.php");
 require_once("lib/locl.php");
 require_once("lib/stats.php");
+require_once("lib/scrm.php");
 
 
 class rpt {
@@ -98,6 +99,8 @@ class rpt {
 	}
 	function count_parse($str) {
 		if (substr($str, 0, 4) == "sql(") {
+			$sql = $this->rpt_var_replace(substr($str, 4, -1));
+			$q   = new query($sql, $this->odb);
 			$q = new query(substr($str, 4, -1), $this->odb);
 			$o = $q->obj();
 			if (!is_object($o) || !property_exists($o, "count")) return false;
@@ -111,7 +114,8 @@ class rpt {
 	}
 	function table_parse($str, $hdr = false, $lnum = false) {
 		if (substr($str, 0, 4) == "sql(") {
-			$q = new query(substr($str, 4, -1), $this->odb);
+			$sql = $this->rpt_var_replace(substr($str, 4, -1));
+			$q   = new query($sql, $this->odb);
 			$arr = [];
 			$hdd = [];
 			$r = 1;
@@ -147,7 +151,8 @@ class rpt {
 	}
 	function data_parse($str, $data = 'month', $count = 'count') {
 		if (substr($str, 0, 4) == "sql(") {
-			$q = new query(substr($str, 4, -1), $this->odb);
+			$sql = $this->rpt_var_replace(substr($str, 4, -1));
+			$q   = new query($sql, $this->odb);
 			$arr = [];
 
 			while ($d = $q->obj()) {
@@ -191,8 +196,9 @@ class rpt {
 	function rpt_param($o) {
 		$rpt_parm_types = [ "string", "int", "double", "date", "boolen" ];
 		if (!is_object($o)) return "";
-		if (!property_exists($o, "name")) return "";
-		if (!property_exists($o, "type")) return "";
+		if (!property_exists($o, "name"))    return "";
+		if (!property_exists($o, "type"))    return "";
+		if (!property_exists($o, "default")) return "";
 	}
 */
 	function var_set($k, $v) {
@@ -201,6 +207,17 @@ class rpt {
 	function var_get($k) {
 		if (array_key_exists($k, $this->vars)) return $this->vars[$k];
 		return false;
+	}
+	function rpt_var_replace($s) {
+		while (preg_match('/(rpt_var\(([A-Za-z_][A-Za-z_0-9]*)\))/', $s, $m)) {
+			if (array_key_exists($this->vars, $m[1])) {
+				$v = $this->vars[$m[1]];
+				str_replace($s, $m[0], $v);
+			} else {
+				warn("$m[1] is not a defined variable");
+			} 
+		}
+		return $s;
 	}
     function rpt_pages($o) {
         $str = "";
@@ -405,7 +422,8 @@ class rpt {
 
 
 		if (substr($o->count, 0, 4) == 'sql(') {
-			$q  = new query(substr($o->count, 4, -1), $this->odb);
+			$sql = $this->rpt_var_replace(substr($o->count, 4, -1));
+			$q  = new query($sql, $this->odb);
 			$count = $q->obj()->count;
 		} else if (substr($o->count, 0, 4) == 'var(')
 			$count = $this->var_get(substr($o->count, 4, -1));
@@ -494,10 +512,21 @@ class rpt {
         $str .= "</tr></table>\n";
         return $str;
     }
+	function rpt_async($o) {
+		if (!property_exists($o, "rpt_element") || !property_exists($o, "id")) {
+			err("bad async report element");
+			return "";
+		}
+		$token = scrm_do(json_encode($o->rpt_element));
+		return "<div id='$o->id' onload='async_load(\"$o->id\", \"ctrl.php\", {\"ctrl\": \"rpt\", \"token\": \"$token\"})'><img width='50px' src='images/wait.gif'/></div>\n";
+	}
 	function rpt_graph($o) {
 		$str = "";
 		if (property_exists($o, "title")) {
             $str .= "<h2 style='text-align: center'>$o->title</h2>\n";
+		}
+		if (property_exists($o, "subtitle")) {
+            $str .= "<h4 style='text-align: center'>$o->subtitle</h4>\n";
 		}
 		$data = [];
 		if (!property_exists($o, "data")) {
@@ -608,7 +637,8 @@ class rpt {
 				return "";
 			} else {
 				if (substr($o->data, 0, 4) == 'sql(') {
-					$q = new query(substr($o->data, 4, -1), $this->odb);
+					$sql = $this->rpt_var_replace(substr($o->data, 4, -1));
+					$q   = new query($sql, $this->odb);
 					while ($oo = $q->obj()) {
 						if ($oo->count != 0) {
 							array_push($lbl, $oo->label);
@@ -639,7 +669,7 @@ class rpt {
 	 	if (property_exists($o, "nolimit") && $o->nolimit == true) $nolimit = true;
 		else {
 	 		if (property_exists($o, "max_totpc" ) && $o->max_totpc  > 0 && $o->max_totpc  <= 100) $max_totpc  = $o->max_totpc;
-	 		if (property_exists($o, "min_partpc") && $o->min_partpc > 0 && $o->max_partpc <  100) $min_partpc = $o->min_partpc;
+	 		if (property_exists($o, "min_partpc") && $o->min_partpc > 0 && $o->min_partpc <  100) $min_partpc = $o->min_partpc;
 	 		if (property_exists($o, "max_parts")  && $o->max_parts  > 0 && $o->max_parts  <   20) $max_parts  = $o->max_parts;
 			
 		}
@@ -693,33 +723,37 @@ class rpt {
         return $str;
     }
 }
-
 function rpt_ctrl() {
+	$rptname = false;
+	$rptelt  = false;
+	
 	$a = new args();
 
-	if (!$a->has("rptname")) {
-		err("No rptname specified");
+	if ($a->has("token")) {
+		$data = scrm_un($a->val("token"));
+		dbg(json_encode($data));
+	} else if ($a->has("rptname")) {
+		$rptname = $a->val("rptname");
+		$j = file_get_contents("reports/$rptname");
+		$data = json_decode($j);
+		if ($data === false) {
+			err("invalid json");
+			return;
+		}
+	} else if ($a->has("rpt_element")) {
+		$data = json_decode($a->val("rpt_element"));
+	} else {
+		err("No rpt specification found");
 		print("No report specified");
 		return;
 	}
-	#if ($a->has("titre")) {
-		#$titre = $a->val("titre");
-	#} else {
-		#$titre = $rptname;
-	#}
-	$rptname = $a->val("rptname");
-
-	$j = file_get_contents("reports/$rptname");
-	$js = json_decode($j);
-	if ($js === false) {
-		err("invalid json");
-		return;
-	}
-	$r = new rpt($js);
+	$r = new rpt($data);
 	$st = hrtime(true);
-	$h = $r->parse($js);
-	$et = hrtime(true);
-	stats_update($rptname, (($et - $st) / 1e9));
+	$h = $r->parse($data);
+	if ($rptname) {
+		$et = hrtime(true);
+		stats_update($rptname, (($et - $st) / 1e9));
+	}
 	print($h."\n");
 }
 

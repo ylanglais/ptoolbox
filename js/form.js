@@ -1,7 +1,6 @@
 function form_load(name, form, action) {
  	form = atob(form);
 	form = JSON.parse(form);
-	namedata = name + "_data";
 	let data = {};
 	data["fname"] = form.fname;
 	data["ctrl"] = "form"; 
@@ -29,6 +28,7 @@ function form_load(name, form, action) {
 			data[i] = document.getElementById(i).value;
 		}
 	}	
-	load(namedata, "ctrl.php", data);
+	progress('form_result', form.fname);
+	load('form_result', "ctrl.php", data);
 }
 

@@ -66,12 +66,12 @@ function _write($lvl, $s) {
 }
 #
 # Further helpers:
-function _err($s)  { _write("ERR ", $s); }
+function _err($s)  { _write("ERR", $s); }
 function _warn($s) { _write("WARN", $s); }
 function _info($s) { _write("INFO", $s); }
 function _dbg($s)  { _write("DBG",  $s); }
 
-function err($s)  { _write("ERR ", $s); }
+function err($s)  { _write("ERR", $s); }
 function warn($s) { _write("WARN", $s); }
 function info($s) { _write("INFO", $s); }
 function dbg($s)  { _write("DBG",  $s); }

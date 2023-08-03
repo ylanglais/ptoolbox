@@ -64,6 +64,21 @@ div.menu {
 	overflow:  auto;
     box-shadow: 3px 3px 5px $shadow;
 }
+div.data {
+	width: 100%; 
+	top: 0px; 
+	left:0px;
+}
+div.details {
+	top: 0px; 
+	left:0px;
+	padding: 10px;
+	width: 100%; 
+	max-height: 100vh; 
+	height: auto; 
+	display: inline-block; overflow: auto;
+    box-shadow: inset 1px 1px 3px $shadow;
+}
 #msg_area { 
 	position: fixed;
 	bottom:     0px; 
@@ -97,7 +112,11 @@ div.form {
     box-shadow: 3px 3px 5px $shadow;
 	padding: 10px;
 }
-
+div.formresult {
+    box-shadow: 3px 3px 5px $shadow;
+	padding: 10px;
+	width: calc(100% - 20px);
+}
 /* */
 div.navigation img {
 	vertical-align: middle;
@@ -113,7 +132,7 @@ div.data_area {
     box-shadow: 3px 3px 5px $shadow;
 }
 div.data_modal {
-	position: absolute;
+	position: fixed;
 	top: 0px; 
 	left: 0px;
 	width: 100%;
@@ -135,7 +154,6 @@ th.minical.month {
 	vertical-align: middle;
 	background-color: $light_bg;
 	color: $fg;
-
 }
 td.minical.now {
 	text-align: center;
@@ -360,7 +378,7 @@ li.menusub {
 	cursor: pointer;
 }
 ul.menusub {
-	width:  200px;
+	width:  300px;
 	height: 0px;
 	max-height: 0px;
 	transition: height .4s, opacity 0.4s;
@@ -373,7 +391,7 @@ ul.menusub {
     box-shadow: inset 1px 1px 2px $shadow;
 }
 ul.menusub.current {
-	width: 300px;	
+	width: auto;
 	height: auto;
 	opacity: 1;
 	transition: max-height .4s, height .4s, opacity 0.4s;
@@ -388,6 +406,7 @@ ul.menusubsub {
     box-shadow: -1px -1px 2px $shadow;
 }
 li.menuentry{
+	width: 200px;
 	list-style-type: none;
 	background: none;
 	color: $normal;
@@ -410,14 +429,14 @@ a.logout:hover,a.menu:hover {
 a.rptlink,
 a.menuentry {
 	text-decoration: none;
-	color: 		$normal;
+	color: 		$menuentry_fg;
 	font-weight: normal;
 	cursor: pointer;
 }
 a.rptlink:link,
-a.menuentry:link    { color: $normal; }
+a.menuentry:link    { color: $menuentry_fg; }
 a.rptlink:visited,
-a.menuentry:visited { color: $normal; }
+a.menuentry:visited { color: $menuentry_fg; }
 a.rptlink:hover,
 a.menuentry:hover   { 
 	color: $hover; 
@@ -432,20 +451,21 @@ a.menuentry.current {
  */ 
 a:link    { color: blue }
 a:visited { color: #800080 }
-
 a.prjlink {
 	cursor: pointer;
 	text-decoration: none;
 	color: 		$normal;
 }
+a.data:hover,
 a.prjlink:hover {
 	color: $hover;
 }
-
+a.data.current {
+	color: red;
+}
 a.prjlink.current {
 	color: $normal;
 }
-
 a.tmat, a.tmat:visited {
 	text-decoration: none;
 	color: 		$normal;
@@ -493,6 +513,24 @@ table {
 	padding: 5px;
 	border: 0px;
 }
+table.data {
+	width: 100%;
+}
+table.data tr {
+	max-height: 100%;
+}
+table.data tr td {
+	vertical-align: top;
+}
+table.data tr td.details,
+table.data tr td.data {
+	max-width: 50% !important;
+	padding: 5px;
+}
+td.current {
+	color: red;
+	background-color: yellow;
+}
 table.spacing {
 	width: 100%;
 	height: 100%;
@@ -501,6 +539,18 @@ table.spacing {
 	vertical-align: middle;
 	table-layout: fixed;
 	margin: auto;
+}
+table.log {
+	width: 100%;
+	table-layout: auto;
+    box-shadow: 5px 5px 12px $shadow;
+}
+table.log th.nowrap {
+	width: 100%;
+	white-space:nowrap;
+}
+table.log td.ellipsis {
+	 text-overflow: ellipsis;
 }
 table.report {
 	width: 80%;
@@ -545,6 +595,43 @@ table.glist td.navpad {
 	width: 200px;
 	text-align: right;
 }
+table.flist {
+	display: block;
+	width: 100% !important;
+	table-layout: auto; 
+	border: 0.5px solid $normal;
+}
+table.flist th {
+	width: auto;	
+	position: sticky;
+	top: 0;
+	z-index: 2;
+}
+table.flist th.brk {
+	max-width:  50%;
+	word-break: break-all;
+}
+table.flist th.w120 {
+	max-width: 120px;
+}
+table.flist td {
+	max-width: 100%;
+	width: auto;
+}
+table.flist td.brk {
+	max-width:  50%;
+	word-break: break-all;
+}
+table.flist tr {
+	max-width: 100%;
+	width: 100%;
+	border: 0px solid $normal;
+}
+table.flist td.navpad {
+	width: 200px;
+	text-align: right;
+}
+
 table.heading, tr.heading{
 	width: 100%;
 	height: 100%;
@@ -632,6 +719,9 @@ td.hdr.over {
 }
 td.red {
 	color: red;
+}
+td.orange {
+	color: orange;
 }
 td.right {
 	text-align: right;
@@ -767,10 +857,10 @@ label {
 	margin: 4px;
 }
 select {
-	color: $normal;
+	color: $input_fg;
 	background-color: $bg;
 	border: 0px;
- 	box-shadow: -1px -1px 2px $normal; 
+ 	box-shadow: -1px -1px 2px $shadow; 
 	margin: 2px;
 	margin-left: 4px;
 	margin-right: 4px;
@@ -778,10 +868,10 @@ select {
 	font-size: 10pt;
 }
 option {
-	color: $normal;
+	color: $input_fg;
 	background-color: $bg;
 	border: 0px;
-/* 	box-shadow: -1px -1px 2px $normal; */
+/* 	box-shadow: -1px -1px 2px $shadow; */
 	margin: 2px;
 	margin-left: 4px;
 	margin-right: 4px;
@@ -789,10 +879,10 @@ option {
 	font-size: 10pt;
 }
 input {
-	color: $normal;
+	color: $input_fg;
 	background-color: $bg;
 	border: 0px;
-	box-shadow: -1px -1px 2px $normal;
+	box-shadow: -1px -1px 2px $shadow;
 	margin: 2px;
 	margin-left: 4px;
 	margin-right: 4px;
@@ -1180,7 +1270,7 @@ text.graph.empty {
 	text-anchor: middle;
 }
 text.graph.title {
-	font-size:1vw;
+	font-size:100%;
 	font-weight: bold;
 	text-anchor:middle;
 	/* alignment-baseline:middle; */
@@ -1188,24 +1278,24 @@ text.graph.title {
 	fill: #616161;
 }
 text.graph.label {
-	font-size:.9vw;
+	font-size:90%;
 }
-.graph.legend { font-size: .9vw }
 text.graph.units.xunits,
 text.graph.units.yunits,
 text.graph.label.xlabel,
 text.graph.label.ylabel,
 text.graph.units { 
-	font-size: .7vw;
+	font-size: 60%;
 	font-weight: normal;
+	alignment-baseline: middle;
 	fill: #616161;
 }
 text.graph.legend {
-	font-size: .9vw;
+	font-size: 50%;
 	font-weight: normal;
 }
 text.graph.pie.legend{
-	font-size: clamp(6px, .7vw, 16px);
+	font-size: clamp(8px, 40%, 12px);
 	fill: black;
 }
 line.graph.legend {

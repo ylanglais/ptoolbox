@@ -376,14 +376,15 @@ class prov_db {
 				array_push($set, "$f = " . $this->quote($f, $dat->$f));
 			}
 		}
-		
-		$sql = "update $this->table set " . implode(",", $set) . " where " . implode (" and ", $whr);
 
-		$q = new query($this->db, $sql);
-		if ($q->nrows() != 1) {
-			$e = $q->err();
-			err("$sql : $e");
-			return  '{"status": false, "query": "'.$sql.'", "error": "'.$e.'"}';
+		if ($set != [] ) {
+			$sql = "update $this->table set " . implode(",", $set) . " where " . implode (" and ", $whr);
+			$q = new query($this->db, $sql);
+			if ($q->nrows() != 1) {
+				$e = $q->err();
+				err("$sql : $e");
+				return  '{"status": false, "query": "'.$sql.'", "error": "'.$e.'"}';
+			}
 		}
 		return true;
 	}

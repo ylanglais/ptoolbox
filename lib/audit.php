@@ -53,4 +53,7 @@ function audit_log($level, $msg) {
 	$usr = get_user();
 	new query("insert into audit.log values (to_char(now(), 'YYYY-MM-DD HH24:MI:SS.MS'), '$ip',  '$usr', '$level', '" . esc($msg) . "')"); 
 }
+function audi_action($entiy, $entityid, $version, $action, $comment) {
+	#new query("insert into audit.actions values (to_char(now(), 'YYYY-MM-DD HH24:MI:SS.MS'), '$ip',  '$usr', '$level', '" . esc($msg) . "')"); 
+}
 ?> 

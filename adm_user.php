@@ -170,6 +170,7 @@ if (($uid = $a->post("uid")) !== false || $a->post("newuser") == true) {
 				foreach ($rol as $r)  new query("insert into tech.user_role values ($nid, '$r')");
 				$auth = new auth_local();
 				$auth->update($usr->login, 'ChangeMe');
+				#audit_action("tech.user", "
 			}
 		} else if ($act == "update") {
 			$sql = "update tech.user set login = '$usr->login', mail = '$usr->mail', name = '$usr->name', surname = '$usr->surname', active = $active, since = $since, until = $until where id = '$usr->uid'";

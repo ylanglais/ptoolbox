@@ -22,6 +22,11 @@ function timestamp() {
 		$u = substr(explode(".", explode(" ",microtime())[0])[1], 0, 3);
 		return sprintf("%4d/%02d/%02d %02d:%02d:%02d.%03d", $g['year'], $g['mon'], $g['mday'], $g['hours'], $g['minutes'], $g['seconds'], $u);
 }
+function dbstamp() {
+		$g = getdate();
+		$u = substr(explode(".", explode(" ",microtime())[0])[1], 0, 3);
+		return sprintf("%4d-%02d-%02d %02d:%02d:%02d.%03d", $g['year'], $g['mon'], $g['mday'], $g['hours'], $g['minutes'], $g['seconds'], $u);
+}
 function epoch() {
 	return time();
 }

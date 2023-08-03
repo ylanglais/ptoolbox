@@ -1,3 +1,7 @@
+function gform_changed(id) {
+	var ori = JSON.parse(document.getElementById("__ori__").value);
+	var dat = gform_data(id);
+}
 function gform_data(id) {
 	var data = {};
 	const div = document.getElementById(id);

@@ -1,32 +1,12 @@
-function __load(id, url, params, completef) {
-	var xhr = new XMLHttpRequest();
 
-	xhr.id = id;
-	xhr.completef = completef;
-	
-	xhr.open("POST", url, true);
-	xhr.setRequestHeader("Content-Type", "application/json");
-	xhr.onreadystatechange = function() { 
-		if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
-			console.log("id = " + this.id );
-			e = document.getElementById(this.id);
-			console.log(">>> "+ JSON.stringify(xhr.responseText));
-			if (e != null) {
-				e.innerHTML = xhr.responseText;
-				console.log("loaded to id");
-			} else {
-				console.log("error: no element with id " + this.id );
-			}
-		}
-	}
-	xhr.send(JSON.stringify(params));
-}
 async function load(id, url, params) {
 	const response = await fetch(url, { method: "POST", credentials: 'same-origin', cache: 'no-cache', headers: {  'Content-Type': 'application/json' }, body: JSON.stringify(params) });
 	const text     = await response.text();
-	document.getElementById(id).innerHTML = text;
+	var e = document.getElementById(id);
+	if (e == null) { console.log("element " + id + " doesn't exit"); return; }
+	e.innerHTML = text;
 }
-function _load(id, url, params) {
+function async_load(id, url, params) {
 	fetch(url, { method: "POST", credentials: 'same-origin', cache: 'no-cache', headers: {  'Content-Type': 'application/json' }, body: JSON.stringify(params) } )
 	.then(response => response.text())
 	.then(html     => { document.getElementById(id).innerHTML = html; })
@@ -35,8 +15,9 @@ function _load(id, url, params) {
 function post(url, data) {
 	fetch(url, { method: "POST", credentials: 'same-origin', cache: 'no-cache', headers: {  'Content-Type': 'application/json' }, body: data} )
 	.then(response => response.text())
-	.then(html     => { window.open(response.text());})
+	.then(html     => { open(response.text());})
 	.catch(function(err) { console.log(err); });
+	
 }
 function sync_post(url, data) {
     var ws = null;

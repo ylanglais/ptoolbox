@@ -3,11 +3,11 @@ require_once("lib/prov.php");
 require_once("lib/db.php");
 require_once("lib/query.php");
 
-class prov_entity {
-	function __construct($entity = null, $filter = null) {
-		$this->id    = $entity;
+class prov_view {
+	function __construct($view = null, $filter = null) {
+		$this->id    = $view;
 		$this->init     = false;
-		$this->type     = "entity";
+		$this->type     = "view";
 		$this->name     = "";
 		$this->tables   = (object)[];
 		$this->fields   = [];
@@ -18,18 +18,18 @@ class prov_entity {
 		$this->joins    = [];
 		$this->keys     = [];
 		$this->perm     = 'NONE';
-		$this->ent      = false;
+		$this->view      = false;
 		$restored       = false;
 
 #dbg(json_encode(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10)));
-#dbg($entity);
-		if (is_string($entity) && substr($entity, 0, 14) == "__prov_entity_") { 
-			if (($o = store::get($entity)) !== false) { 
+#dbg($view);
+		if (is_string($view) && substr($view, 0, 12) == "__prov_view_") { 
+			if (($o = store::get($view)) !== false) { 
 				if (is_array($o) || is_object($o)) {
 					foreach ($o as $k => $v) {
 						$this->$k = $v;
 					}
-					##dbg("$entity restored");
+					##dbg("$view restored");
 					$restored = true;
 				} else {
 					err("\$o is ".gettype ($o). " and contains " . json_encode($o));
@@ -41,34 +41,34 @@ class prov_entity {
 				exit();
 			}
 		} else {
-			$perm = get_perm("entity", $entity);
+			$perm = get_perm("view", $view);
 			if ($perm != 'RONLY' && $perm != 'ALL') {
-				$s =  "Attempted access to entity $entity without due permission";
+				$s =  "Attempted access to view $view without due permission";
 				audit_log("SECURITY", $s);
 				err("SECURITY: " . get_user(). " $s");
 			}
 			$this->perm = $perm;
 
-			$q = new query("select * from param.entity where name = '$entity'");
+			$q = new query("select * from param.entity where name = '$view' and etype = 'view'");
 
 			if (($o = $q->obj()) === false) {
-				err("no entity named '$entity'");
+				err("no view named '$view'");
 				return;	
 			}
-			$this->name = $entity;
-			$this->ent = (object)[];
-			foreach ($o as $k => $v) $this->ent->$k = $v;
+			$this->name = $view;
+			$this->view = (object)[];
+			foreach ($o as $k => $v) $this->view->$k = $v;
 
-			$this->ent->dsrc = $this->_ckds($this->ent->dsrc);
-			$this->id     = "__prov_entity__" . $this->name;
+			$this->view->dsrc = $this->_ckds($this->view->dsrc);
+			$this->id     = "__prov_view__" . $this->name;
 
-			$this->ent->tid = $this->_tid($this->ent->dsrc, $this->ent->tname);
-			$this->_add_table($this->ent->dsrc, $this->ent->tname);
+			$this->view->tid = $this->_tid($this->view->dsrc, $this->view->tname);
+			$this->_add_table($this->view->dsrc, $this->view->tname);
 
 			$this->refs     = [];
 			$q = new query("select * from param.fragment where entity = '$this->name' order by forder");
 			#
-			# entity:
+			# view:
 			# type: fragment type 
 			#	column: 	source table column, 
 			#	reference:	ref value in an indexed look up table (1:1 relation)
@@ -89,7 +89,7 @@ class prov_entity {
 				left join ref.gender on ref.gender.id = public.person.gender;
 			***/
 			$db = new db();
-			$keys = (array) $db->table_keys($this->ent->tname);
+			$keys = (array) $db->table_keys($this->view->tname);
 
 			
 			while ($o = $q->obj()) {
@@ -100,14 +100,14 @@ class prov_entity {
 				}
 				if ($this->fragment->{$o->name}->type == "column") {
 /*
-dbg(">> " . $this->ent->tname);
+dbg(">> " . $this->view->tname);
 dbg(">> " . $this->id);
 dbg(">> " . $o->name);
 dbg($this->tables);
 */
-					$this->cols->{$o->name} = $this->tables->{$this->ent->tid}->cols[$o->cname];
+					$this->cols->{$o->name} = $this->tables->{$this->view->tid}->cols[$o->cname];
 					array_push($this->fields, $o->name);
-					array_push($this->slist, $this->ent->tname . ".$o->cname as \"$o->name\"");
+					array_push($this->slist, $this->view->tname . ".$o->cname as \"$o->name\"");
 					if (in_array($o->name, $keys)) array_push($this->keys, $o->name);
 				} else if ($this->fragment->{$o->name}->type == "reference") {
 					$tid = $this->_tid($o->fsrc, $o->ftname);
@@ -122,7 +122,7 @@ dbg($this->tables);
 					if (in_array($o->cname, $keys)) array_push($this->keys, $o->name);
 					array_push($this->fields, $o->name);
 					array_push($this->slist, "$o->ftname.$o->flname as \"$o->name\"");
-					array_push($this->joins, "left join $o->ftname on " . $this->ent->tname . ".$o->cname = $o->ftname.$o->finame");
+					array_push($this->joins, "left join $o->ftname on " . $this->view->tname . ".$o->cname = $o->ftname.$o->finame");
 				} else if ($this->fragment->{$o->name}->type == "vallist") {
 				} else if ($this->fragment->{$o->name}->type == "values") {
 				} else if ($this->fragment->{$o->name}->type == "entity") {
@@ -132,7 +132,7 @@ dbg($this->tables);
 			}
 			store::put($this->id, $this);
 		}
-#dbg(">>> $entity: ". json_encode($this));
+#dbg(">>> $view: ". json_encode($this));
 		$this->init = true;
 	}
 	private function _add_table($ds, $tn) {
@@ -293,7 +293,7 @@ dbg($this->tables);
 	}
 	function count() {
 		if ($this->init  === false) return false;
-		$s = "select count(*) from ". $this->ent->tname . " " . implode(' ', $this->joins) ;
+		$s = "select count(*) from ". $this->view->tname . " " . implode(' ', $this->joins) ;
 		$q = new query($s);
 		$o = $q->obj();
 		if ($o === false || !is_object($o) || !property_exists($o, "count")) return ($this->count = 0);
@@ -314,7 +314,7 @@ dbg($this->tables);
 		}
 		$where = " where " . implode(" and ", $w);
 		#dbg("select * from $this->table $where");
-		$s = "select " . implode(', ', $this->slist) . " from ". $this->ent->tname . " " . implode(' ', $this->joins) . " $where";
+		$s = "select " . implode(', ', $this->slist) . " from ". $this->view->tname . " " . implode(' ', $this->joins) . " $where";
 		$q = new query($s);		
 		return $q->obj();
 
@@ -363,7 +363,7 @@ dbg("---> $k");
 			} 
 			
 		}
-		$s = "insert into " . $this->ent->tname . " (" . implode($flds, ",") . ") values (" . implode($vals, ",") . ")";
+		$s = "insert into " . $this->view->tname . " (" . implode($flds, ",") . ") values (" . implode($vals, ",") . ")";
 		$q = new query($s);
 dbg($s);
 		if ($q->nrows() != 1) {
@@ -403,7 +403,7 @@ dbg($s);
 		return true;
 	}
 	function query($start = 0, $stop = 25, $sortby = false, $order = false) {
-		$s = "select " . implode(', ', $this->slist) . " from ". $this->ent->tname . " " . implode(' ', $this->joins);
+		$s = "select " . implode(', ', $this->slist) . " from ". $this->view->tname . " " . implode(' ', $this->joins);
 		if ($sortby !== false) {
 			$s .= " order by \"$sortby\"";
 			if ($order !== 'up') $s .= " desc";

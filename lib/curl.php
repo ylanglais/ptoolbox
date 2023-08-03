@@ -16,7 +16,7 @@ class curl {
 	 * @param $prevent proxy usage event though defined in configuration
 	 * @param $debug   locally turn on/off debugging supercharging configuration flag
 	 */
-	function __construct($baseurl, $header = "", $noproxy = false, $debug = false) {
+	function __construct($baseurl, $header = "", $noproxy = false, $debug = false, $opts = []) {
 		$this->debug = $debug;
 		
 		$curl_proxy           = "";
@@ -53,6 +53,16 @@ class curl {
 		curl_setopt($this->c, CURLOPT_COOKIEJAR,      $curl_cookie_jar);
 		curl_setopt($this->c, CURLOPT_RETURNTRANSFER, $curl_return_transfer);
 		curl_setopt($this->c, CURLOPT_FOLLOWLOCATION, $curl_follow_location);
+
+		if ($opts != []) {
+			foreach ($opts as $k => $v) {
+				try {
+					curl_setopt($this->c, $k, $v); 
+				} catch (Exception $e) {
+					warn("bad option value pair ($k/$v)");
+				}
+			}
+		}
 
 		if (isset($curl_other_options) && is_array($curl_other_options != [])) 
 			foreach ($curl_other_options as $opt => $val) 

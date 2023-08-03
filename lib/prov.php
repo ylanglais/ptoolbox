@@ -5,7 +5,7 @@ require_once("lib/query.php");
 require_once("lib/dbg_tools.php");
 require_once("lib/store.php");
 require_once("lib/prov_db.php");
-require_once("lib/prov_entity.php");
+require_once("lib/prov_view.php");
 
 class prov { 
 	function __construct($d, $datalink = null, $filter = null) {

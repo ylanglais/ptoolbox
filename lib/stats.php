@@ -1,6 +1,7 @@
 <?php
 require_once("lib/query.php");
 require_once("lib/dbg_tools.php");
+require_once("lib/args.php");
 
 function stats_get($key) {
 	$q = new query("select * from stats.duration where key = '$key'");
@@ -30,6 +31,5 @@ function stats_ctrl() {
 	$key = $a->val("stats_key");
 	print(json_encode(stats_get($key)));
 }
-
 
 ?>

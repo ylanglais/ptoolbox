@@ -20,7 +20,7 @@ $title = style::value("application_title");
 <link rel="stylesheet"   type="text/css" href="style.php"/>
 <script type="text/javascript" src="js/jquery/jquery.js"></script>
 <?php
-foreach (array('js') as $dir) {
+foreach (['js', 'usr/js'] as $dir) {
 	if ($h = opendir($dir)) {
 		$dirs = array();
 		while (false !== ($js = readdir($h)))

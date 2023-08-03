@@ -96,25 +96,25 @@ class user {
 	}
 	function load_rights() {
 		$tab = [];
-		$ent = [];
+		$viw = [];
 		$q =  new query("SELECT type, link, perm from param.right where role_id = 0");
 		while ($o = $q->obj()) {
-			if      ($o->type == 'table')  $tab[$o->link] = $o->perm;
-			else if ($o->type == 'entity') $ent[$o->link] = $o->perm;
+			if      ($o->type == 'table') $tab[$o->link] = $o->perm;
+			else if ($o->type == 'view')  $viw[$o->link] = $o->perm;
 		}
 		$q =  new query("SELECT type, link, perm from param.right where role_id in (select $this->role_id from $this->user_role_table where $this->user_id = '$this->id')");
 		while ($o = $q->obj()) {
-			if      ($o->type == 'table')  $tab[$o->link] = $o->perm;
-			else if ($o->type == 'entity') $ent[$o->link] = $o->perm;
+			if      ($o->type == 'table') $tab[$o->link] = $o->perm;
+			else if ($o->type == 'view')  $viw[$o->link] = $o->perm;
 		}
 		$q =  new query("SELECT type, link, perm from param.right where user_id = $this->id");
 		while ($o = $q->obj()) {
-			if      ($o->type == 'table')  $tab[$o->link] = $o->perm;
-			else if ($o->type == 'entity') $ent[$o->link] = $o->perm;
+			if      ($o->type == 'table') $tab[$o->link] = $o->perm;
+			else if ($o->type == 'view')  $viw[$o->link] = $o->perm;
 		}
 
-		$this->rights["table"]  = $tab;
-		$this->rights["entity"] = $ent;
+		$this->rights["table"] = $tab;
+		$this->rights["view"]  = $viw;
 	}
 	function right_on($type, $link) {
 		if (is_array($this->rights) 
