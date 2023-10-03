@@ -23,6 +23,7 @@ class rpt {
 		$this->lang     = '';
 		$this->nsec     = 0;
 		$this->nsub     = 0;
+		$this->odb		= null;
 
 		$this->vars     = [];
 
@@ -168,6 +169,7 @@ class rpt {
     function parse($o) {
         $str = "";
 		if (is_null($o) || $o === false) return;
+		if (is_string($o)) $o = json_decode($o);
 		if (!is_object($o) && !is_array($o)) {
 			_err("invalid object: " . print_r($o, TRUE));
 			return $str;
@@ -518,7 +520,7 @@ class rpt {
 			return "";
 		}
 		$token = scrm_do(json_encode($o->rpt_element));
-		return "<div id='$o->id' onload='async_load(\"$o->id\", \"ctrl.php\", {\"ctrl\": \"rpt\", \"token\": \"$token\"})'><img width='50px' src='images/wait.gif'/></div>\n";
+		return "<div id='$o->id'><img width='50px' src='images/wait.gif' onload='async_load(\"$o->id\", \"ctrl.php\", {\"ctrl\": \"rpt\", \"token\": \"$token\"})'/></div>\n";
 	}
 	function rpt_graph($o) {
 		$str = "";
@@ -731,7 +733,6 @@ function rpt_ctrl() {
 
 	if ($a->has("token")) {
 		$data = scrm_un($a->val("token"));
-		dbg(json_encode($data));
 	} else if ($a->has("rptname")) {
 		$rptname = $a->val("rptname");
 		$j = file_get_contents("reports/$rptname");

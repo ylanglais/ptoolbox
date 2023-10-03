@@ -18,6 +18,6 @@ function   scrm_do($data) {
 }
 function scrm_un($data) {
 	[ $cyfr, $iv, $k ] = _scrm_init_();
-	return json_decode(openssl_encrypt($data, $cyfr, $k, 0, $iv));
+	return json_decode(openssl_decrypt($data, $cyfr, $k, 0, $iv));
 }
 ?>

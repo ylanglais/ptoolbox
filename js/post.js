@@ -4,6 +4,7 @@ async function load(id, url, params) {
 	const text     = await response.text();
 	var e = document.getElementById(id);
 	if (e == null) { console.log("element " + id + " doesn't exit"); return; }
+	
 	e.innerHTML = text;
 }
 function async_load(id, url, params) {
