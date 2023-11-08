@@ -12,9 +12,14 @@ class auth_ldap {
 	 * For more info about config file, please read config file template comments.
      */
 	function __construct() {
-		$this->ldap = false;
-		$ldap_ver = 3;
+		$this->ldap    = false;
+		$this->base    = false;
+		$this->filter  = false;
 		$this->timeout = 1;
+		$this->login   = false;
+		$this->groups  = false;
+		$ldap_ver = 3;
+
 		if (file_exists("conf/auth_ldap.php")) {
 			include("conf/auth_ldap.php");
 			if (!isset($ldap_srv)) {
@@ -44,6 +49,10 @@ class auth_ldap {
 			
 			ldap_set_option($this->ldap, LDAP_OPT_PROTOCOL_VERSION, $ldap_ver);
 			ldap_set_option($this->ldap, LDAP_OPT_REFERRALS, 0);
+
+			if (isset($ldap_base))      $this->base      = $ldap_base;
+			if (isset($ldap_filter))    $this->filter    = $ldap_filter;
+			if (isset($ldap_attribute)) $this->attribute = $ldap_attribute;
 
 			if (isset($ldap_opts) && is_array($ldap_opts)) {
 				foreach ($ldap_opts as $k => $v) {
@@ -98,10 +107,34 @@ class auth_ldap {
 		if ($passwd == "" || $passwd == NULL || $passwd === false) return false;
 		if ($this->ldap) {
 			$req = sprintf($this->rstr, $login);
-			if (@ldap_bind($this->ldap, $req, $passwd)) return true;
+			if (@ldap_bind($this->ldap, $req, $passwd)) {
+				$this->login = $login;
+				$this->user_groups();
+				return true;
+			}
 			return false;
 		}
 		return null;
+	}
+
+	function user_groups() {
+		if ($this->ldap === false || $this->login === false || $this->base === false || $this->filter === false) return null;
+		if ($this->groups !== false) return $this->groups;
+		if ($this->attribute === false) $this->attribute = 'memberof'; 
+		$r = ldap_search($this->ldap, $this->base, "($this->filter". $this->login.")", [ $this->attribute ]);
+
+		if ($r === false) return false;
+		$i = ldap_get_entries($this->ldap, $r);
+		if (is_array($i) && is_array($i[0])) {
+		if (array_key_exists($this->attribute, $i[0]) && is_array($i[0][$this->attribute])) {
+				foreach ($i[0][$this->attribute] as $j => $g) {
+					if (is_string($j))  continue;
+					if ($this->groups === false) $this->groups = [];
+					array_push($this->groups, $g);
+				}
+			}
+		}
+		return $this->groups;
 	}
 }
 ?>
