@@ -520,7 +520,7 @@ class rpt {
 			return "";
 		}
 		$token = scrm_do(json_encode($o->rpt_element));
-		return "<div id='$o->id'><img width='50px' src='images/wait.gif' onload='async_load(\"$o->id\", \"ctrl.php\", {\"ctrl\": \"rpt\", \"token\": \"$token\"})'/></div>\n";
+		return "<div id='$o->id'><img width='50px' src='images/wait.gif' onload='ctrl(\"rpt\",  { \"token\": \"$token\"}, \"$o->id\", false)'/></div>\n";
 	}
 	function rpt_graph($o) {
 		$str = "";

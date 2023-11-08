@@ -76,19 +76,18 @@ function menu_onclick(e) {
 }
 
 function menu_form(fname, titre) {
-	load("data_area", "ctrl.php", {'ctrl': 'form', 'fname': fname, 'titre': titre});
+	ctrl('form', {'fname': fname, 'titre': titre}, 'data_area');
 }
 function menu_rpt(rptname) {
 	progress('data_area', rptname);
-	load("data_area", "ctrl.php", {'ctrl': 'rpt', 'rptname': rptname});
+	ctrl('rpt', {'rptname': rptname}, 'data_area');
 }
 function menu_page(page) {
 	load("data_area", page); 
 }
 function menu_table(page, datalink) {
-	load("data_area", "ctrl.php", {"ctrl": "gui", "page": page, "datalink": datalink}); 
+	ctrl("gui", {"page": page, "datalink": datalink}, "data_area"); 
 }
 function menu_view(page, datalink) {
-	load("data_area", "ctrl.php", {"ctrl": "gui", "page": page, "type": "view", "datalink": datalink}); 
+	ctrl("gui", {"page": page, "type": "view", "datalink": datalink}, "data_area"); 
 }
-

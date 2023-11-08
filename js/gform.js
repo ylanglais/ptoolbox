@@ -42,8 +42,7 @@ function gform_action(id, pdata, action) {
 	//var req   = JSON.parse(document.getElementById("__req__").value);
 	var ori   = JSON.parse(document.getElementById("__ori__").value);
 	var data  = { "data": gfdat, "prov": pdata, "ori": ori };
-	var ctrl = { "ctrl": "gform", "data": data, "action": action};
-	load(id, "ctrl.php", ctrl);
+	ctrl("gform", {"data": data, "action": action}, id);
 	let sopt = document.getElementById("opts").value;
 	let opts = JSON.parse(sopt);
 	glist_go(opts.parentid, pdata, opts, opts.start, opts.lines); 

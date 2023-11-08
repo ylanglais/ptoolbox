@@ -10,7 +10,7 @@ async function load(id, url, params) {
 function async_load(id, url, params) {
 	fetch(url, { method: "POST", credentials: 'same-origin', cache: 'no-cache', headers: {  'Content-Type': 'application/json' }, body: JSON.stringify(params) } )
 	.then(response => response.text())
-	.then(html     => { document.getElementById(id).innerHTML = html; })
+	.then(html     => { if (id != null) document.getElementById(id).innerHTML = html; })
 	.catch(function(err) { console.log(err); });
 } 
 function post(url, data) {

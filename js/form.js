@@ -3,7 +3,6 @@ function form_load(name, form, action) {
 	form = JSON.parse(form);
 	let data = {};
 	data["fname"] = form.fname;
-	data["ctrl"] = "form"; 
 	data["form"]   = true;
 	data["action"] = action;
 	for (i in form.params) {
@@ -29,6 +28,6 @@ function form_load(name, form, action) {
 		}
 	}	
 	progress('form_result', form.fname);
-	load('form_result', "ctrl.php", data);
+	ctrl("form", data, 'form_result');
 }
 

@@ -16,9 +16,9 @@ $a = new args();
 if ($a->has("ctrl")) {
 	$ctrl = $a->val("ctrl");
 	#dbg("ctrl = $ctrl");
-	$f = "lib/$ctrl.php";
+	$f = "usr/lib/$ctrl.php";
 	if (!file_exists($f)) {
-		$f = "usr/lib/$ctrl.php";	
+		$f = "lib/$ctrl.php";	
 		if (!file_exists($f)) {
 			err("$f does not exist");
 			exit();

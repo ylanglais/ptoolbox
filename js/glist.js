@@ -3,9 +3,7 @@ function glist_go(id, pdat, opts, start, lines) {
 	if (start != null) opts.start = start ;
 	if (lines != null) opts.page  = lines ;
 	
-	data = { "ctrl": "glist", "prov": pdat, "opts": opts};
-	//console.log("----> glist_go("+ id + "," + JSON.stringify(data));
-	load(id, "ctrl.php", data);
+	ctrl("glist", {"prov": pdat, "opts": opts}, id);
 }
 function glist_sort(el, pdat, opts, field) {
 	f = opts.sort;
@@ -33,13 +31,10 @@ function glist_sort(el, pdat, opts, field) {
 	}
 	opts.sort  = field;
 	opts.order = o;
-	data = { "ctrl": "glist", "prov": pdat, "opts": opts};
-	load(opts.id, "ctrl.php", data);
+	ctrl("glist", {"prov": pdat, "opts": opts}, opts.id);
 }
 function glist_view(id, data) {
-	d = { "ctrl": "gform", "id": id, "data": data };
-	load(id, "ctrl.php", d);
-	//load(data.opts.id, "ctrl.php", data.opts);
+	ctrl("gform", { "id": id, "data": data }, id);
 
 }
 function glist_toggle_selected(classname) {
