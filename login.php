@@ -3,6 +3,10 @@
 <meta charset="utf-8"/>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>Login</title>
+<script> 
+history.pushState(null, null, location.href);
+</script>
+
 <style> 
 body { margin: 10px }
 input[type=text], input[type=password] {

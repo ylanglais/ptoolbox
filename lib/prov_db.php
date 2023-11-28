@@ -275,7 +275,7 @@ class prov_db {
 		return $q->all();	
 	}
 
-	function get($req) {
+	function get($req, $limit = 0, $start = 0, $sortby = false, $order = false) {
 		if ($this->init === false) return false;
 		$w = [];
 		foreach ($req as $k => $v) {
@@ -291,10 +291,16 @@ class prov_db {
 			}
 		}
 		$where = " where " . implode(" and ", $w);
-		#dbg("select * from $this->table $where");
-		$q = new query($this->db, "select * from $this->table $where");
-		
-		return $q->obj();
+		$sql = "select * from $this->table $where";
+		if ($sortby !== false) {
+			$sql .= " order by $sortby";
+			if ($order != false && (strtolower($order) == "asc" || strtolower($order) == "desc")) 
+				$sql .= " $order";
+		}
+		if ($limit > 0)      $sql .= " limit $limit offset $start";
+		#dbg($sql);
+		$q = new query($this->db, $sql);
+		return $q->all();
 	}
 	function put($data) {
 		if ($this->init === false) {
@@ -305,11 +311,12 @@ class prov_db {
 			err("cannot insert readonly data");
 			return '{"status": false; "error": "cannot insert readonly data"}';
 		}
-		if (!is_object($data) || !property_exists($data, "data")) {
-			err("Incomplete data");
-			return '{"status": false; "error": "incomplete data"}';
-		}
-		$dat = $data->data;
+		if (is_object($data) && property_exists($data, "data"))
+			$dat = $data->data;
+		else
+			$dat = $data;
+
+		if (is_array($dat)) $dat = (object) $dat;
 
 		$cols = [];
 		$vals = [];
@@ -352,7 +359,6 @@ class prov_db {
 			return false;
 		}
 		#
-		# Do I *REALLY* nead req since I already have ori ???:
 		$ori = $data->ori;
 		$dat = $data->data;
 
@@ -397,11 +403,10 @@ class prov_db {
 			err("cannot delete readonly data");
 			return '{"status": false; "error": "cannot insert readonly data"}';
 		}
-		if (!is_object($data) || !property_exists($data, "data")) {
-			err("Incomplete data");
-			return '{"status": false; "error": "incomplete data"}';
-		}
-		$dat = $data->data;
+		if (is_object($data) || property_exists($data, "data")) 
+			$dat = $data->data;
+		else
+			$dat = $data;
 
 		$w = [];
 		foreach ($dat as $k => $v) {

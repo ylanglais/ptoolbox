@@ -85,9 +85,9 @@ class prov {
 		if ($this->prov == null) return null;
 		return $this->prov->quote($field, $val);
 	}
-	function get($data) {
+	function get($data, $limit = 0, $start = 0, $sortby = false, $order = false) {
 		if ($this->prov == null) return null;
-		return $this->prov->get($data);
+		return $this->prov->get($data, $limit, $start, $sortby, $order);
 	}
 	function del($data) {
 		if ($this->prov == null) return null;

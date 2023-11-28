@@ -14,7 +14,9 @@ function gform($prov, $req = false, $opts = null) {
 	 
 	if ($req !== false) {
 		# Load requested data:
-		$o = $prov->get($req);
+		$all = $prov->get($req);
+dbg($all);
+		if (is_array($all) && count($all) > 0) $o = $all[0];	
 	} 
 	$flds = $prov->fields();
 	$html .= "<table class='form'>\n";

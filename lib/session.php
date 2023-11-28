@@ -19,6 +19,7 @@ function get_user() {
 }
 function get_perm($type, $link) {
 	global $_session_;
+	if (php_sapi_name() === "cli") return 'ALL';
 	if (!is_object($_session_) 
 		|| !property_exists($_session_, "user")
 		|| !is_object($_session_->user))

@@ -62,7 +62,7 @@ class prov_view {
 			$this->view->dsrc = $this->_ckds($this->view->dsrc);
 			$this->id     = "__prov_view__" . $this->name;
 
-			$this->view->tid = $this->_tid($this->view->dsrc, $this->view->tname);
+			$this->view->tid = $this->_tid($tshis->view->dsrc, $this->view->tname);
 			$this->_add_table($this->view->dsrc, $this->view->tname);
 
 			$this->refs     = [];
@@ -90,7 +90,6 @@ class prov_view {
 			***/
 			$db = new db();
 			$keys = (array) $db->table_keys($this->view->tname);
-
 			
 			while ($o = $q->obj()) {
 				$this->fragment->{$o->name} = (object)[];
@@ -105,6 +104,7 @@ dbg(">> " . $this->id);
 dbg(">> " . $o->name);
 dbg($this->tables);
 */
+#dbg("name: $o->name, tid: $this->view->tid, data: " . json_encode ($this->tables->{$this->view->tid}));
 					$this->cols->{$o->name} = $this->tables->{$this->view->tid}->cols[$o->cname];
 					array_push($this->fields, $o->name);
 					array_push($this->slist, $this->view->tname . ".$o->cname as \"$o->name\"");
@@ -112,10 +112,13 @@ dbg($this->tables);
 				} else if ($this->fragment->{$o->name}->type == "reference") {
 					$tid = $this->_tid($o->fsrc, $o->ftname);
 					$this->_add_table($o->fsrc, $o->ftname);
-#dbg(print_r($this->tables->{$tid}, true));
-#dbg("--->>> $o->flname");
-#dbg("---<<< $o->name");
-#dbg($this->cols);
+/*
+dbg(json_encode($this->tables->{$tid}));
+dbg("--->>> $o->flname");
+dbg("---<<< $o->name");
+dbg($this->cols);
+*/
+dbg("colname: $o->name, tid: $tid, flname: $o->flname");
 					$this->cols->{$o->name} = $this->tables->{$tid}->cols[$o->flname];
 					$this->cols->{$o->name}->ftable = $o->ftname;
 					$this->cols->{$o->name}->fcol   = $o->flname;
@@ -142,7 +145,6 @@ dbg($this->tables);
 		$dt->dsrc  = $ds;
 		$dt->table = $tn;
 		$dt->cols  = $this->_get_table_cols($ds, $tn);
-
 		$this->tables->{$this->_tid($ds,$tn)} = $dt;
 	}
 	private function _ckds($ds) {
@@ -156,7 +158,12 @@ dbg($this->tables);
 	private function _get_table_cols($ds, $tname) {
 		if ($ds == null || $ds == "null") $ds = "default";
 		$d = new db($ds);
-		return $d->table_columns($tname);
+		$tc = $d->table_columns($tname);
+		if ($tc == null || $tc == []) {
+			warn("cannot get table $tname");
+			return null;
+		}
+		return $tc;
 	}
 	function name() {
 		return $this->name;
@@ -213,6 +220,8 @@ dbg($this->tables);
 	function datatype($f) {
 		if ($this->init === false) return false;
 		if (property_exists($this->cols, $f)) {
+#dbg($f);
+#dbg(json_encode($this->cols));
 			return $this->cols->{$f}->data_type;
 		}
 		return false;
@@ -299,7 +308,7 @@ dbg($this->tables);
 		if ($o === false || !is_object($o) || !property_exists($o, "count")) return ($this->count = 0);
 		return ($this->count = $o->count);
 	}
-	function get($req) {
+	function get($req, $limit = 0, $start = 0, $sortby = false, $order = false) {
 		if ($this->init === false) return false;
 		$w = [];
 		foreach ($req as $k => $v) {
@@ -307,6 +316,11 @@ dbg($this->tables);
 				if ($v == null) array_push($w, "$k is null"); 
 				else            array_push($w, "$k = ". $this->quote($k, $v));
 			} else if ($this->fragment->{$k}->type == "reference") {
+				#
+				# if column is not nullable => add table and hard join:
+#dbg(json_encode($this->cols->{$this->fragment->{$k}->cname}));
+dbg(json_encode($this));
+				#if ($this->tables->{$tid}->cols[$this->fragment->{$k}->cname]->nullable 
 				$k = $this->fragment->{$k}->ftname . ".". $this->fragment->{$k}->flname;
 				if ($v == null) array_push($w, "$k is null"); 
 				else            array_push($w, "$k = ". $this->quote($k, $v));
@@ -316,7 +330,7 @@ dbg($this->tables);
 		#dbg("select * from $this->table $where");
 		$s = "select " . implode(', ', $this->slist) . " from ". $this->view->tname . " " . implode(' ', $this->joins) . " $where";
 		$q = new query($s);		
-		return $q->obj();
+		return $q->all();
 
 	}
 	function put($data) {
@@ -328,25 +342,27 @@ dbg($this->tables);
 			err("cannot insert readonly data");
 			return '{"status": false; "error": "cannot insert readonly data"}';
 		}
-		if (!is_object($data) || !property_exists($data, "data")) {
-			err("Incomplete data");
-			return '{"status": false; "error": "incomplete data"}';
-		}
-		#dbg($data);
+		if (is_object($data) && property_exists($data, "data"))
+			$dat = $data->data;
+		else 
+			$dat = $data;
+
 		$flds = [];
 		$vals = [];
+
+		
 
 dbg($data);
 		foreach ($this->fragment as $k => $f) {
 #dbg("$k -> " . json_encode($f));
-#dbg(":::: "  . $data->data->{$k});
-			if (property_exists($data->data, $k)) {
+#dbg(":::: "  . $dat->{$k});
+			if (property_exists($dat, $k)) {
 dbg("---> $k");
 				array_push($flds, $f->cname);
 				if ($f->type == "column") {
-					array_push($vals, $this->quote($f->cname, $data->data->{$k}));
+					array_push($vals, $this->quote($f->cname, $dat->{$k}));
 				} else if ($f->type == "reference") {
-					$v = $this->quote($f->cname, $data->data->{$k});
+					$v = $this->quote($f->cname, $dat->{$k});
 					if ($v == "null" || $v == null) $w = " is null";
 					else $w = " = $v";
 					$s = "select $f->finame from $f->ftname where $f->flname $w";
@@ -381,10 +397,6 @@ dbg($s);
 			err("cannot insert readonly data");
 			return '{"status": false; "error": "cannot insert readonly data"}';
 		}
-		if (!is_object($data) || !property_exists($data, "data")) {
-			err("Incomplete data");
-			return '{"status": false; "error": "incomplete data"}';
-		}
 		return true;
 	}
 	function del($data) {
@@ -395,10 +407,6 @@ dbg($s);
 		if ($this->perm == 'RONLY') {
 			err("cannot insert readonly data");
 			return '{"status": false; "error": "cannot insert readonly data"}';
-		}
-		if (!is_object($data) || !property_exists($data, "data")) {
-			err("Incomplete data");
-			return '{"status": false; "error": "incomplete data"}';
 		}
 		return true;
 	}
