@@ -36,10 +36,6 @@ div.scrollable {
     overflow: auto;
     box-shadow: -1px -1px 2px $shadow;
 }
-div.popup {
-	background-color: $bg;
-    box-shadow: 5px 5px 12px $shadow;
-}
 div.heading {
 	width: 100%; 
 	height: 100px; 
@@ -977,8 +973,31 @@ input[type="checkbox"]:checked {
 	box-shadow: 1px 1px 2px $shadow;
 	cursor: pointer;
 }
-/* rpt elements: */
 
+/* Popup styles: */
+div.popup {
+	background-color: $bg;
+    box-shadow: 5px 5px 12px $shadow;
+}
+div.popup_data {
+	background-color: $bg;
+	padding: 5px 0px 0px 0px; 
+	overflow: auto;
+}
+table.popup_bar {
+	width: 100%;
+	border-width: 0px;
+	visibility: inherit;
+}
+table.popup_bar tr                 { visibility: inherit; }
+table.popup_bar tr td              { visibility: inherit; }
+table.popup_bar tr td.title        { color: $image_normal; align: right; }
+table.popup_bar tr td.title:hover  { color: $mage_pre;  }
+table.popup_bar tr td.title:active { color: $image_selected;  }
+table.popup_bar tr td.close        { width: 2ch ; margin: 1em; }
+
+
+/* rpt elements: */
 div.pie {
 	margin: auto;
 	text-align: center;

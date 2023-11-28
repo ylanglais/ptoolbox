@@ -7,10 +7,10 @@ async function load(id, url, params) {
 	
 	e.innerHTML = text;
 }
-function async_load(id, url, params) {
+function async_load(id, url, params, fct, fct_parm) {
 	fetch(url, { method: "POST", credentials: 'same-origin', cache: 'no-cache', headers: {  'Content-Type': 'application/json' }, body: JSON.stringify(params) } )
 	.then(response => response.text())
-	.then(html     => { if (id != null) document.getElementById(id).innerHTML = html; })
+	.then(html     => { if (id != null) document.getElementById(id).innerHTML = html; if (typeof fct == "function") fct(fct_param); })
 	.catch(function(err) { console.log(err); });
 } 
 function post(url, data) {

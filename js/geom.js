@@ -95,7 +95,6 @@ function geom_resize_table(divid, tableid, tbodyid) {
 	// div.style.height = "auto";
 }
 
-
 function geom_resize_elem(id, par) {
 	ptop = parseInt($("#"+par).position().top);
 	heig = parseInt($(window).height());

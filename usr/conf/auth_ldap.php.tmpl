@@ -1,0 +1,40 @@
+<?php
+################################
+#
+# auth_ldap class configuration file
+#
+# For more info, have a look to lib/auth_ldap.php
+#
+################################
+#
+# Specify a list of ldap server URIs:
+$ldap_srv = [ "ldaps://ldaps1.company.com:636",  "ldaps://ldaps1.company.com:636",  "ldap://lapd3.companu.com.389"];
+$ldap_timeout = 1; # timeout on ldap connexion (seconds). Must be > 0 and <= 10
+#
+# NOTE about ldaps usage:
+# -----------------------
+# Some LDAP or AD servers require installation of specific certificates in a place accessible by php (watchout when apache / php running chmrooted)
+# For trouble shooting tips: https://medium.com/@bluebeam/linux-client-to-active-directory-provided-ldaps-troubleshooting-75c3aa6480b3
+#
+# 3 ways to pass parameters to ldap_bind through check method :
+# - Domain + uid:  request will look like "$ldap_uid=$login,$ldap_domain" (ex: "uid=myself,dc=my,dc=company,dc=com")
+# - fqdn:          request will look like "$login@$fqdn"                  (ex: "myself@company.com")
+# - login:	       request will look like "$login"                        (ex: "myself")
+#
+# Domain + uid key:
+# $ldap_domain = "dc=my,dc=company,dc=com";
+# $ldap_uid    = "uid"
+# 
+# Fqdn:
+# $ldap_fqdn   = "company.com";
+#
+# Login: nothing to declare.
+#
+#
+# Force ldap version here (default is 3):
+$ldap_ver    = 3;
+################################
+#
+# For more info, have a look to lib/auth_ldap.php
+#
+?>
