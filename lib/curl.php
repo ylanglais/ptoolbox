@@ -189,6 +189,7 @@ class curl {
 		}
 
 		curl_setopt($this->c, CURLOPT_POST, 0);
+		curl_setopt($this->c, CURLOPT_CUSTOMREQUEST, null);
 		switch (strtoupper($act)) {
 		case 'GET':
 			curl_setopt($this->c, CURLOPT_HTTPGET, 1);
@@ -226,6 +227,8 @@ class curl {
 
 		$output = curl_exec($this->c);
 		$error  = curl_error($this->c);
+
+		curl_setopt($this->c, CURLOPT_CUSTOMREQUEST, null);
 
 		if ($output !== false) return $output;
 
