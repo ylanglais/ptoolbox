@@ -17,7 +17,7 @@ class rpt {
 		"increase"  => "ic-level.png"
 	];
 
-    function __construct($o) {
+    function __construct($o, $vars = []) {
         $this->fallback = 'fr_FR.UTF-8';
         $this->locale   = 'fr_FR.UTF-8';
 		$this->lang     = '';
@@ -55,6 +55,10 @@ class rpt {
 
 		$this->locl = new locl($this->locale);
         $this->ncolors  = count($this->colors);
+
+		if (is_array($vars)) foreach ($vars as $k => $v) {
+			$this->vars[$k] = $v;			
+		}
     }
 
 	function rpt_db($o) {
@@ -73,6 +77,8 @@ class rpt {
 			$this->odb = new db();
 		}
 	}
+	function rpt_form($o) {
+	}	
 	function colors_get() {
 		return $this->colors;
 	}
@@ -189,6 +195,9 @@ class rpt {
         }
         return $str;
     }
+	function rpt_vars($o) {
+		foreach ($o as $oo) rpt_var($o);
+	}
 	function rpt_var($o) {
 		$this->var_set($o->var, $this->count_parse($o->val));
 	}
@@ -343,21 +352,31 @@ class rpt {
         }
         return $str;
     }
-    function rpt_array($o, $hdr = true) {
+    function rpt_array($o, $hdr = true, $tailer = false, $nolocl = false) {
         if (!is_array($o)) return "";
         $str = "\t<table class='results'>\n";
         $i = 0;
+		$n = count($o);
         foreach ($o as $l) {
             $str .= "\t\t<tr>";
             $i++;
             foreach ($l as $c) {
-                if ($i == 1) {
-					if  ($hdr) 
-						$str .= "<th>" . $this->locl->format($c) . "</th>";
-					else
-						$str .= "<td><b>" . $this->locl->format($c) . "</b></td>";
+				if ($i == 1) {
+					if  ($hdr) { 
+						if (!$nolocl) $str .= "<th>" . $this->locl->format($c) . "</th>";
+						else $str .= "<th>$c</th>";
+					} else {
+						if (!$nolocl) $str .= "<td>" . $this->locl->format($c) . "</td>";
+						else $str .= "<td>$c</td>";
+					}
                 } else {
-                    $str .= "<td>" . $this->locl->format($c) . "</td>";
+					if ($i == $n && $tailer === true) {
+						if (!$nolocl) $str .= "<th>" . $this->locl->format($c) . "</th>";
+						else $str .= "<th>$c</th>";
+					} else {
+						if (!$nolocl) $str .= "<td>" . $this->locl->format($c) . "</td>";
+						else $str .= "<td>$c</td>";
+					}
                 }
             }
             $str .= "</tr>\n";
@@ -365,28 +384,30 @@ class rpt {
 		$str .= "\t</table>\n";
         return $str;
     }
-	function rpt_table($o, $hdr = true) {
-        if (is_array($o))   return $this->rpt_array($o, $hdr);
+	function rpt_table($o, $hdr = true, $tailer = false) {
+        if (is_array($o))   return $this->rpt_array($o, $hdr, $tailer);
 		if (!is_object($o)) return "";
 		$str = "";
+		$nolocl = false;
 		if (property_exists($o, "header")) $hdr = $o->header;
 		if (property_exists($o, "hdr"))    $hdr = $o->hdr;
+		if (property_exists($o, "nolocl")) $nolocl = $o->nolocl;
 		if (property_exists($o, "title")) 
 			$str .= "<h2 style='text-align: center'>$o->title</h2>";
 		if (property_exists($o, "data")) {
-			if (is_array($o->data)) $str .= $this->rpt_array($o->data, $hdr);
+			if (is_array($o->data)) $str .= $this->rpt_array($o->data, $hdr, $tailer);
 			else if (substr($o->data, 0, 4) == "sql(") {
 				$lnum = false;
 				if (property_exists($o, "linenumbers") && $o->linenumbers === true) $lnum = true;
 				if (property_exists($o, "lnum")        && $o->lnum        === true) $lnum = true;
-				$str .= $this->rpt_array($this->table_parse($o->data, $hdr, $lnum), $hdr);
+				$str .= $this->rpt_array($this->table_parse($o->data, $hdr, $lnum), $hdr, $tailer, $nolocl);
 			}
 		}
 		return $str;
 	}
 
-    function rpt_table_noheader($o) {
-        return $this->rpt_table($o, false);
+    function rpt_table_noheader($o, $tailer = false) {
+        return $this->rpt_table($o, false, $tailer);
     }
 
 	function rpt_icon($o) {
@@ -628,6 +649,8 @@ class rpt {
 		$lbl   = $dat = [];
 		$total = 0;
 
+		$tlr = false;
+
 		$nolimit = false;
 		$max_totpc  = 95; #95% 
 		$max_parts  =  8 ;
@@ -681,10 +704,15 @@ class rpt {
 		$a = [];
 		$t = 0;
 		$c = 0;
+
+		if (property_exists($o, "header")) {
+			$hdr = true;
+			$a[0] = [ $o->header, "Nb", " % " ];
+		} else $hdr = false;
 	
 		$n = count($dat);
-        for ($i = 0; $i < $n; $i++) {
-			$p = $dat[$i] / $total * 100;
+        for ($i = 1; $i <= $n; $i++) {
+			$p = $dat[$i-1] / $total * 100;
 			# limit to total = 95% or 8 parts or < 2% (if not the last item):
 			if ($nolimit === false && ($t >= $max_totpc || $i > $max_parts || $p < $min_partpc) && $i < $n - 2) {
 				array_push($l, "Autres");
@@ -692,12 +720,16 @@ class rpt {
 				$a[$i] = [ "Autres", $total - $c, (100. - $t) . "%" ];
 				break;
 			}
-			array_push($l, $lbl[$i]);
-			array_push($d, $dat[$i]);
+			array_push($l, $lbl[$i-1]);
+			array_push($d, $dat[$i-1]);
 			$t += $p;
-			$c += $dat[$i];
-            $a[$i] = [ $lbl[$i], $dat[$i], ($dat[$i] / $total * 100) . "%"];   
+			$c += $dat[$i-1];
+            $a[$i] = [ $lbl[$i-1], $dat[$i-1], ($dat[$i-1] / $total * 100) . "%"];   
         }
+		if (!property_exists($o, "total") || $o->total !== false) {
+			$tlr = true;
+			$a[$i+1] = [ "Total", $total, "100%"];
+		}
 
 		$bg = "";
 		if (property_exists($o, "bgcolor") && $o->bgcolor == true) {
@@ -719,7 +751,7 @@ class rpt {
 			$str .= "</tr><tr class='spacing'>\n";
 		}	
 		$str .= "<td class='spacing'>\n";
-		$str .= $this->rpt_table_noheader($a);
+		$str .= $this->rpt_table($a, $hdr, $tlr);
 		$str .= "</td></tr></table>\n";
 
         return $str;
@@ -748,7 +780,9 @@ function rpt_ctrl() {
 		print("No report specified");
 		return;
 	}
-	$r = new rpt($data);
+	$vars = [];
+	if ($a->has("rpt_vars")) { $vars = $a->val("rpt_vars"); }
+	$r = new rpt($data, $vars);
 	$st = hrtime(true);
 	$h = $r->parse($data);
 	if ($rptname) {

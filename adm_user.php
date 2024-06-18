@@ -109,7 +109,7 @@ function adm_user_ui($a, $uid) {
 }
 
 function adm_user_list() {
-	$q = new query("select * from tech.user");
+	$q = new query("select * from tech.user where active = true order by id");
 	print ("<table class='glist'>\n");
 	$hdr = "<tr><th>#</th><th>Login</th><th>Email</th><th>Actif</th><th>Depuis</th><th>Jusqu'à</th></tr>\n";
 	print("$hdr\n");

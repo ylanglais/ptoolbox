@@ -323,11 +323,13 @@ class prov_db {
 
 		foreach ($this->fields as $f) {
 			if (property_exists($dat, $f)) {
-				array_push($cols, $f);
 				array_push($vals,  $this->quote($f, $dat->$f));
-			} else if (property_exists($this->cols->$f, "column_default")) {
+				if ($f == "user") $f = '"user"';
 				array_push($cols, $f);
-				array_push($vals, "$k = ". $this->quote($f, $this->cols->$f->column_default));
+			} else if (property_exists($this->cols->$f, "column_default")) {
+				array_push($vals, $this->quote($f, $this->cols->$f->column_default));
+				if ($f == "user") $f = '"user"';
+				array_push($cols, $f);
 			} else if ($this->cols->$f === false) {
 				err("$f is a required column");
 				return '{"status": false; "error": "'. $f. '" is a required column"}';
@@ -379,7 +381,10 @@ class prov_db {
 
 		foreach ($this->fields as $f) {
 			if ($ori->$f != $dat->$f) {
-				array_push($set, "$f = " . $this->quote($f, $dat->$f));
+				$k = $f; 
+				$v = $dat->$f;
+				if ($k == "user") $k = '"user"';
+				array_push($set, "$k = " . $this->quote($f, $v));
 			}
 		}
 
@@ -411,7 +416,10 @@ class prov_db {
 		$w = [];
 		foreach ($dat as $k => $v) {
 			$v =$this->quote($k, $v);
-			if ($v == null || $v == 'null') array_push($w, "$k is null"); 
+			if ($v == null || $v == 'null') {
+				if ($k == "user") $k = '"user"';
+				array_push($w, "$k is null"); 
+			}
 			else            array_push($w, "$k = $v");
 		}
 		$where = " where " . implode(" and ", $w);

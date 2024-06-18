@@ -1,11 +1,13 @@
 <?php
+require_once("dbg_tools.php");
 function ssg($host, $cmd) {
 	#$l = gethostname();
 	$out = [];
 	$xit = 0;
 	$bin = "ssh";
-	exec("$bin $host '$cmd'", $out, $xit);
-	if ($xit != 0 && count($out) == 0) return false;
+	$ccc = "$bin $host '$cmd'";
+	$s = exec($ccc, $out, $xit);
+	if ($xit === false) return false;
 	return $out;
 }
 function scpg($host, $src, $dst) {

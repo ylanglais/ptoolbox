@@ -13,11 +13,11 @@ class _pgsql {
 		return "select distinct table_catalog as db from information_schema.tables";
 	}
 	static function schemas_qry() {
-		return "select distinct table_schema as schemas from information_schema.tables where table_catalog = current_database() and table_schema not in ('information_schema','pg_catalog')";
+		return "select distinct table_schema as schemas from information_schema.tables where table_catalog = current_database() and table_schema not in ('information_schema','pg_catalog') order by 1";
 	}
 	static function tables_qry($schema = false) {
 		if ($schema === false) {
-			return "select case when table_schema = 'public' or table_schema = '' then table_name else concat(table_schema, '.', table_name) end as tables from information_schema.tables where table_catalog = current_database() and table_schema not in ('information_schema','pg_catalog') order by table_schema, table_name";
+			return "select case when table_schema = 'public' or table_schema = '' then table_name else concat(table_schema, '.', table_name) end as tables from information_schema.tables where table_catalog = current_database() and table_schema not in ('information_schema','pg_catalog') order by table_schema, table_name order";
 		}
 		return "select concat('$schema.', table_name) as tables from information_schema.tables where table_catalog = current_database() and table_schema = '$schema' order by 1";
 	}

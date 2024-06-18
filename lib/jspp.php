@@ -1,6 +1,7 @@
 <?php
 require_once("lib/dbg_tools.php");
 require_once("lib/locl.php");
+require_once("lib/util.php");
 
 function jspp($d) {
 	if      (is_object($d))  return jspp_object($d);
@@ -34,7 +35,9 @@ function jspp_object($d) {
 	if (!is_object($d)) return "#error - object " . gettype($d);
 	$s = "<table class='flist'>";
 	foreach ($d as $k => $v) {
-		$s .= "<tr><th class='w120'>$k</th><td>".jspp($v)."</td></tr>";
+		$id = "jspp_".gen_elid();
+		$jd = "_$id";
+		$s .= "<tr><th onclick='jspp_toggle(\"$id\")'>$k<img id='$jd' width='10px' src='images/sarrow.right.white.png'/></th><td><div id='$id' class='jspp_tg'>".jspp($v)."</div></td></tr>";
 	} 
 	return $s . "</table>\n";
 }

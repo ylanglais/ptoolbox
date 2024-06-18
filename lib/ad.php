@@ -82,6 +82,30 @@ class ad {
 		fclose($op);
 		return true;
 	}
+	function user_groups2($login) {
+		if ($this->ad === false || $this->base === false || $this->filter === false) return null;
+		if ($this->attribute === false) $this->attribute = 'memberof'; 
+		$r = ldap_search($this->ad, $this->base, "($this->filter$login)", [ $this->attribute ]);
+
+		$groups = [];
+
+		if ($r === false) return false;
+		$i = ldap_get_entries($this->ad, $r);
+		
+		print_r($i); print("\n");
+
+
+/**
+		if (array_key_exists($this->attribute, $i[0]) && is_array($i[0][$this->attribute])) {
+				foreach ($i[0][$this->attribute] as $j => $g) {
+					if (is_string($j))  continue;
+					array_push($groups, $g);
+				}
+			}
+		}
+*/
+		return $groups;
+	}
 	function user_groups($login) {
 		if ($this->ad === false || $this->base === false || $this->filter === false) return null;
 		if ($this->attribute === false) $this->attribute = 'memberof'; 
@@ -101,4 +125,62 @@ class ad {
 		}
 		return $groups;
 	}
+	function search2($filter, $attrs = []) {
+		$r = ldap_search($this->ad, $this->base, $filter, $attrs);
+		if ($r === false) return false;
+		$e = ldap_get_entries($this->ad, $r);
+		return $e;	
+	}
+
+	function add_array(&$data, $e) {
+		if (array_key_exists("count", $e)) {
+			$ne = $e["count"];
+			$data = (object)[];
+			for ($i = 0; $i < $ne; $i++) {
+				$k = $e[$i];
+				if ($e[$k]["count"] == 1) {
+					$data->$k = $e[$k][0];
+				} else {
+					$data->$k = [];
+					for ($j = 0; $j < $e[$k]["count"]; $j++) {
+						if (is_array($e[$k][$j])) {
+							$this->add_array($data->$k[$j], $e[$k][$j]);
+						} else {
+							$data->$k[$j] = $e[$k][$j];
+						}
+					}
+				}
+			}
+		}
+	}
+
+	function search($filter, $attrs = []) {
+		$r = ldap_search($this->ad, $this->base, $filter, $attrs);
+		if ($r === false) return false;
+		
+		$es = ldap_get_entries($this->ad, $r);
+
+		$data = [];
+
+		for ($ie = 0; $ie < $es["count"]; $ie++) {
+			$e = $es[$ie];
+			#$this->add_array($data[$ie], $e);
+			$data[$ie] = (object)[];
+			$ne = $e["count"];
+			for ($i = 0; $i < $ne; $i++) {
+				$k = $e[$i];
+				if ($e[$k]["count"] == 1) {
+					$data[$ie]->$k = $e[$k][0];
+				} else {
+					$data[$ie]->$k = [];
+					 
+					for ($j = 0; $j < $e[$k]["count"]; $j++) {
+						$data[$ie]->$k[$j] = $e[$k][$j];
+					}
+				}
+			}
+		}
+		return $data;
+	}
+
 }

@@ -86,7 +86,7 @@ class user {
 		return $this->active;
 	}
 	function load_roles() {
-		$q =  new query("SELECT name from $this->role_table where id in (select $this->role_id from $this->user_role_table where $this->user_id = '$this->id')");
+		$q =  new query("SELECT name from $this->role_table where id in (select $this->role_id from $this->user_role_table where $this->user_id = '$this->id') order by id");
 		$this->roles = [];
 		while ($row = $q->data()) {
 			if ($row['name'] == "local" && $this->source != "local") next;
@@ -115,14 +115,29 @@ class user {
 
 		$this->rights["table"] = $tab;
 		$this->rights["view"]  = $viw;
+
+		dbg("perm on tables: " . json_encode($tab));
+		dbg("perm on views:  " . json_encode($viw));
 	}
 	function right_on($type, $link) {
-		if (is_array($this->rights) 
+		if (!(is_array($this->rights) 
 			&& array_key_exists($type, $this->rights) 
-			&& is_array($this->rights[$type]) 
-			&& array_key_exists($link, $this->rights[$type])) {
+			&& is_array($this->rights[$type]))) {
+			return 'NONE'; 
+		}
+		if (array_key_exists($link, $this->rights[$type])) {
 			return $this->rights[$type][$link];
 		} 
+		$a = explode('.', $link);
+		while (array_pop($a)) { 
+			$b = $a; 
+			array_push($b, "*");
+			$k = implode(".", $b); 
+
+			if (array_key_exists($k, $this->rights[$type])) {
+				return $this->rights[$type][$k];
+			} 
+		}
 		return 'NONE';
 	}
 	function auth_check($login, $passwd, $ip) {

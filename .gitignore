@@ -4,7 +4,14 @@ test/*
 conf/*.php
 doc/*
 conf/*.test.*
+usr/conf/*.php
+usr/conf/.*
 broken
 images/*
 logs/*
 .div
+.*.swp
+.*.swo
+*.csv
+*.json
+*.log

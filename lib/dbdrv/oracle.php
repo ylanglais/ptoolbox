@@ -13,10 +13,10 @@ class _oracle {
 		return false;
 	}
 	static function schemas_qry() {
-		return false;
+		return "SELECT distinct owner as schemas FROM all_tables";
 	}
 	static function tables_qry($schema = false) {
-		return false;
+		return "SELECT TABLE_NAME as tables from all_tables where Owner = '$schema'";
 	}
 	static function columns_qry($table) {
 		return false;

@@ -4,7 +4,9 @@ require_once("lib/args.php");
 require_once("lib/util.php");
 require_once("lib/prov.php");
 require_once("lib/locl.php");
+require_once("lib/query.php");
 require_once("lib/dbg_tools.php");
+require_once("lib/session.php");
 
 function glist_dopts($dopts, $offset= false, $page = false) {
 	$d = $dopts;
@@ -12,6 +14,39 @@ function glist_dopts($dopts, $offset= false, $page = false) {
 	if ($offset !== false) $d["page"]  = $page;
 
 	return json_encode($d);
+}
+
+function glist_user_pref_get($prov) {
+	$uid = get_user_id();
+	$pid = $prov->id();
+	$q =  new query("select * from param.glist where user_id = $uid and provider = '$pid'");
+	$opts = [];
+	while ($o = $q->obj()) {
+		$opts["sort"] = $o->sortby;
+		$opts["order"] = $o->orderby;
+	}
+	return $opts;
+}
+
+function glist_user_pref_save($prov, $opts) {
+	if (!is_object($prov)) {
+		$prov = new prov($prov);
+	}
+	if (is_object($opts)) $opts = (array) $opts;
+	if (!is_array($opts) || !array_key_exists("sort", $opts) || !array_key_exists("order", $opts)) {
+		err("bad opts (". json_encode($opts) .")");
+		return;
+	}
+
+	$sb = $opts["sort"];
+	$ob = $opts["order"];
+	$uid = get_user_id();
+	$pid = $prov->id();
+	if (($o = glist_user_pref_get($prov)) != []) {
+		new query("update param.glist set sortby = '$sb', orderby = '$ob' where user_id = '$uid' and provider = '$pid'");
+	} else {
+		new query("insert into param.glist (user_id, provider, sortby, orderby) values ($uid, '$pid', '$sb', '$ob')"); 
+	}
 }
 
 function glist($prov, $opts = []) {
@@ -31,15 +66,16 @@ function glist($prov, $opts = []) {
 		"parentid"	=> false, 
 		"gform_id" 	=> false 
 	];
-	
-	if (is_object($opts)) $opts = (array) $opts;
+
+	# first use, try to load user prefs for this provider:
+	if ($opts == [] || !array_key_exists("start", $opts))  $opts = array_merge($opts, glist_user_pref_get($prov));
+	else if (is_object($opts)) $opts = (array) $opts; 
 
 	if (is_array($opts)) {
 		foreach ($dopts as $k => $v) {
 			if (!array_key_exists($k, $opts)) $opts[$k] = $v;
 		}
 	} else $opts = $dopts;
-
 
 	# 
 	# Gen identifier if not present:
@@ -58,7 +94,6 @@ function glist($prov, $opts = []) {
 		err("no permission");
 		return $html . "<tr><td> No data </td></tr></table>\n";
 	}	
-	
 	#
 	# Check if rights are more restricted than asked:
 	if ($opts["ronly"] == false && $perm == 'RONLY') $opts["ronly"] = true;
@@ -80,6 +115,7 @@ function glist($prov, $opts = []) {
 	#
 	# Compute header / footer only if required:
 	if ($opts["hdr"] || $opts["ftr"]) { 
+		#$hdr = "<tr onclick='glist_popup()'>";
 		$hdr = "<tr>";
 
 		if ($opts["ronly"] === false) {
@@ -166,7 +202,6 @@ function glist($prov, $opts = []) {
 					}
 				}
 			}
-		
 
 			$html .= "<tr onmouseover='this.classList.add(\"over\")' onmouseout='this.classList.remove(\"over\")'";
 			if ($qry != []) {
@@ -213,7 +248,6 @@ function glist($prov, $opts = []) {
 	$html .= "<tfoot><tr class='nav'><td class='navpad'></td><td class='hdr' colspan='$n'><div class='navigation'>";
 
 	if ($nr > 0) {
-		
 		#
 		# Add navigation bar:
 		if ($so > 0) {
@@ -248,9 +282,10 @@ function glist($prov, $opts = []) {
 function glist_ctrl() {
 	$a = new args();
 
-
 	$prov = $a->val("prov");
 	$opts = $a->val("opts");
+
+	if ($a->has("save_opts") && $a->val("save_opts") == true) glist_user_pref_save($prov, $opts);
 
 	return glist(new prov($prov), $opts);
 }

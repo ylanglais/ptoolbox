@@ -22,3 +22,7 @@ $$ LANGUAGE SQL  IMMUTABLE RETURNS NULL ON NULL INPUT;
 create function ip2net(text) returns table like tech.rdap  as $$
 select * from tech.rdap where ip2int($1) > net_min_lg and ip2int($1) < net_max_lg; 
 $$LANGUAGE SQL  IMMUTABLE RETURNS NULL ON NULL INPUT;
+
+create function ip2netname(text) returns table like tech.rdap  as $$
+select name from tech.rdap where ip2int($1) > net_min_lg and ip2int($1) < net_max_lg; 
+$$LANGUAGE SQL  IMMUTABLE RETURNS NULL ON NULL INPUT;

@@ -10,13 +10,13 @@ class _mysql {
 		return "select database() as dbname";
 	}
 	static function databases_qry() {
-		return "select distinct table_catalog as db from information_schema.tables";
+		return "select distinct table_catalog as db from information_schema.tables order by table_catalog";
 	}
 	static function schemas_qry() {
 		return false;
 	}
 	static function tables_qry($schema = false) {
-		return "select table_name as tables from information_schema.tables where table_schema = database()";
+		return "select table_name as tables from information_schema.tables where table_schema = database() order by table_name";
 	}
 	static function columns_qry($table) {
 		return "select column_name, is_nullable, data_type, column_default, character_maximum_length from information_schema.COLUMNS where TABLE_SCHEMA = database() and TABLE_NAME = '$table'";

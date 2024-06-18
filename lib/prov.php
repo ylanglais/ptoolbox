@@ -29,6 +29,10 @@ class prov {
 			}
 		}
 	}
+	function id() {
+		if ($this->prov == null) return null;
+		return $this->prov->id;	
+	}
 	function type() {
 		if ($this->prov == null) return null;
 		return $this->prov->type;	

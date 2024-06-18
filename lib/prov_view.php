@@ -5,7 +5,7 @@ require_once("lib/query.php");
 
 class prov_view {
 	function __construct($view = null, $filter = null) {
-		$this->id    = $view;
+		$this->id    	= $view;
 		$this->init     = false;
 		$this->type     = "view";
 		$this->name     = "";

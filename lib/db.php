@@ -190,6 +190,10 @@ class db {
 			$this->drv = "pgsql";
 			include_once("lib/dbdrv/pgsql.php");
 			$this->_drv = "_pgsql";
+		} else if ($this->db_drv == "oracle") {
+			$this->drv = "oracle";
+			include_once("lib/dbdrv/oracle.php");
+			$this->_drv = "_oracle";
 		} else if ($this->db_drv == "odbc") {
 			#set autocommit:
 			#odbc_setoption($this->conn, 1, 102, 1);
@@ -248,7 +252,7 @@ class db {
 	 */
 	function db_name() {
 		if ($this->_drv === false || ($qry = $this->_drv::dbname_qry()) === false) {
-			warn("method not supported with driver $this->drv");
+			#warn("method not supported with driver $this->drv");
 			return "";	
 		}
 		$this->query($qry);
@@ -261,7 +265,7 @@ class db {
 	function databases()  {
 		$t = [];
 		if ($this->_drv === false || ($qry = $this->_drv::dbname_qry()) === false) {
-			warn("method not supported with driver $this->drv");
+			#warn("method not supported with driver $this->drv");
 			return $t;
 		}
 
@@ -277,7 +281,7 @@ class db {
 	function schemas()  {
 		$t = [];
 		if ($this->_drv === false || ($qry = $this->_drv::schemas_qry()) === false) {
-			warn("method not supported with driver $this->drv");
+			#warn("method not supported with driver $this->drv");
 			return $t;
 		}
 		
@@ -291,7 +295,7 @@ class db {
 	function tables($schema = "")  {
 		$t = [];
 		if ($this->_drv === false || ($qry = $this->_drv::tables_qry($schema)) === false) {
-			warn("method not supported with driver $this->drv");
+			#warn("method not supported with driver $this->drv");
 			return $t;	
 		}
 		

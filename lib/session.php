@@ -17,6 +17,24 @@ function get_user() {
 
 	return $_session_->user->login();
 }
+
+function get_user_id() {
+	global $_session_;
+	if (!is_object($_session_) 
+		|| !property_exists($_session_, "user")
+		|| !is_object($_session_->user))
+		return -1;
+
+	return $_session_->user->id();
+}
+
+function get_roles():array {
+	global $_session_;
+	if (!is_object($_session_) || !property_exists($_session_, "roles"))
+		return [];
+
+	return $_session_->roles;
+}
 function get_perm($type, $link) {
 	global $_session_;
 	if (php_sapi_name() === "cli") return 'ALL';

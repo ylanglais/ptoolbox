@@ -17,17 +17,11 @@ class args {
 		}
 	}
 	function err() {
-		foreach ($_POST as $k => $v) 
-			err("\$_POST['$k'] = '$v'");
-		foreach ($_GET as $k => $v) 
-			err("\$_GET['$k'] = '$v'");
+		err(json_encode(["_POST" => $_POST, "_GET" => $_GET]));
 	}
 	function _dbg() { return dbg(); }
 	function dbg() {
-		foreach ($_POST as $k => $v) 
-			dbg("\$_POST['$k'] = '$v'");
-		foreach ($_GET as $k => $v) 
-			dbg("\$_GET['$k'] = '$v'");
+		dbg(json_encode(["_POST" => $_POST, "_GET" => $_GET]));
 	}
 	/**
      * Get parameter $p from $_POST if it exists

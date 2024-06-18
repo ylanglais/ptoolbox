@@ -1,3 +1,6 @@
+function glist_popup(id) {
+	//ctrl("glist", {"prov": pdat, "opts": opts, "setopts": true}, id);
+}
 function glist_go(id, pdat, opts, start, lines) {
 	//console.log(">>>> " + JSON.stringify(opts));
 	if (start != null) opts.start = start ;
@@ -31,7 +34,7 @@ function glist_sort(el, pdat, opts, field) {
 	}
 	opts.sort  = field;
 	opts.order = o;
-	ctrl("glist", {"prov": pdat, "opts": opts}, opts.id);
+	ctrl("glist", {"prov": pdat, "opts": opts, "save_opts": true}, opts.id);
 }
 function glist_view(id, data) {
 	ctrl("gform", { "id": id, "data": data }, id);

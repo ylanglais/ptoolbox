@@ -1,36 +1,39 @@
-TODO :
+TODO:
+-----
 
-NEW :
-- Implement Popup (js)
-- Implement list filter (php + js, using popups)
-- LDAP & AD Classes
-- Batch rights according to rights -> within session->user (?)
-- ALLoW usr/Git => clean up . et usr
-- Put logimp in aespp & maudit, move espp.files to tech.logimp
-- review simplify and integrate rcu importer (map/scr/dst)
+NEW:
+	- Implement list filter (php + js, using popups)
+	- LDAP & AD Classes (Partial)
+	- Batch rights according to rights -> within session->user (?)
+	- ALLoW usr/Git => clean up . et usr
+	- Put logimp in aespp & maudit, move espp.files to tech.logimp
+	- review simplify and integrate rcu importer (map/scr/dst)
 
-PROV_VIEW 
+PROV_VIEW:
 	- fix
 	- simplify
 	- implement: put, del, update
 	- idee: reuse rcu dst ?
 
-GFORM
+GFORM:
 	- Default, 
 	- Nullable,
 	- Interactive lookup (popups).
 	- Dropdown combo
 	- Actions from wf 
 
+REPORT: 
+	- Add report forms//parameters
+
 IDEAS:
-- (0, 1) Replacer les SQL par prov sur tout ce qui est interactif / non "systeme" et passer par des entités => + workflows
-- (1, 1) Provdb -> split sql / values (OWASP)
-- Simplifier hierarchie page / directory 
-- DB explorator:w
-- View Mapper
-- Report composer 
-- websockets / boradcast
-- CheckLists !!!!
+	- (0, 1) Replacer les SQL par prov sur tout ce qui est interactif / non "systeme" et passer par des entités => + workflows
+	- (1, 1) Provdb -> split sql / values (OWASP)
+	- Simplifier hierarchie page / directory 
+	- DB explorator - Add oracle/ora/odbc
+	- View Mapper
+	- Report composer 
+	- websockets / boradcast
+	- CheckLists !!!!
 
 
 

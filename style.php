@@ -60,6 +60,27 @@ div.menu {
 	overflow:  auto;
     box-shadow: 3px 3px 5px $shadow;
 }
+div.dbexpp {
+	max-height: calc(100vh - 110px);
+	width:      calc(100vw - 310px);
+	display:flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+
+/**
+	display: grid;
+	grid-auto-flow: column;
+	grid-gap: 2px;
+**/
+}
+div.dbexp {
+	display: inline-block;
+	max-height: calc(100vh - 110px);
+	max-widht: 80vw;
+	overflow-y:  auto;
+	overflow-x:  none;
+	float: left;
+}	
 div.data {
 	width: 100%; 
 	top: 0px; 
@@ -183,7 +204,14 @@ th.minical.pre, td.minical.pre {
 /* 
  * Paragraph definitions: 
  */
-
+pre {
+	font-family: "Courier New", Courier, monospace
+	font-size: 1vw;
+	margin-top: 0.6vh;
+	margin-bottom: 0.4vh;
+	color: $fg;
+	text-align: left;
+}
 p {
 	font-family: $fontfamily;
 	font-size: 1vw;
@@ -417,6 +445,7 @@ a.logout {
 	cursor: pointer;
 }
 a.menu {
+	padding: 5px;
 	color: white;
 }
 a.logout:hover,a.menu:hover {
@@ -524,8 +553,11 @@ table.data tr td.data {
 	padding: 5px;
 }
 td.current {
+	color: $selected_fg;
+/*
 	color: red;
 	background-color: yellow;
+*/
 }
 table.spacing {
 	width: 100%;
@@ -992,8 +1024,8 @@ table.popup_bar {
 table.popup_bar tr                 { visibility: inherit; }
 table.popup_bar tr td              { visibility: inherit; }
 table.popup_bar tr td.title        { color: $image_normal; align: right; }
-table.popup_bar tr td.title:hover  { color: $mage_pre;  }
-table.popup_bar tr td.title:active { color: $image_selected;  }
+table.popup_bar tr td.title:hover  { color: $image_pre;  }
+table.popup_bar tr td.title:active { color: $reverse_bg;  }
 table.popup_bar tr td.close        { width: 2ch ; margin: 1em; }
 
 
