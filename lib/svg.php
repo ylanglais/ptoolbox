@@ -185,7 +185,6 @@ class svg {
 
 		$outs .= $this->title(($x1 - $x0) / 2 + $margin, $margin / 2, $this->param("title"));
 
-
 		#
 		# Draw borders: 
 		$outs .= $this->borders();
@@ -299,13 +298,13 @@ class svg {
 
 	function xy_minmax($series, $convx, $convy) {
 		$sd   = new StdClass();
-		$sd->xmin = $sd->xmax = $sd->ymin = $sd->ymax = null;
+		$sd->xmin = $sd->xmax = $sd->ymin = $sd->ymax = false;
 		$sd->count = 0;
 		foreach ($series as $xx => $yy) {
 			$x = $convx($xx);
 			$y = $convy($yy);
 			$sd->count++;
-			if ($sd->xmin === null) {
+			if ($sd->xmin === false) {
 				$sd->xmin = $sd->xmax = $x;
 				$sd->ymin = $sd->ymax = $y;
 			} else {
@@ -503,7 +502,8 @@ class svg {
 		# Get min/max x/y from data:	
 		$xmin = $xmax = $ymin = $ymax = false;
 		foreach ($values as $name => $ser) {
-			$series[$name] = [];
+			$series[$name] = (object) [];
+			if (count($ser) < 1) next;
 			$series[$name] = $this->xy_minmax($ser, $convx, $convy);
 			if ($series[$name]->count > 0) $nodata = false;
 			if ($xmin === false) {
