@@ -166,7 +166,6 @@ class rpt {
 			$all = $this->_rpt_sql($str);
 			$arr = [];
 			if ($all !== false) foreach ($all as $row) $arr[$row->$data] = $row->$count;
-#dbg("ARR = " . json_encode($arr));
 			return $arr;
 		}
 		if (substr($data, 0, 4) == "rpt_var(") {
@@ -199,7 +198,6 @@ class rpt {
     }
 	function rpt_vars($o) {
 		foreach ($o as $oo) $this->rpt_var($oo);
-		#dbg("vars: " . json_encode($this->vars));
 	}
 	function rpt_var($o) {
 		$this->var_set($o->var, $this->var_parse($o->val, $o->var));
@@ -211,10 +209,8 @@ class rpt {
 		if (strstr($str, "rpt_var(")) {
 			$str = $this->rpt_var_replace($str);
 		}
-		dbg(">>> $str");
 		$q   = new query($str, $this->odb);
 		$all = $q->all();
-		#dbg(">>> " . json_encode($all));
 		if ($all == [])       return false;
 		return $all;
 	}
@@ -587,14 +583,11 @@ class rpt {
 		if (property_exists($o, "x")) $x = $o->x;
 		if (property_exists($o, "y")) $y = $o->y;
 
-dbg("x = $x, y = $y");
-
 		foreach ($o->data as $series) {
 			$data[$series->name] = $this->data_parse($series->value, $x, $y);
 		}
 		$svg = new svg($w, $h);
 		$svg->colors($this->colors); 
-dbg("opts = " . json_encode($opts));
 		if (property_exists($o, "xy") && $o->xy === true)
 			$str .= $svg->graph_xy($data, $opts);
 		else
