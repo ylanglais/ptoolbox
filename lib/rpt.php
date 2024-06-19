@@ -104,33 +104,39 @@ class rpt {
 		} 
 		return 'data: '.mime_content_type($filename).';base64,'. base64_encode(file_get_contents($filename));
 	}
-	function count_parse($str) {
+	function var_parse($str, $var) {
 		if (substr($str, 0, 4) == "sql(") {
-			$sql = $this->rpt_var_replace(substr($str, 4, -1));
-			$q   = new query($sql, $this->odb);
-			$q = new query(substr($str, 4, -1), $this->odb);
-			$o = $q->obj();
-			if (!is_object($o) || !property_exists($o, "count")) return false;
-			
-			return $o->count;
+			$all = $this->_rpt_sql($str);
+			if ($all == false) return false;
+			if (is_array($all)) $all = $all[0];
+			if (!is_object($all) || !property_exists($all, $var)) return false;
+			return $all->$var;
 		}
-		if (substr($str, 0, 4) == "var(") {
-			return $this->var_get(substr($str, 4, -1));
+		if (substr($str, 0, 4) == "rpt_var(") {
+			return $this->var_get(substr($str, 6, -1));
 		}
 		return $str;
 	}
+	function count_parse($str) {
+		return $this->var_parse($str, "count");
+	}
 	function table_parse($str, $hdr = false, $lnum = false) {
 		if (substr($str, 0, 4) == "sql(") {
-			$sql = $this->rpt_var_replace(substr($str, 4, -1));
-			$q   = new query($sql, $this->odb);
+			$all = $this->_rpt_sql($str);
+
+			if ($all == false) return [];
+
 			$arr = [];
 			$hdd = [];
+
 			$r = 1;
 			if ($hdr && $lnum) array_push($hdd, "#");
-			while ($d = $q->data()) {
+
+			foreach ($all as $row) {
+				$row = (array) $row;
 				$arl = [];
 				if ($lnum) array_push($arl, $r);
-				foreach ($d as $k => $v) {
+				foreach ($row as $k => $v) {
 					if ($hdr && $r == 1) array_push($hdd, $k);	
 					array_push($arl, $v);
 				}	
@@ -144,11 +150,10 @@ class rpt {
 	}
 	function range_parse($str) {
 		if (substr($str, 0, 4) == "sql(") {
-		
-			$q = new query(substr($str, 4, -1), $this->odb);
+			$all = $this->_rpt_sql($str);
 			$arr = [];
-			while ($d = $q->data()) {
-				foreach ($d as $k => $v) {
+			foreach ($all as $row) {
+				foreach ($row as $k => $v) {
 					$arr[$k] = $v;
 				}	
 			}
@@ -158,17 +163,14 @@ class rpt {
 	}
 	function data_parse($str, $data = 'month', $count = 'count') {
 		if (substr($str, 0, 4) == "sql(") {
-			$sql = $this->rpt_var_replace(substr($str, 4, -1));
-			$q   = new query($sql, $this->odb);
+			$all = $this->_rpt_sql($str);
 			$arr = [];
-
-			while ($d = $q->obj()) {
-				$arr[$d->$data] = $d->$count;
-			}
+			if ($all !== false) foreach ($all as $row) $arr[$row->$data] = $row->$count;
+#dbg("ARR = " . json_encode($arr));
 			return $arr;
 		}
-		if (substr($data, 0, 4) == "var(") {
-			return $this->var_get(substr($str, 4, -1));
+		if (substr($data, 0, 4) == "rpt_var(") {
+			return $this->var_get(substr($str, 6, -1));
 		}
 		return $str;
 	}
@@ -196,11 +198,27 @@ class rpt {
         return $str;
     }
 	function rpt_vars($o) {
-		foreach ($o as $oo) rpt_var($o);
+		foreach ($o as $oo) $this->rpt_var($oo);
+		#dbg("vars: " . json_encode($this->vars));
 	}
 	function rpt_var($o) {
-		$this->var_set($o->var, $this->count_parse($o->val));
+		$this->var_set($o->var, $this->var_parse($o->val, $o->var));
 	}
+	function _rpt_sql($str) {
+		if (substr($str, 0, 4) == 'sql(') {
+			$str = substr($str, 4, -1);
+		}
+		if (strstr($str, "rpt_var(")) {
+			$str = $this->rpt_var_replace($str);
+		}
+		dbg(">>> $str");
+		$q   = new query($str, $this->odb);
+		$all = $q->all();
+		#dbg(">>> " . json_encode($all));
+		if ($all == [])       return false;
+		return $all;
+	}
+
 /*
 	function rpt_textbox() (
 	}	
@@ -220,10 +238,10 @@ class rpt {
 		return false;
 	}
 	function rpt_var_replace($s) {
-		while (preg_match('/(rpt_var\(([A-Za-z_][A-Za-z_0-9]*)\))/', $s, $m)) {
-			if (array_key_exists($this->vars, $m[1])) {
+		while (preg_match('/rpt_var\(([A-Za-z_][A-Za-z_0-9]*)\)/', $s, $m)) {
+			if (array_key_exists($m[1], $this->vars)) {
 				$v = $this->vars[$m[1]];
-				str_replace($s, $m[0], $v);
+				$s = str_replace($m[0], $v, $s);
 			} else {
 				warn("$m[1] is not a defined variable");
 			} 
@@ -443,14 +461,7 @@ class rpt {
         $str  = "\t<table class='$c w47'>\n";
         $str .= "\t\t<tr><td class='ligne1' colspan='2'>".$this->locl->format($o->label)."</td></tr>\n";
 
-
-		if (substr($o->count, 0, 4) == 'sql(') {
-			$sql = $this->rpt_var_replace(substr($o->count, 4, -1));
-			$q  = new query($sql, $this->odb);
-			$count = $q->obj()->count;
-		} else if (substr($o->count, 0, 4) == 'var(')
-			$count = $this->var_get(substr($o->count, 4, -1));
-		else $count = $o->count;	
+		$count = $this->count_parse($o->count);
 
 		if (property_exists($o, "sublabel")) {
 			$str .= "\t\t<tr><td class='ligne4' colspan='2'>$o->sublabel</td></tr>\n";
@@ -576,11 +587,14 @@ class rpt {
 		if (property_exists($o, "x")) $x = $o->x;
 		if (property_exists($o, "y")) $y = $o->y;
 
+dbg("x = $x, y = $y");
+
 		foreach ($o->data as $series) {
 			$data[$series->name] = $this->data_parse($series->value, $x, $y);
 		}
 		$svg = new svg($w, $h);
 		$svg->colors($this->colors); 
+dbg("opts = " . json_encode($opts));
 		if (property_exists($o, "xy") && $o->xy === true)
 			$str .= $svg->graph_xy($data, $opts);
 		else
@@ -662,13 +676,13 @@ class rpt {
 				return "";
 			} else {
 				if (substr($o->data, 0, 4) == 'sql(') {
-					$sql = $this->rpt_var_replace(substr($o->data, 4, -1));
-					$q   = new query($sql, $this->odb);
-					while ($oo = $q->obj()) {
-						if ($oo->count != 0) {
-							array_push($lbl, $oo->label);
-							array_push($dat, $oo->count);
-							$total += $oo->count;
+					$all = $this->_rpt_sql($o->data);
+					
+					foreach ($all as $row) {
+						if ($row->count != 0) {
+							array_push($lbl, $row->label);
+							array_push($dat, $row->count);
+							$total += $row->count;
 						}
 					}
 				}
