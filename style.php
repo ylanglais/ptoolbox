@@ -906,6 +906,10 @@ option {
 	font-family: $fontfamily;
 	font-size: 10pt;
 }
+option:checked {
+	color: $bg;
+	background-color: $input_fg;
+}
 input {
 	color: $input_fg;
 	background-color: $bg;
@@ -1010,21 +1014,24 @@ input[type="checkbox"]:checked {
 div.popup {
 	background-color: $bg;
     box-shadow: 5px 5px 12px $shadow;
+	max-width: 75vw;
+	max-height: 75vh
 }
 div.popup_data {
 	background-color: $bg;
-	padding: 5px 0px 0px 0px; 
+	padding: 5px 5px 5px 5px; 
 	overflow: auto;
 }
 table.popup_bar {
 	width: 100%;
 	border-width: 0px;
+	table-layout: fixed;
 	visibility: inherit;
 }
-table.popup_bar tr                 { visibility: inherit; }
-table.popup_bar tr td              { visibility: inherit; }
-table.popup_bar tr td.title        { color: $image_normal; align: right; }
-table.popup_bar tr td.title:hover  { color: $image_pre;  }
+table.popup_bar tr                 { visibility: inherit; width: 100%;}
+table.popup_bar tr td              { visibility: inherit; width: 100%;}
+table.popup_bar tr td.title        { color: $reverse_fg; background-color: $reverse_bg; align: right; }
+table.popup_bar tr td.title:hover  { color: $image_pre;  background-color: ; }
 table.popup_bar tr td.title:active { color: $reverse_bg;  }
 table.popup_bar tr td.close        { width: 2ch ; margin: 1em; }
 

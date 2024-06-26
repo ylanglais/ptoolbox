@@ -81,6 +81,4 @@ function dbexp_ctrl() {
 	} 
 	return "";
 }
-
-
 ?>

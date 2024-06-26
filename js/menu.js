@@ -1,6 +1,8 @@
 var menu_cur       = null;
 var menu_entry_cur = null;
 
+var menu_data_curr = null;
+
 var mh = 0;
 var uh = 0;
 var hh = 0
@@ -76,18 +78,42 @@ function menu_onclick(e) {
 }
 
 function menu_form(fname, titre) {
+	menu_data_cur = {"type": "form", "name": fname, "titre": titre};
 	ctrl('form', {'fname': fname, 'titre': titre}, 'data_area');
 }
 function menu_rpt(rptname) {
+	menu_data_cur = {"type": "rpt", "rptname": rptname};
 	progress('data_area', rptname);
 	ctrl('rpt', {'rptname': rptname}, 'data_area');
 }
 function menu_page(page) {
+	menu_data_cur = {"type": "page", "page": page};
 	load("data_area", page); 
 }
 function menu_table(page, datalink) {
+	menu_data_cur = {"type": "table", "page": page, "datalink": datalink};
 	ctrl("gui", {"page": page, "datalink": datalink}, "data_area"); 
 }
 function menu_view(page, datalink) {
+	menu_data_cur = {"type": "view", "page": page, "datalink": datalink};
 	ctrl("gui", {"page": page, "type": "view", "datalink": datalink}, "data_area"); 
+}
+function menu_data_reload() {
+	switch (menu_data_cur.type) {
+	case 'form':
+		menu_form(menu_data_cur.fname, menu_data_cur.titre);
+		break;
+	case 'rpt':
+		menu_rpt(menu_data_cur.rptname);
+		break;
+	case 'page':
+		menu_page(menu_data_cur.page)
+		break;
+	case 'table':
+		menu_table(menu_data_cur.page, menu_data_cur.datalink)
+		break;
+	case 'view':
+		menu_view(menu_data_cur.page, menu_data_cur.datalink)
+		break;
+	}
 }

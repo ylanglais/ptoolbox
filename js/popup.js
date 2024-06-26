@@ -18,7 +18,7 @@ function popup_new(id, title, url, param, width, height, formid) {
 	//p.style.height = height;
 
 	s  = "<table class='popup_bar'><tr><td class='title' onmousedown='popup_mouse_down(event, \"popup_" + id + "\")'" 
-	   + " onmouseup='popup_mouse_up()'>" + title + "</td><td class='close'> <img width='100%' src='images/close.norm.png' onmouseover='this.src=\"images/close.pre.png\"' onmouseout='this.src=\"images/close.norm.png\"' onclick='this.src=\"images/close.sel.png\";popup_destroy(\"" + id + "\")'></td></tr> </table>"
+	   + " onmouseup='popup_mouse_up()'>" + title + "</td><td class='close'> <img width='25px' src='images/close.norm.png' onmouseover='this.src=\"images/close.pre.png\"' onmouseout='this.src=\"images/close.norm.png\"' onclick='this.src=\"images/close.sel.png\";popup_destroy(\"" + id + "\")'></td></tr> </table>"
 	   + "<div id='popup_"+id+"_data' class='popup_data'></div>";
 
 
@@ -39,6 +39,50 @@ function popup_new(id, title, url, param, width, height, formid) {
 	}
 }
 
+function popup_ctrl(id, title, ctl, data, width, height, formid) { 
+	if (document.getElementById(id) != null) return; 
+
+	p = document.createElement("div");
+
+	p.id               = "popup_" + id;
+	p.className        = "popup";
+	p.style.position   = "absolute";
+	p.style.visibility = "hidden";
+
+
+	if (typeof title  == 'undefined') title  = "";
+	if (typeof width  == 'undefined') width  = "75%";
+	//if (typeof height == 'undefined') height = "66%";
+
+	//p.style.height = height;
+
+	pid = "popup_"+id+"_data";
+
+	s  = "<table class='popup_bar'><tr><td class='title' onmousedown='popup_mouse_down(event, \"popup_" + id + "\")'" 
+	   + " onmouseup='popup_mouse_up()'>" + title + "</td><td class='close'> <img width='20px' src='images/close.norm.png' onmouseover='this.src=\"images/close.pre.png\"' onmouseout='this.src=\"images/close.norm.png\"' onclick='this.src=\"images/close.sel.png\";popup_destroy(\"" + id + "\")'></td></tr> </table>"
+	   + "<div id='"+pid+"' class='popup_data'></div>";
+
+    p.innerHTML = s;
+    document.body.appendChild(p);
+
+	ctrl(ctl, data, "popup_"+id+"_data");
+
+
+ 	geom_center("popup_" + id);
+
+
+    p.style.display    = "block";
+    p.style.overflow   = "hidden";
+    p.style.visibility = "visible";
+	
+
+    if (typeof(formid) == "string") {
+		let form = document.getElementById(formid)
+		if (form != null) form.addListenerListener("submit", popup_destroy(id), false);
+	}
+}
+
+
 function popup_mouse_get(event) {
     if (event.offsetX || event.offsetY)
         return {"x": parseInt(event.pageX), "y": parseInt(event.pageY)};
@@ -46,6 +90,7 @@ function popup_mouse_get(event) {
 }
 
 function popup_mouse_down(event, id) {
+	event.stopPropagation();
     p = document.getElementById(id);
     if (!p) return;
 	
@@ -63,8 +108,8 @@ function popup_mouse_up(id) {
     pop.dx = pop.dy = 0;
 	//pop.removeEventListener("mouseout",  pop.mouseoutlsnr);
 	document.removeEventListener("mousemove", pop.mousemovlstnr);
-
 	pop = null;
+	event.stopPropagation();
 }
 
 function popup_mouse(event) {
@@ -72,6 +117,7 @@ function popup_mouse(event) {
 	function _max(a, b)  { if (a > b) return a; return b; }
     if (pop == null) return;
     pos = popup_mouse_get(event);
+	event.stopPropagation();
 
 	x = parseInt(pop.style.left);
 	y = parseInt(pop.style.top);

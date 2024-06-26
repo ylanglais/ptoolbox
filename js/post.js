@@ -28,7 +28,13 @@ function sync_post(url, data) {
     ws.open("POST", url, false); //false means synchronous
     ws.setRequestHeader("Content-Type", "application/json; charset=utf-8");
     ws.send(JSON.stringify(data));
-	if (ws.response) return JSON.parse(ws.response);
+	if (ws.response) {
+		try {
+			return JSON.parse(ws.response);
+		} catch {
+			return null;
+		}
+	}
 	return false;
 }
 
