@@ -503,7 +503,7 @@ class svg {
 		$xmin = $xmax = $ymin = $ymax = false;
 		foreach ($values as $name => $ser) {
 			$series[$name] = (object) [];
-			if (count($ser) < 1) next;
+			if (count($ser) < 1) continue;
 			$series[$name] = $this->xy_minmax($ser, $convx, $convy);
 			if ($series[$name]->count > 0) $nodata = false;
 			if ($xmin === false) {
