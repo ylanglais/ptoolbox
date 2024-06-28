@@ -18,43 +18,31 @@ function glist_dopts($dopts, $offset= false, $page = false) {
 }
 
 function glist_user_pref_get($prov) {
+	$opts = [];
 	$uid = get_user_id();
 	$pid = $prov->id();
 	$q =  new query("select * from param.glist where user_id = $uid and provider = '$pid'");
-	$opts = [];
-	while ($o = $q->obj()) {
-		$opts["sort"] = $o->sortby;
-		$opts["order"] = $o->orderby;
-		$opts["columns"] = $o->columns;
-	}
+	if ($q->nrows() <= 0) {
+		$q =  new query("select * from param.glist where role_id in (select role_id from tech.user_role where user_id = $uid and role_id > 0 order by role_id)  and provider = '$pid' order by role_id");
+		if ($q->nrows() <= 0) {
+			$q =  new query("select * from param.glist where role_id = 0");
+			if ($q->nrows() <= 0) {
+				return $opts;
+			}
+		}
+	}	
+	$o = $q->obj();
+	if ($o->sortby  != "" && $o->sortby  != null && $o->sortby  != "null") $opts["sort"]  = $o->sortby;
+	if ($o->orderby != "" && $o->orderby != null && $o->orderby != "null") $opts["order"] = $o->orderby;
+	$opts["columns"] = $o->columns;
+
 	return $opts;
 }
 
-function glist_user_has_opts($pid, $uid) {
+function glist_user_pref_has($pid, $uid) {
 	$q =  new query("select * from param.glist where user_id = $uid and provider = '$pid'");
 	if ($q->nrows() > 0) return true;
 	return false;
-}
-function glist_user_opts_get($prov) {
-	$uid = get_user_id();
-	$pid = $prov->id();
-	$q =  new query("select * from param.glist where user_id = $uid and provider = '$pid'");
-	$opts = [];
-	while ($o = $q->obj()) {
-		$opts["sort"] = $o->sortby;
-		$opts["order"] = $o->orderby;
-	}
-	return $opts;
-}
-
-function glist_user_fsel_get($prov) {
-	$uid = get_user_id();
-	$pid = $prov->id();
-	$q =  new query("select columns from param.glist where user_id = $uid and provider = '$pid'");
-	$sel = false;
-	if ($o = $q->obj()) $sel  = $o->columns;
-	if ($sel == false) return [];
-	return json_decode($sel);
 }
 function glist_user_fsel_save($prov, $fsel) {
 	if (!is_object($prov)) {
@@ -68,14 +56,14 @@ function glist_user_fsel_save($prov, $fsel) {
 	$uid = get_user_id();
 	$pid = $prov->id();
 	$fsel = json_encode($fsel);
-	if (glist_user_has_opts($pid, $uid)) {
+	if (glist_user_pref_has($pid, $uid)) {
 		new query("update param.glist set columns = '$fsel' where user_id = '$uid' and provider = '$pid'");
 	} else {
 		new query("insert into param.glist (user_id, provider, columns) values ($uid, '$pid', '$fsel')"); 
 	}
 }
 
-function glist_user_opts_save($prov, $opts) {
+function glist_user_opt_save($prov, $opts) {
 	if (!is_object($prov)) {
 		$prov = new prov($prov);
 	}
@@ -89,7 +77,7 @@ function glist_user_opts_save($prov, $opts) {
 	$ob = $opts["order"];
 	$uid = get_user_id();
 	$pid = $prov->id();
-	if (glist_user_has_opts($pid, $uid)) {
+	if (glist_user_pref_has($pid, $uid)) {
 		new query("update param.glist set sortby = '$sb', orderby = '$ob' where user_id = '$uid' and provider = '$pid'");
 	} else {
 		new query("insert into param.glist (user_id, provider, sortby, orderby) values ($uid, '$pid', '$sb', '$ob')"); 
@@ -112,7 +100,7 @@ function glist_user_pref_save($prov, $opts) {
 
 	$uid = get_user_id();
 	$pid = $prov->id();
-	if (glist_user_has_opts($pid, $uid)) {
+	if (glist_user_pref_has($pid, $uid)) {
 		new query("update param.glist set sortby = '$sb', orderby = '$ob', columns = '$co' where user_id = '$uid' and provider = '$pid'");
 	} else {
 		new query("insert into param.glist (user_id, provider, sortby, orderby, columns) values ($uid, '$pid', '$sb', '$ob', '$co')"); 
@@ -355,7 +343,8 @@ function glist($prov, $opts = []) {
 function glist_popup($prov) {
 	$p = new prov($prov);
 	$all = $p->fields();	
-	$sel = glist_user_fsel_get($p);
+	$sel = [];
+	if (($o = glist_user_pref_get($p)) != [] && property_exists($o, "columns")) $sel = json_decode($o->columns);
 	return fsel("glist", '{"prov": ' . $p->data() .', "save_fsel": true}', $all, $sel, "glist_popup");
 }
 
@@ -376,7 +365,7 @@ function glist_ctrl() {
 		err("no provider");
 	} else {
 		if ($a->has("save_opts") && $a->val("save_opts") == true) {
-			glist_user_opts_save($prov, $opts);
+			glist_user_opt_save($prov, $opts);
 		} else if ($a->has("save_fsel") && $a->val("save_fsel") == true) {
 dbg("fsel: ". json_encode($fsel));
 			glist_user_fsel_save($prov, $fsel);
