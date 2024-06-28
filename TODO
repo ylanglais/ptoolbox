@@ -22,9 +22,6 @@ GFORM:
 	- Dropdown combo
 	- Actions from wf 
 
-REPORT: 
-	- Add report forms//parameters
-
 IDEAS:
 	- (0, 1) Replacer les SQL par prov sur tout ce qui est interactif / non "systeme" et passer par des entités => + workflows
 	- (1, 1) Provdb -> split sql / values (OWASP)
