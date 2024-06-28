@@ -81,10 +81,10 @@ function menu_form(fname, titre) {
 	menu_data_cur = {"type": "form", "name": fname, "titre": titre};
 	ctrl('form', {'fname': fname, 'titre': titre}, 'data_area');
 }
-function menu_rpt(rptname) {
-	menu_data_cur = {"type": "rpt", "rptname": rptname};
-	progress('data_area', rptname);
-	ctrl('rpt', {'rptname': rptname}, 'data_area');
+function menu_rpt(rpt_name) {
+	menu_data_cur = {"type": "rpt", "rpt_name": rpt_name};
+	progress('data_area', rpt_name);
+	ctrl('rpt', {'rpt_name': rpt_name}, 'data_area');
 }
 function menu_page(page) {
 	menu_data_cur = {"type": "page", "page": page};

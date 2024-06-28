@@ -54,6 +54,26 @@ function this_month() {
 function this_year() {
 	return date('Y');
 }
+function date_to_db($date) {
+	if (preg_match("%([0-3][0-9])[/-]([01][0-9])[/-]([12][09][0-9][0-9])%", $date, $m))
+		return "$m[3]-$m[2]-$m[1]";
+	if (preg_match("%([12][09][0-9][0-9])[/-]([01][0-9])[/-]([0-3][0-9])%", $date, $m))
+		return "$m[1]-$m[2]-$m[3]";
+	if (preg_match("%([12][09][0-9][0-9])([01][0-9])([0-3][0-9])%", $date, $m))
+		return "$m[3]-$m[2]-$m[1]";
+	return false;
+}
+function date_to_human($date) {
+	if (preg_match("%[0-3][0-9]/[01][0-9]/[12][09][0-9][0-9]%", $date)) 
+		return $date;
+	if (preg_match("%([0-3][0-9])-([01][0-9])-([12][09][0-9][0-9])%", $date, $m))
+		return "$m[1]/$m[2]/$m[3]";
+	if (preg_match("%([12][09][0-9][0-9])[/-]([01][0-9])[/-]([0-3][0-9])%", $date, $m))
+		return "$m[3]/$m[2]/$m[1]";
+	if (preg_match("%([12][09][0-9][0-9])([01][0-9])([0-3][0-9])%", $date, $m))
+		return "$m[3]/$m[2]/$m[3]";
+	return false;
+}
 function date_yyyymmdd_to_db($date) {
 	# 0123456789
 	# yyyymmdd

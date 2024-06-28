@@ -26,8 +26,9 @@ class rpt {
 		$this->odb		= null;
 
 		$this->vars     = [];
+		$this->form     = [];
 
-        $this->colors  = [ "#0972e3",  "#055f8d", "#2a82ac", "#3399cc", "#25bbdb", "#89afe3", "#c5e4f2", "#89d9e3", "#d4f2f7" ];
+        $this->colors   = [ "#0972e3",  "#055f8d", "#2a82ac", "#3399cc", "#25bbdb", "#89afe3", "#c5e4f2", "#89d9e3", "#d4f2f7" ];
 
 		if (file_exists("conf/rpt.php")) {
 			include("conf/rpt.php");
@@ -35,8 +36,10 @@ class rpt {
 				if (isset(${"rpt_$k"})) $this->$k = ${"rpt_$k"};
 			}
 		}
-	
         if (is_object($o) && property_exists($o, "report") && is_object($o->report)) {
+            if (property_exists($o, "rpt_name")) { 
+				$this->rpt_name = $o->rpt_name;
+			} else $this->rpt_name = false;
             if (property_exists($o->report, "locale")) { 
                 try {
                     setlocale(LC_ALL, $o->report->locale);
@@ -56,11 +59,13 @@ class rpt {
 		$this->locl = new locl($this->locale);
         $this->ncolors  = count($this->colors);
 
-		if (is_array($vars)) foreach ($vars as $k => $v) {
+		foreach ($vars as $k => $v) {
 			$this->vars[$k] = $v;			
 		}
     }
-
+	function rpt_name($o) {
+		$this->rpt_name = $o;
+	}
 	function rpt_db($o) {
 		$dbopts = null;
 		if (property_exists($o, "dbs")) {
@@ -78,6 +83,114 @@ class rpt {
 		}
 	}
 	function rpt_form($o) {
+		$str = "<div id='form_div'><table class='form'><tr>";
+		$this->form = $o;
+		foreach ($o as $i) foreach ($i as $k => $data) {
+			$str .= "\t<tr><th><label for='$k'>". $data->label."</label>";
+			$v = false;
+			$v_isset = false;	
+			if ($this->var_isset($k)) {
+				$v = $this->var_get($k);
+				$v_isset = true;	
+			} else if (property_exists($data, "default")) {
+				$d = $data->default;
+				if ($data->type == "date") {
+					if (preg_match("/^[a-z]*$/", $d)) {
+					switch ($d) {
+						case "s12m":
+						case "sliding_12_month":
+							$v = date_prev_year(som());
+							$v_isset = true;	
+							break;
+						case "eopm":
+						case "end_of_previous_month":
+							$v = date_prev(som());
+							$v_isset = true;	
+							break;
+						case "som":
+						case "start_of_month":
+							$v = som();
+							$v_isset = true;	
+							break;
+						case "soy":
+						case "start_of_year":
+							$v = soy();
+							$v_isset = true;	
+							break;
+						case "eom":
+						case "end_of_month":
+							$v = eom();
+							$v_isset = true;	
+							break;
+						case "eoy":
+						case "end_of_year":
+							$v = eoy();
+							$v_isset = true;	
+							break;
+						case "today":
+							$v = today();
+							$v_isset = true;	
+							break;
+						}
+					} else if (preg_match("/^([a-z0-9_]*)\(([^)]*)\)$/", $d, $m)) {
+						if ($m[1] == "sql") {
+							$s = $this->_rpt_sql($m[2]);
+							if (is_array($s) && $s != []) {
+								$v = $s[0];
+								$v_isset = true;	
+							}
+						} else if ($m[1] == 'rpt_var') {
+							$v = $this->var_get(substr($d, 8, -1));
+							$v_isset = true;	
+						} else {
+							err("default value not recognized ($d)");
+						}
+					} else if (preg_match("/([0-3][0-9])[\/-]([0-1][0-9])[\/-]([0-9]{4})/", $d, $m)) {
+						$v = "$m[1]-$m[2]-$m[3]";
+						$v_isset = true;	
+					}
+				} else if (preg_match("/^([a-z0-9_]*)\(([^)]*)\)$/", $d, $m)) {
+					if ($m[1] == "sql") {
+						$s = $this->_rpt_sql($m[2]);
+						if (is_array($s) && $s != []) {
+							$v = $s[0];
+							$v_isset = true;	
+						}
+					} else if ($m[1] == 'rpt_var') {
+						$v = $this->var_get(substr($d, 6, -1));
+						$v_isset = true;	
+					}
+				} else $v = $d;
+				$this->var_set($k, $v);
+			} else {
+				$this->var_set($k, false);
+			}
+			if ($data->type == "date") {
+				$str .= "<td><input id='$k' name='$k' onclick='date_cal_open(this);' size='16' pattern='[0-3][0-9]/[0-1][0-9]/20[0-9][0-9]' placeholder='jj/mm/aaaa' value='";
+				if ($v_isset) $str .= date_to_human($v);
+				$str .= "'/></td></tr>\n";
+			} else if ($data->type == "string") {
+				$str .= "<td><input id='$k' name='$k' value='" . $v . "'/></td></tr>\n";
+				if ($v_isset) $str .= $v;
+				$str .=  "'/></td></tr>\n";
+			} else if ($data->type == "list" || $data->type == 'mlist') {
+				$m = ""; 
+				if ($data->type == 'mlist') $m = "multiple";
+				$str .= "<td><select name='$k' id='$k' $m>";
+				if (is_string($data->values) && substr($data->values, 0, 4) == 'sql(') {
+					$data->values = $this->_rpt_sql(substr($data->values, 5, -1));
+				}
+				foreach ($data->values as $val) {
+					if (is_array($v) && in_array($v, $val)) $sel = "selected";
+					else if (is_string($v) && $val = $v)    $sel = "selected";
+					else                                    $sel = "";
+					$str .= "<option value='$val' $sel>$val</option>";
+				}
+				$str .= "</select></td></tr>";
+			}
+		}
+		$str.="<tr><td colspan='2'><input type='button' onclick='rpt_reload()' value='Appliquer'/></td></table></div>";
+		return $str;
 	}	
 	function colors_get() {
 		return $this->colors;
@@ -174,19 +287,20 @@ class rpt {
 		return $str;
 	}
     function parse($o) {
-        $str = "";
+		$div = false;
 		if (is_null($o) || $o === false) return;
 		if (is_string($o)) $o = json_decode($o);
 		if (!is_object($o) && !is_array($o)) {
 			_err("invalid object: " . print_r($o, TRUE));
 			return $str;
 		}
+        if (property_exists($o, "report")) {
+		 	$str = "<div id='report' class='report'>";
+			$div = true;
+		} else $str = "";
+	
         foreach ($o as $k => $v) {
-            #print("------------------------\n");
-            #print_r($v); print("\n");
-            #print("------------------------\n");
             if (substr($k, 0, 4) == "rpt_") {
-                #print("--> $k\n");
                 if (!method_exists($this, $k)) {
                     _err("Rpt has no method $k, skipping block");
                 } else {
@@ -194,6 +308,11 @@ class rpt {
                 }
             }
         }
+		if ($div == true) {	
+			$str .= "<input type='hidden' id='rpt_name' value='". $this->rpt_name ."'/></div>";
+			$str .= "<input type='hidden' id='rpt_vars' value='". json_encode($this->vars)."'/></div>";
+			if ($this->form != []) $str .= "<input type='hidden' id='rpt_form' value='". json_encode($this->form)."'/></div>";
+		}
         return $str;
     }
 	function rpt_vars($o) {
@@ -229,6 +348,12 @@ class rpt {
 	function var_set($k, $v) {
 		$this->vars[$k] = $v;
 	}
+	function var_isset($k) {
+		if (array_key_exists($k, $this->vars)) {
+			return true;
+		}
+		return false;
+	}
 	function var_get($k) {
 		if (array_key_exists($k, $this->vars)) return $this->vars[$k];
 		return false;
@@ -252,7 +377,9 @@ class rpt {
         return $str;
     }
     function rpt_header($o) {
-		$str = "";
+		if (property_exists($o, "title")) {
+			$str = "<h1>$o->title</h1>";
+		}
 /******
 		if (file_exists("header.html")) $str .= file_get_contents("header.html"); 
 
@@ -765,21 +892,22 @@ class rpt {
     }
 }
 function rpt_ctrl() {
-	$rptname = false;
-	$rptelt  = false;
+	$rpt_name = false;
+	$data     = false;
 	
 	$a = new args();
 
 	if ($a->has("token")) {
 		$data = scrm_un($a->val("token"));
-	} else if ($a->has("rptname")) {
-		$rptname = $a->val("rptname");
-		$j = file_get_contents("reports/$rptname");
+	} else if ($a->has("rpt_name") && $a->val("rpt_name") !== false) {
+		$rpt_name = $a->val("rpt_name");
+		$j = file_get_contents("reports/$rpt_name");
 		$data = json_decode($j);
 		if ($data === false) {
-			err("invalid json");
+			err("invalid json from $rpt_name");
 			return;
 		}
+		$data->rpt_name = $rpt_name;
 	} else if ($a->has("rpt_element")) {
 		$data = json_decode($a->val("rpt_element"));
 	} else {
@@ -792,9 +920,9 @@ function rpt_ctrl() {
 	$r = new rpt($data, $vars);
 	$st = hrtime(true);
 	$h = $r->parse($data);
-	if ($rptname) {
+	if ($rpt_name) {
 		$et = hrtime(true);
-		stats_update($rptname, (($et - $st) / 1e9));
+		stats_update($rpt_name, (($et - $st) / 1e9));
 	}
 	print($h."\n");
 }
