@@ -67,14 +67,11 @@ class prov_db {
 			if ($this->keys   == []) $this->keys   		   = (array) $this->db->table_keys($table);
 			if ($this->fkeys  == []) $this->fkeys          = (array) $this->db->table_fkeys($table);
 			if ($this->fields == []) foreach ($this->cols as $f => $d) array_push($this->fields, $f);
-			#dbg($this->fkeys);
 			# Make sute to take all fields as key if no key defined (dangerous => no unicity):
 			if ($this->keys == []) $this->keys = $this->fields;
 
 			foreach ($this->fkeys as $fk) {
 				#dbg($fk);
-				#$this->cols[$fk->col]->ftable = $fk->ftable;
-				#$this->cols[$fk->col]->fcol   = $fk->fcol;
 				$this->cols->{$fk->col}->ftable = $fk->ftable;
 				$this->cols->{$fk->col}->fcol   = $fk->fcol;
 			}
@@ -89,9 +86,17 @@ class prov_db {
 		} else {
 			err("\$d is " . gettype($d));
 		}
-#
-#file_put_contents(".dmp/$this->table.json", json_encode($this,  JSON_PRETTY_PRINT));
 		$this->init = true;
+	}
+	#
+	# quote fields if filed is a reserved word
+	# Todo: Generalize in db driver
+	function _escfld($fld) {
+		$rsv_word = ['user', 'right'];
+		if (in_array($fld, $rsv_word )) {
+			return '"' . $fld . '"';
+		} 
+		return $fld;
 	}
 	function name() {
 		if ($this->init === false) return false;
@@ -322,21 +327,20 @@ class prov_db {
 		$vals = [];
 
 		foreach ($this->fields as $f) {
+			$k = $this->_escfld($f);
 			if (property_exists($dat, $f)) {
 				array_push($vals,  $this->quote($f, $dat->$f));
-				if ($f == "user") $f = '"user"';
-				array_push($cols, $f);
+				array_push($cols, $k);
 			} else if (property_exists($this->cols->$f, "column_default")) {
 				array_push($vals, $this->quote($f, $this->cols->$f->column_default));
-				if ($f == "user") $f = '"user"';
-				array_push($cols, $f);
+				array_push($cols, $k);
 			} else if ($this->cols->$f === false) {
 				err("$f is a required column");
 				return '{"status": false; "error": "'. $f. '" is a required column"}';
 			}
 		}
 		$sql = "insert into $this->table (".  implode(",", $cols) . ") values (". implode(",", $vals) .")";
-		dbg($sql);
+		#dbg($sql);
 		$q = new query($this->db, $sql);
 		if ($q->nrows() != 1) {
 			err("$sql : " . $q->err());
@@ -381,9 +385,8 @@ class prov_db {
 
 		foreach ($this->fields as $f) {
 			if ($ori->$f != $dat->$f) {
-				$k = $f; 
+				$k = $this->_escflds($f); 
 				$v = $dat->$f;
-				if ($k == "user") $k = '"user"';
 				array_push($set, "$k = " . $this->quote($f, $v));
 			}
 		}
@@ -408,19 +411,36 @@ class prov_db {
 			err("cannot delete readonly data");
 			return '{"status": false; "error": "cannot insert readonly data"}';
 		}
-		if (is_object($data) || property_exists($data, "data")) 
+		if (is_object($data) || property_exists($data, "data")) { 
 			$dat = $data->data;
-		else
+		} else {
 			$dat = $data;
-
+		}
 		$w = [];
-		foreach ($dat as $k => $v) {
-			$v =$this->quote($k, $v);
-			if ($v == null || $v == 'null') {
-				if ($k == "user") $k = '"user"';
-				array_push($w, "$k is null"); 
+		if ($this->fkeys != []) {	
+			foreach ($this->fkeys as $f) {
+				if  (!property_exists($dat, $f)) {
+					err("Missing key $f, cannot delete (" . json_encode($dat) . ")");
+					return false;
+				}
+				$k = $this->_escfld($f);
+				$v = $this->quote($f, $data[$f]);
+				if ($v == null || $v == 'null') {
+					array_push($w, "$k is null"); 
+				} else {
+		        	array_push($w, "$k = $v");
+				}
 			}
-			else            array_push($w, "$k = $v");
+		} else {
+			foreach ($dat as $f => $v) {
+				$k = $this->_escfld($f);
+				$v = $this->quote($f, $v);
+				if ($v == null || $v == 'null') {
+					array_push($w, "$k is null"); 
+				} else {
+		        	array_push($w, "$k = $v");
+				}
+			}
 		}
 		$where = " where " . implode(" and ", $w);
 		$sql = "delete from $this->table $where";

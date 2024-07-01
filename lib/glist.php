@@ -25,7 +25,7 @@ function glist_user_pref_get($prov) {
 	if ($q->nrows() <= 0) {
 		$q =  new query("select * from param.glist where role_id in (select role_id from tech.user_role where user_id = $uid and role_id > 0 order by role_id)  and provider = '$pid' order by role_id");
 		if ($q->nrows() <= 0) {
-			$q =  new query("select * from param.glist where role_id = 0");
+			$q =  new query("select * from param.glist where role_id = 0 and provider = '$pid'");
 			if ($q->nrows() <= 0) {
 				return $opts;
 			}
@@ -134,7 +134,6 @@ function glist($prov, $opts = []) {
 			if (!array_key_exists($k, $opts)) $opts[$k] = $v;
 		}
 	} else $opts = $dopts;
-
 	# 
 	# Gen identifier if not present:
 	if ($opts["id"] === false) $opts["id"]  = "glist_" . gen_elid();		
@@ -305,7 +304,7 @@ function glist($prov, $opts = []) {
 	$n = $nc; 
 	if ($opts["ronly"] === false) $n++;
 	if ($opts["ln"]) $n++;
-	$n -=2;
+	$n -= 2;
 	$html .= "<tfoot><tr class='nav'><td class='navpad'></td><td class='hdr' colspan='$n'><div class='navigation'>";
 
 	if ($nr > 0) {
@@ -344,7 +343,9 @@ function glist_popup($prov) {
 	$p = new prov($prov);
 	$all = $p->fields();	
 	$sel = [];
-	if (($o = glist_user_pref_get($p)) != [] && property_exists($o, "columns")) $sel = json_decode($o->columns);
+	if (($o = glist_user_pref_get($p)) != [])
+		if (array_key_exists("columns", $o)) 
+			$sel = json_decode($o["columns"]);
 	return fsel("glist", '{"prov": ' . $p->data() .', "save_fsel": true}', $all, $sel, "glist_popup");
 }
 
@@ -367,7 +368,6 @@ function glist_ctrl() {
 		if ($a->has("save_opts") && $a->val("save_opts") == true) {
 			glist_user_opt_save($prov, $opts);
 		} else if ($a->has("save_fsel") && $a->val("save_fsel") == true) {
-dbg("fsel: ". json_encode($fsel));
 			glist_user_fsel_save($prov, $fsel);
 		}
 	}

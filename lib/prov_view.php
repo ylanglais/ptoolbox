@@ -62,7 +62,7 @@ class prov_view {
 			$this->view->dsrc = $this->_ckds($this->view->dsrc);
 			$this->id     = "__prov_view__" . $this->name;
 
-			$this->view->tid = $this->_tid($tshis->view->dsrc, $this->view->tname);
+			$this->view->tid = $this->_tid($this->view->dsrc, $this->view->tname);
 			$this->_add_table($this->view->dsrc, $this->view->tname);
 
 			$this->refs     = [];
@@ -90,6 +90,9 @@ class prov_view {
 			***/
 			$db = new db();
 			$keys = (array) $db->table_keys($this->view->tname);
+
+#dbg("tables: " . json_encode ($this->tables));
+#dbg("tid = ". $this->view->tid);
 			
 			while ($o = $q->obj()) {
 				$this->fragment->{$o->name} = (object)[];
@@ -98,28 +101,26 @@ class prov_view {
 					$this->fragment->{$o->name}->{$k} = $v;
 				}
 				if ($this->fragment->{$o->name}->type == "column") {
-/*
-dbg(">> " . $this->view->tname);
-dbg(">> " . $this->id);
-dbg(">> " . $o->name);
-dbg($this->tables);
-*/
-#dbg("name: $o->name, tid: $this->view->tid, data: " . json_encode ($this->tables->{$this->view->tid}));
+					#dbg(">> " . $this->view->tname);
+					#dbg(">> " . $this->id);
+					#dbg(">> " . $o->name);
+					#dbg($this->tables);
+					#dbg("name: $o->name, tid: ".$this->view->tid.", data: " . json_encode ($this->tables->{$this->view->tid}));
 					$this->cols->{$o->name} = $this->tables->{$this->view->tid}->cols[$o->cname];
 					array_push($this->fields, $o->name);
 					array_push($this->slist, $this->view->tname . ".$o->cname as \"$o->name\"");
 					if (in_array($o->name, $keys)) array_push($this->keys, $o->name);
+
 				} else if ($this->fragment->{$o->name}->type == "reference") {
 					$tid = $this->_tid($o->fsrc, $o->ftname);
+dbg("tid: $tid, vs view->tdi: ".$this->view->tid );
 					$this->_add_table($o->fsrc, $o->ftname);
-/*
-dbg(json_encode($this->tables->{$tid}));
-dbg("--->>> $o->flname");
-dbg("---<<< $o->name");
-dbg($this->cols);
-*/
-dbg("colname: $o->name, tid: $tid, flname: $o->flname");
+					dbg("colname: $o->name, tid: $tid, flname: $o->flname");
 					$this->cols->{$o->name} = $this->tables->{$tid}->cols[$o->flname];
+					#
+					# Set nullability to origin table: 
+					$this->cols->{$o->name}->is_nullable = $this->tables->{$this->view->tid}->cols[$o->cname]->is_nullable;
+
 					$this->cols->{$o->name}->ftable = $o->ftname;
 					$this->cols->{$o->name}->fcol   = $o->flname;
 					if (in_array($o->cname, $keys)) array_push($this->keys, $o->name);
@@ -135,7 +136,7 @@ dbg("colname: $o->name, tid: $tid, flname: $o->flname");
 			}
 			store::put($this->id, $this);
 		}
-#dbg(">>> $view: ". json_encode($this));
+dbg("initialized");
 		$this->init = true;
 	}
 	private function _add_table($ds, $tn) {
@@ -159,6 +160,7 @@ dbg("colname: $o->name, tid: $tid, flname: $o->flname");
 		if ($ds == null || $ds == "null") $ds = "default";
 		$d = new db($ds);
 		$tc = $d->table_columns($tname);
+#dbg("$tname: " . json_encode($tc));
 		if ($tc == null || $tc == []) {
 			warn("cannot get table $tname");
 			return null;
@@ -309,7 +311,9 @@ dbg("colname: $o->name, tid: $tid, flname: $o->flname");
 		return ($this->count = $o->count);
 	}
 	function get($req, $limit = 0, $start = 0, $sortby = false, $order = false) {
+dbg('-1');
 		if ($this->init === false) return false;
+dbg("0");
 		$w = [];
 		foreach ($req as $k => $v) {
 			if ($this->fragment->{$k}->type == "column") {
@@ -319,7 +323,7 @@ dbg("colname: $o->name, tid: $tid, flname: $o->flname");
 				#
 				# if column is not nullable => add table and hard join:
 #dbg(json_encode($this->cols->{$this->fragment->{$k}->cname}));
-dbg(json_encode($this));
+#dbg(json_encode($this));
 				#if ($this->tables->{$tid}->cols[$this->fragment->{$k}->cname]->nullable 
 				$k = $this->fragment->{$k}->ftname . ".". $this->fragment->{$k}->flname;
 				if ($v == null) array_push($w, "$k is null"); 
@@ -327,7 +331,6 @@ dbg(json_encode($this));
 			}
 		}
 		$where = " where " . implode(" and ", $w);
-		#dbg("select * from $this->table $where");
 		$s = "select " . implode(', ', $this->slist) . " from ". $this->view->tname . " " . implode(' ', $this->joins) . " $where";
 		$q = new query($s);		
 		return $q->all();
@@ -381,9 +384,8 @@ dbg("---> $k");
 		}
 		$s = "insert into " . $this->view->tname . " (" . implode($flds, ",") . ") values (" . implode($vals, ",") . ")";
 		$q = new query($s);
-dbg($s);
 		if ($q->nrows() != 1) {
-			err("$sql : " . $q->err());
+			err("$s : " . $q->err());
 			return  '{"status": false, "query": "'.$sql.'", "error": "'.$q->err().'"}';
 		}
 		return true;
