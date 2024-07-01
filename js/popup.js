@@ -1,6 +1,6 @@
 let pop = null;
 
-function popup_new(id, title, url, param, width, height, formid) { 
+function popup_new(id, title, url, param, formid) { 
 	if (document.getElementById(id) != null) return; 
 
 	p = document.createElement("div");
@@ -11,14 +11,9 @@ function popup_new(id, title, url, param, width, height, formid) {
 	p.style.visibility = "hidden";
 
 
-	if (typeof title  == 'undefined') title  = "";
-	if (typeof width  == 'undefined') width  = "75%";
-	//if (typeof height == 'undefined') height = "66%";
-
-	//p.style.height = height;
 
 	s  = "<table class='popup_bar'><tr><td class='title' onmousedown='popup_mouse_down(event, \"popup_" + id + "\")'" 
-	   + " onmouseup='popup_mouse_up()'>" + title + "</td><td class='close'> <img width='25px' src='images/close.norm.png' onmouseover='this.src=\"images/close.pre.png\"' onmouseout='this.src=\"images/close.norm.png\"' onclick='this.src=\"images/close.sel.png\";popup_destroy(\"" + id + "\")'></td></tr> </table>"
+	   + " onmouseup='popup_mouse_up()'>" + title + "</td><td class='close'> <img width='20px' src='images/close.norm.png' onmouseover='this.src=\"images/close.pre.png\"' onmouseout='this.src=\"images/close.norm.png\"' onclick='this.src=\"images/close.sel.png\";popup_destroy(\"" + id + "\")'></td></tr> </table>"
 	   + "<div id='popup_"+id+"_data' class='popup_data'></div>";
 
 
@@ -39,7 +34,7 @@ function popup_new(id, title, url, param, width, height, formid) {
 	}
 }
 
-function popup_ctrl(id, title, ctl, data, width, height, formid) { 
+function popup_ctrl(id, title, ctl, data, formid) { 
 	if (document.getElementById(id) != null) return; 
 
 	p = document.createElement("div");
@@ -50,11 +45,6 @@ function popup_ctrl(id, title, ctl, data, width, height, formid) {
 	p.style.visibility = "hidden";
 
 
-	if (typeof title  == 'undefined') title  = "";
-	if (typeof width  == 'undefined') width  = "75%";
-	//if (typeof height == 'undefined') height = "66%";
-
-	//p.style.height = height;
 
 	pid = "popup_"+id+"_data";
 

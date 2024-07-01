@@ -1,25 +1,9 @@
 function geom_inner_width() {
-	if (window.innerWidth) {
-		return window.innerWidth;
-	} else if (document.body && document.body.offsetWidth) {
-		return document.body && document.body.offsetWidth;
-	} else if (document.compatMode=='CSS1Compat' && document.documentElement && document.documentElement.offsetWidth ) {
-		return document.documentElement.offsetWidth;
-	} else {
-		$(window).width();
-	}
+	return window.innerWidth;
 }
 
 function geom_inner_height() {
-	if (window.innerHeight) {
-		return window.innerHeight;
-	} else if (document.body && document.body.offsetHeight) {
-		return document.body && document.body.offsetHeight;
-	} else if (document.compatMode=='CSS1Compat' && document.documentElement && document.documentElement.offsetHeight ) {
-		return document.documentElement.offsetHeight;
-	} else {
-		$(window).height();
-	}
+	return window.innerHeight;
 }
 
 function geom_sb_width() {
@@ -221,11 +205,13 @@ function geom_center(id) {
 	var div = document.getElementById(id);
 	if (div == null) return;
 	// compute position of the popup:
-	ww = parseInt(geom_inner_width());
-	wh = parseInt(geom_inner_height());
+	ww = parseInt(window.innerWidth);
+	wh = parseInt(window.innerHeight);
+
 
 	ow = parseInt(div.offsetWidth);
 	oh = parseInt(div.offsetHeight); 
+
 
 	var x = (ww / 2) - (ow / 2);
 	var y = (wh / 2) - (oh / 2);

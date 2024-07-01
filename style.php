@@ -76,9 +76,9 @@ div.dbexpp {
 div.dbexp {
 	display: inline-block;
 	max-height: calc(100vh - 110px);
-	max-widht: 80vw;
+	max-width: 80vw;
 	overflow-y:  auto;
-	overflow-x:  none;
+	overflow-x:  clip;
 	float: left;
 }	
 div.data {
@@ -205,7 +205,7 @@ th.minical.pre, td.minical.pre {
  * Paragraph definitions: 
  */
 pre {
-	font-family: "Courier New", Courier, monospace
+	font-family: "Courier New", Courier, monospace;
 	font-size: 1vw;
 	margin-top: 0.6vh;
 	margin-bottom: 0.4vh;
@@ -1014,24 +1014,39 @@ input[type="checkbox"]:checked {
 div.popup {
 	background-color: $bg;
     box-shadow: 5px 5px 12px $shadow;
-	max-width: 75vw;
-	max-height: 75vh
+	width: max-content;
+	height: max-content;
+	max-width: 85vw;
+	max-height: 85vh;
 }
 div.popup_data {
 	background-color: $bg;
 	padding: 5px 5px 5px 5px; 
+	width: auto;
+	height: auto;
+	max-width: 85vw;
+	max-height: 85vh;
 	overflow: auto;
+	clear: both;
 }
+div.fsel {
+	padding: 5px 5px 5px 5px; 
+	width: auto;
+	height: auto;
+	max-width: 80vw;
+	max-height: 80vh;
+	overflow: auto;
+} 
 table.popup_bar {
-	width: 100%;
+	width: auto;
 	border-width: 0px;
 	table-layout: fixed;
 	visibility: inherit;
 }
 table.popup_bar tr                 { visibility: inherit; width: 100%;}
 table.popup_bar tr td              { visibility: inherit; width: 100%;}
-table.popup_bar tr td.title        { color: $reverse_fg; background-color: $reverse_bg; align: right; }
-table.popup_bar tr td.title:hover  { color: $image_pre;  background-color: ; }
+table.popup_bar tr td.title        { color: $reverse_fg; background-color: $reverse_bg; text-align: right; }
+table.popup_bar tr td.title:hover  { color: $image_pre;  background-color: $reverse_bg; }
 table.popup_bar tr td.title:active { color: $reverse_bg;  }
 table.popup_bar tr td.close        { width: 2ch ; margin: 1em; }
 
@@ -1324,14 +1339,14 @@ line.graph.axis.yaxis { }
 text.graph.empty {
 	font-size: 1.2vw;
 	text-anchor: middle;
-/*	alignment-baseline:middle; */
+/*	alignment-baseline: middle; */
 	text-anchor: middle;
 }
 text.graph.title {
 	font-size:100%;
 	font-weight: bold;
 	text-anchor:middle;
-	/* alignment-baseline:middle; */
+	/* alignment-baseline: middle; */
 	text-anchor: middle;
 	fill: #616161;
 }
@@ -1345,7 +1360,7 @@ text.graph.label.ylabel,
 text.graph.units { 
 	font-size: 60%;
 	font-weight: normal;
-	alignment-baseline: middle;
+	/* alignment-baseline: middle; */
 	fill: #616161;
 }
 text.graph.legend {
