@@ -115,9 +115,6 @@ class user {
 
 		$this->rights["table"] = $tab;
 		$this->rights["view"]  = $viw;
-
-		dbg("perm on tables: " . json_encode($tab));
-		dbg("perm on views:  " . json_encode($viw));
 	}
 	function right_on($type, $link) {
 		if (!(is_array($this->rights) 
