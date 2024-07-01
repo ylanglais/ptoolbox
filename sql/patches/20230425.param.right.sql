@@ -24,3 +24,4 @@ table	default.param.folder_page	1	\N	ALL
 
 -- entity	Folders	100	\N	ALL
 
+insert into db.changelog (action) values ('patch 20230425.param.right.sql');

@@ -8,3 +8,4 @@ CREATE TABLE audit.log (
 );
 
 
+insert into db.changelog (action) values ('patch 20230425.audit.log.sql');

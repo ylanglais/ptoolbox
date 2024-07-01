@@ -10,3 +10,4 @@ DEV	1.0	2
 \.
 
 
+insert into db.changelog (action) values ('patch 20230425.param.enver.sql');

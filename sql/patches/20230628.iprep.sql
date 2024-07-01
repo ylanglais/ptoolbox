@@ -13,3 +13,4 @@ create table tech.iprep (
 	comment 	varchar(100) default null
 );
 
+insert into db.changelog (action) values ('patch 20230628.iprep.sql');
