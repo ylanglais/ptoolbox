@@ -243,7 +243,6 @@ function glist($prov, $opts = []) {
 		
 		$i = $so;
 
-dbg("keys: " . json_encode($keys));
 		#
 		# Print all result from start offset (so) + page count (pl):
 		foreach ($all as $o) {
@@ -253,16 +252,6 @@ dbg("keys: " . json_encode($keys));
 			if ($opts["gform_id"] !== false) {
 				foreach ($keys as $k) {
 					$qry[$k] = $o->$k;
-/****
-					if (!property_exists($o, $k)) {
-						if (!property_exists($o, "_hidden_$k")) {
-							break;
-						}
-						$qry[$k] = $o->{"_hidden_$k"};
-					} else {
-						$qry[$k] = $o->$k;
-					}
-******/
 				}
 			}
 
