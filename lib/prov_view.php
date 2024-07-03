@@ -5,24 +5,22 @@ require_once("lib/query.php");
 
 class prov_view {
 	function __construct($view = null, $filter = null) {
-		$this->id    	= $view;
-		$this->init     = false;
-		$this->type     = "view";
-		$this->name     = "";
-		$this->tables   = (object)[];
-		$this->fields   = [];
-		$this->cols     = (object)[];
-		$this->fragment = (object)[];
-		$this->qry      = (object)[];
-		$this->slist    = [];
-		$this->joins    = [];
-		$this->keys     = [];
-		$this->perm     = 'NONE';
-		$this->view      = false;
-		$restored       = false;
+		$this->id     = $view;
+		$this->init   = false;
+		$this->type   = "view";
+		$this->name   = "";
+		$this->tables = (object)[];
+		$this->fields = [];
+		$this->cols   = (object)[];
+		$this->frags  = (object)[];
+		$this->qry    = (object)[];
+		$this->slist  = [];
+		$this->joins  = [];
+		$this->keys   = [];
+		$this->perm   = 'NONE';
+		$this->view   = false;
+		$restored     = false;
 
-#dbg(json_encode(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10)));
-#dbg($view);
 		if (is_string($view) && substr($view, 0, 12) == "__prov_view_") { 
 			if (($o = store::get($view)) !== false) { 
 				if (is_array($o) || is_object($o)) {
@@ -91,35 +89,25 @@ class prov_view {
 			$db = new db();
 			$keys = (array) $db->table_keys($this->view->tname);
 
-#dbg("tables: " . json_encode ($this->tables));
-#dbg("tid = ". $this->view->tid);
-			
 			while ($o = $q->obj()) {
-				$this->fragment->{$o->name} = (object)[];
+				$this->frags->{$o->name} = (object)[];
 				foreach ($o as $k => $v) { 
 					#if ($k != 'name' && $v != null) 
-					$this->fragment->{$o->name}->{$k} = $v;
+					$this->frags->{$o->name}->{$k} = $v;
 				}
-				if ($this->fragment->{$o->name}->type == "column") {
-					#dbg(">> " . $this->view->tname);
-					#dbg(">> " . $this->id);
-					#dbg(">> " . $o->name);
-					#dbg($this->tables);
-					#dbg("name: $o->name, tid: ".$this->view->tid.", data: " . json_encode ($this->tables->{$this->view->tid}));
-					$this->cols->{$o->name} = $this->tables->{$this->view->tid}->cols[$o->cname];
+				if ($this->frags->{$o->name}->type == "column") {
+					$this->cols->{$o->name} = $this->tables->{$this->view->tname}->cols->{$o->cname};
 					array_push($this->fields, $o->name);
 					array_push($this->slist, $this->view->tname . ".$o->cname as \"$o->name\"");
-					if (in_array($o->name, $keys)) array_push($this->keys, $o->name);
+					if (in_array($o->cname, $keys)) array_push($this->keys, $o->name);
 
-				} else if ($this->fragment->{$o->name}->type == "reference") {
+				} else if ($this->frags->{$o->name}->type == "reference") {
 					$tid = $this->_tid($o->fsrc, $o->ftname);
-dbg("tid: $tid, vs view->tdi: ".$this->view->tid );
 					$this->_add_table($o->fsrc, $o->ftname);
-					dbg("colname: $o->name, tid: $tid, flname: $o->flname");
-					$this->cols->{$o->name} = $this->tables->{$tid}->cols[$o->flname];
+					$this->cols->{$o->name} = $this->tables->{$o->ftname}->cols->{$o->flname};
 					#
 					# Set nullability to origin table: 
-					$this->cols->{$o->name}->is_nullable = $this->tables->{$this->view->tid}->cols[$o->cname]->is_nullable;
+					$this->cols->{$o->name}->is_nullable = $this->tables->{$this->view->tname}->cols->{$o->cname}->is_nullable;
 
 					$this->cols->{$o->name}->ftable = $o->ftname;
 					$this->cols->{$o->name}->fcol   = $o->flname;
@@ -127,16 +115,15 @@ dbg("tid: $tid, vs view->tdi: ".$this->view->tid );
 					array_push($this->fields, $o->name);
 					array_push($this->slist, "$o->ftname.$o->flname as \"$o->name\"");
 					array_push($this->joins, "left join $o->ftname on " . $this->view->tname . ".$o->cname = $o->ftname.$o->finame");
-				} else if ($this->fragment->{$o->name}->type == "vallist") {
-				} else if ($this->fragment->{$o->name}->type == "values") {
-				} else if ($this->fragment->{$o->name}->type == "entity") {
-				} else if ($this->fragment->{$o->name}->type == "entitylist") {
+				} else if ($this->frags->{$o->name}->type == "vallist") {
+				} else if ($this->frags->{$o->name}->type == "values") {
+				} else if ($this->frags->{$o->name}->type == "entity") {
+				} else if ($this->frags->{$o->name}->type == "entitylist") {
 				} else {
 				}
 			}
 			store::put($this->id, $this);
 		}
-dbg("initialized");
 		$this->init = true;
 	}
 	private function _add_table($ds, $tn) {
@@ -146,7 +133,7 @@ dbg("initialized");
 		$dt->dsrc  = $ds;
 		$dt->table = $tn;
 		$dt->cols  = $this->_get_table_cols($ds, $tn);
-		$this->tables->{$this->_tid($ds,$tn)} = $dt;
+		$this->tables->{$tn} = $dt;
 	}
 	private function _ckds($ds) {
 		if ($ds == null || $ds == "null" || $ds == "") return "default";
@@ -159,13 +146,20 @@ dbg("initialized");
 	private function _get_table_cols($ds, $tname) {
 		if ($ds == null || $ds == "null") $ds = "default";
 		$d = new db($ds);
-		$tc = $d->table_columns($tname);
-#dbg("$tname: " . json_encode($tc));
+		$tc = (object) $d->table_columns($tname);
 		if ($tc == null || $tc == []) {
 			warn("cannot get table $tname");
 			return null;
 		}
 		return $tc;
+	}
+	function name2cname($name) {
+		return $this->cols->{$name}->cname;
+	}
+
+	function col_data($name) {
+		if ($this->init === false || !property_exists($this->frags, $name)) return false;
+		return $this->frags->{$name};
 	}
 	function name() {
 		return $this->name;
@@ -177,40 +171,75 @@ dbg("initialized");
 		if ($this->init === false) return false;
 		return $this->perm;
 	}
-	function quote($f, $v) {
-		if ($this->init === false) return false;
-#dbg(print_r($this->$this->cols, TRue));
-		if (property_exists($this->cols, $f)) {
-			switch($this->cols->$f->data_type) {
-				case "int":
-				case "int2":
-				case "int4":
-				case "integer":
-				case "boolean":
-				case "smallint":
-				case "bigint":
-				case "decimal":
-				case "numeric":
-				case "real":
-				case "double":
-				case "double precision":
-				case "smallserial":
-				case "serial":
-				case "bigserial":
-					return $v;
-					break;
-				case "date":
-				case "time":
-				case "datetime":
-					return "'$v'";
-					break;
-			}
-			if ($v == null  || $v == "null") {
-				#dbg("v is null");
-				return "null";
-			}
+	function val2cval($name, $val) {
+		if ($this->init === false) return $val;
+		if (($c = $this->col_data($name)) == false) return $val;
+		if ($c->type == "column") return $val;
+		if ($c->type == "reference") {
+			if ($val == "null") 
+				$s = "select " . $c->finame . " from " . $c->ftname . " where " . $c->flname . " is null ";
+			else 
+				$s = "select " . $c->finame . " from " . $c->ftname . " where " . $c->flname . " = " . $this->quote($c->ftname, $c->flname, $val);
+			$q = new query($s);
+			if ($q->nrows() < 1) return false;
+			return $q->obj()->{$c->finame};
+		}
+		return $val;
+	}
+	function fquote($fld) {
+		$rsv_word = ['user', 'right'];
+		if (in_array($fld, $rsv_word )) {
+			return '"' . $fld . '"';
+		} 
+		return $fld;
+	}
+	function quote($table, $f, $v) {
+		if ($this->init === false) return $v;
+		if (!property_exists($this->tables, $table)) {
+			err("no table $table");
+			return $v;
+		}
+		if (!property_exists($this->tables->{$table}->cols, $f)) {
+			err("no column $f found in $table");
+			return $v;
+		}
+		$c = $this->tables->{$table}->cols->{$f};
+
+		switch($c->data_type) {
+		case "bool":
+		case "boolean":
+			if ($v === true) return 'true';
+			return 'false';
+			break;
+		case "int":
+		case "int2":
+		case "int4":
+		case "integer":
+		case "smallint":
+		case "bigint":
+		case "decimal":
+		case "numeric":
+		case "real":
+		case "double":
+		case "double precision":
+		case "smallserial":
+		case "serial":
+		case "bigserial":
+			if (!is_int($v) || $v === '' || $v === null) return "null";
+			return $v;
+			break;
+		case "date":
+		case "time":
+		case "datetime":
+			if ($v == "") return "null";
+			return "'$v'";
+			break;
+		}
+		if ($v === null  || $v === 'null' || $v == "") {
+			return "null";
 		}
 		return "'" . esc($v) . "'";
+
 	}
 	function defval($f) {
 		if ($this->init === false) return false;
@@ -222,8 +251,6 @@ dbg("initialized");
 	function datatype($f) {
 		if ($this->init === false) return false;
 		if (property_exists($this->cols, $f)) {
-#dbg($f);
-#dbg(json_encode($this->cols));
 			return $this->cols->{$f}->data_type;
 		}
 		return false;
@@ -311,30 +338,25 @@ dbg("initialized");
 		return ($this->count = $o->count);
 	}
 	function get($req, $limit = 0, $start = 0, $sortby = false, $order = false) {
-dbg('-1');
 		if ($this->init === false) return false;
-dbg("0");
 		$w = [];
 		foreach ($req as $k => $v) {
-			if ($this->fragment->{$k}->type == "column") {
+			if ($this->frags->{$k}->type == "column") {
 				if ($v == null) array_push($w, "$k is null"); 
-				else            array_push($w, "$k = ". $this->quote($k, $v));
-			} else if ($this->fragment->{$k}->type == "reference") {
+				else            array_push($w, $this->frags->{$k}->cname. " = ". $this->quote($this->view->tname, $this->frags->{$k}->cname, $v));
+			} else if ($this->frags->{$k}->type == "reference") {
 				#
 				# if column is not nullable => add table and hard join:
-#dbg(json_encode($this->cols->{$this->fragment->{$k}->cname}));
-#dbg(json_encode($this));
-				#if ($this->tables->{$tid}->cols[$this->fragment->{$k}->cname]->nullable 
-				$k = $this->fragment->{$k}->ftname . ".". $this->fragment->{$k}->flname;
-				if ($v == null) array_push($w, "$k is null"); 
-				else            array_push($w, "$k = ". $this->quote($k, $v));
+				$t = $this->frags->{$k}->ftname;
+				$f = $this->frags->{$k}->flname;
+				if ($v == null) array_push($w, "$t.$f is null"); 
+				else            array_push($w, "$t.$f = ". $this->quote($t, $f, $v));
 			}
 		}
 		$where = " where " . implode(" and ", $w);
 		$s = "select " . implode(', ', $this->slist) . " from ". $this->view->tname . " " . implode(' ', $this->joins) . " $where";
 		$q = new query($s);		
 		return $q->all();
-
 	}
 	function put($data) {
 		if ($this->init === false) {
@@ -353,32 +375,13 @@ dbg("0");
 		$flds = [];
 		$vals = [];
 
-		
-
-dbg($data);
-		foreach ($this->fragment as $k => $f) {
-#dbg("$k -> " . json_encode($f));
-#dbg(":::: "  . $dat->{$k});
-			if (property_exists($dat, $k)) {
-dbg("---> $k");
-				array_push($flds, $f->cname);
-				if ($f->type == "column") {
-					array_push($vals, $this->quote($f->cname, $dat->{$k}));
-				} else if ($f->type == "reference") {
-					$v = $this->quote($f->cname, $dat->{$k});
-					if ($v == "null" || $v == null) $w = " is null";
-					else $w = " = $v";
-					$s = "select $f->finame from $f->ftname where $f->flname $w";
-					dbg($s);
-					$q = new query($s);
-					if ($q->nrows() != 1) {
-						
-						# if table is not RO, then create it:  
-					} else {
-						$o = $q->obj();
-						array_push($vals, $this->quote($f->cname, $o->{$f->finame}));
-					}
-				} 
+		foreach ($this->frags as $k => $f) {
+			array_push($flds, $f->cname);
+			if ($f->type == "column") {
+				array_push($vals, $this->quote($this->view->tname, $f->cname, $dat->{$k}));
+			} else if ($f->type == "reference") {
+				$v = $this->val2cval($k, $dat->{$k});
+				array_push($vals, $this->quote($this->view->tname, $f->cname, $v));
 			} 
 			
 		}
@@ -390,6 +393,36 @@ dbg("---> $k");
 		}
 		return true;
 	}
+	function _where($keyvals) {
+		$w = [];
+		foreach ($keyvals as $k => $v) {
+			if ($this->frags->{$k}->type == 'reference') {
+				$v = $this->val2cval($k, $v);
+			} 
+			$f = $this->frags->{$k}->cname;
+			$v = $this->quote($this->view->tname, $f, $v);
+			$f = $this->fquote($k);
+			if ($v == null || $v == 'null') {
+				array_push($w, "$f is null"); 
+			} else {
+				array_push($w, "$f = $v");
+			}
+		}
+		return implode(" and ", $w);
+	}
+
+	function _exists($keyvals) {
+		if ($this->init === false) {
+			err("provider not initialized");
+			return false;
+		}
+
+		$s = "select * from " . $this->view->tname . " where " . $this->_where($keyvals);
+		dbg("-> $s");
+		$q = new query($s);
+		if ($q->nrows() < 1) return false;
+		return true;
+	}
 	function update($data) {
 		if ($this->init === false) {
 			err("provider not initialized");
@@ -398,6 +431,54 @@ dbg("---> $k");
 		if ($this->perm == 'RONLY') {
 			err("cannot insert readonly data");
 			return '{"status": false; "error": "cannot insert readonly data"}';
+		}
+		if (is_object($data) && property_exists($data, "data"))
+			$dat = $data->data;
+		else 
+			$dat = $data;
+
+		$ori = $data->ori;
+		
+		$set = [];
+		$whe = [];
+		#
+		# loop on fragment fields: 
+		foreach ($this->frags as $k => $fr) {
+			if ($fr->type == "column") {
+				$ov = $ori->{$k};
+				$nv = $dat->{$k};
+				$f  = $fr->cname;
+			} else if ($fr->type == "reference") { 
+				$ov = $this->val2cval($k, $ori->{$k});
+				$nv = $this->val2cval($k, $dat->{$k});
+				$f  = $fr->cname;
+			} 
+			dbg("$k: $fr->type , $f => ov = $ov, nv = $nv");
+			
+			# 
+			# if column is key => add it to where clause:
+			if ($this->keys == [] || in_array($k, $this->keys)) {
+				$ov = $this->quote($this->view->tname, $f, $ov);
+				if (!is_int($ov) && ($ov === null || $ov == "null")) 
+					array_push($whe, $f . " is null");
+				else
+					array_push($whe, $f . " = $ov");
+			}	
+			#
+			# If new data != ori => add set member:
+			if ($dat->{$k} != $ori->{$k}) {
+				$nv = $this->quote($this->view->tname, $f, $nv);
+				array_push($set, $fr->cname . " = $nv");
+			}
+		}
+				
+		$s = "update " . $this->view->tname . " set " . implode(", ", $set) . " where " . implode(" and ", $whe);
+		dbg(">> update: $s");
+		$q = new query($s);
+
+		if ($q->nrows() != 1) {
+			err("$s : " . $q->err());
+			return  '{"status": false, "query": "'.$s.'", "error": "'.$q->err().'"}';
 		}
 		return true;
 	}

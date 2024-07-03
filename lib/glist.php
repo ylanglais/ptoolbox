@@ -242,8 +242,8 @@ function glist($prov, $opts = []) {
 		$cp = intdiv($so, $pl) + 1;	
 		
 		$i = $so;
-#		$html .= "<tbody>";
 
+dbg("keys: " . json_encode($keys));
 		#
 		# Print all result from start offset (so) + page count (pl):
 		foreach ($all as $o) {
@@ -252,6 +252,8 @@ function glist($prov, $opts = []) {
 			$qry = [];
 			if ($opts["gform_id"] !== false) {
 				foreach ($keys as $k) {
+					$qry[$k] = $o->$k;
+/****
 					if (!property_exists($o, $k)) {
 						if (!property_exists($o, "_hidden_$k")) {
 							break;
@@ -260,6 +262,7 @@ function glist($prov, $opts = []) {
 					} else {
 						$qry[$k] = $o->$k;
 					}
+******/
 				}
 			}
 
