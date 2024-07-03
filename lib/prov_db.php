@@ -91,7 +91,7 @@ class prov_db {
 	#
 	# quote fields if filed is a reserved word
 	# Todo: Generalize in db driver
-	function _escfld($fld) {
+	function fquote($fld) {
 		$rsv_word = ['user', 'right'];
 		if (in_array($fld, $rsv_word )) {
 			return '"' . $fld . '"';
@@ -327,7 +327,7 @@ class prov_db {
 		$vals = [];
 
 		foreach ($this->fields as $f) {
-			$k = $this->_escfld($f);
+			$k = $this->fquote($f);
 			if (property_exists($dat, $f)) {
 				array_push($vals,  $this->quote($f, $dat->$f));
 				array_push($cols, $k);
@@ -385,7 +385,7 @@ class prov_db {
 
 		foreach ($this->fields as $f) {
 			if ($ori->$f != $dat->$f) {
-				$k = $this->_escflds($f); 
+				$k = $this->fquote($f); 
 				$v = $dat->$f;
 				array_push($set, "$k = " . $this->quote($f, $v));
 			}
@@ -423,7 +423,7 @@ class prov_db {
 					err("Missing key $f, cannot delete (" . json_encode($dat) . ")");
 					return false;
 				}
-				$k = $this->_escfld($f);
+				$k = $this->fquote($f);
 				$v = $this->quote($f, $data[$f]);
 				if ($v == null || $v == 'null') {
 					array_push($w, "$k is null"); 
@@ -433,7 +433,7 @@ class prov_db {
 			}
 		} else {
 			foreach ($dat as $f => $v) {
-				$k = $this->_escfld($f);
+				$k = $this->fquote($f);
 				$v = $this->quote($f, $v);
 				if ($v == null || $v == 'null') {
 					array_push($w, "$k is null"); 
@@ -444,6 +444,7 @@ class prov_db {
 		}
 		$where = " where " . implode(" and ", $w);
 		$sql = "delete from $this->table $where";
+dbg($sql);
 		$q = new query($this->db, $sql);
 		
 		if (($r = $q->obj()) === false) {
