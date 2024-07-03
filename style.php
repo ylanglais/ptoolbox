@@ -703,7 +703,7 @@ tr {
 }
 tr.over {
 	color: $hover;
-	background-color: $normal; 
+	background-color: $selected_bg; 
 	box-shadow: 1px 1px 3px $shadow;
 }
 tr.selected {
@@ -1287,6 +1287,9 @@ table.results tr:nth-child(odd) td.hdr {
 table.glist tr.nav,
 table.glist tr.but {
 	background-color: $bg;
+}
+table.glist tr.over {
+	background-color: $selected_bg;
 }
 table.results th {
 	text-align: right;
