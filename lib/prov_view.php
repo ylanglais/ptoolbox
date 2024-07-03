@@ -287,48 +287,6 @@ class prov_view {
 	function type() {
 		return $this->type;
 	}
-	function _whereclause() {
-		if ($this->init === false) return false;
-		$q = "";
-		if ($this->filter != null && is_array($this->filter->conditions) && $this->filter->conditions != []) {
-			# condition is based on a key value pair with %:
-			$q .= " where ";
-			$i = 0;
-			foreach ($this->filter->conditions as $k => $v) {
-				if ($i > 0) $q .= " and";
-				$i++;
-				if (property_exists($this->cols, $k)) {
-					switch($this->cols->$k->data_type) {
-					case "int":
-					case "int2":
-					case "int4":
-					case "integer":
-					case "boolean":
-					case "smallint":
-					case "bigint":
-					case "decimal":
-					case "numeric":
-					case "real":
-					case "double":
-					case "double precision":
-					case "smallserial":
-					case "serial":
-					case "bigserial":
-						$q .= "$k = $v";
-						break;
-					case "date":
-					case "time":
-					case "datetime":
-						$q .= "$k = '$v'";
-						break;
-					default:
-						$q .= "$k like '" . esc($v) . "'";
-					}
-				} 
-			}
-		}
-		return $q;
-	}
 	function count() {
 		if ($this->init  === false) return false;
 		$s = "select count(*) from ". $this->view->tname . " " . implode(' ', $this->joins) ;
@@ -410,7 +368,6 @@ class prov_view {
 		}
 		return implode(" and ", $w);
 	}
-
 	function _exists($keyvals) {
 		if ($this->init === false) {
 			err("provider not initialized");
@@ -418,7 +375,7 @@ class prov_view {
 		}
 
 		$s = "select * from " . $this->view->tname . " where " . $this->_where($keyvals);
-		dbg("-> $s");
+		#dbg("-> $s");
 		$q = new query($s);
 		if ($q->nrows() < 1) return false;
 		return true;
@@ -453,7 +410,7 @@ class prov_view {
 				$nv = $this->val2cval($k, $dat->{$k});
 				$f  = $fr->cname;
 			} 
-			dbg("$k: $fr->type , $f => ov = $ov, nv = $nv");
+			#dbg("$k: $fr->type , $f => ov = $ov, nv = $nv");
 			
 			# 
 			# if column is key => add it to where clause:
@@ -473,7 +430,7 @@ class prov_view {
 		}
 				
 		$s = "update " . $this->view->tname . " set " . implode(", ", $set) . " where " . implode(" and ", $whe);
-		dbg(">> update: $s");
+		#dbg(">> update: $s");
 		$q = new query($s);
 
 		if ($q->nrows() != 1) {
@@ -491,6 +448,34 @@ class prov_view {
 			err("cannot insert readonly data");
 			return '{"status": false; "error": "cannot insert readonly data"}';
 		}
+		$dat = $data->data;
+		
+		$set = [];
+		$whe = [];
+		#
+		# loop on fragment fields: 
+		foreach ($this->frags as $k => $fr) {
+			if ($fr->type == "column") {
+				$nv = $dat->{$k};
+				$f  = $fr->cname;
+			} else if ($fr->type == "reference") { 
+				$nv = $this->val2cval($k, $dat->{$k});
+				$f  = $fr->cname;
+			} 
+			# 
+			# if column is key => add it to where clause:
+			if ($this->keys == [] || in_array($k, $this->keys)) {
+				$nv = $this->quote($this->view->tname, $f, $nv);
+				if (!is_int($nv) && ($nv === null || $nv == "null")) 
+					array_push($whe, $f . " is null");
+				else
+					array_push($whe, $f . " = $nv");
+			}	
+		}
+		$s = "delete from " . $this->view->tname . " where " . implode(" and ", $whe);
+#dbg($s);
+		$q = new query($s);		
+
 		return true;
 	}
 	function query($start = 0, $stop = 25, $sortby = false, $order = false) {
