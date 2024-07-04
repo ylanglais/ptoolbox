@@ -365,6 +365,7 @@ class rpt {
 				$s = str_replace($m[0], $v, $s);
 			} else {
 				warn("$m[1] is not a defined variable");
+				exit;
 			} 
 		}
 		return $s;
@@ -378,7 +379,8 @@ class rpt {
     }
     function rpt_header($o) {
 		if (property_exists($o, "title")) {
-			$str = "<h1>$o->title</h1>";
+			$t = $this->rpt_var_replace($o->title);
+			$str = "<h1>$t</h1>";
 		}
 /******
 		if (file_exists("header.html")) $str .= file_get_contents("header.html"); 
@@ -465,7 +467,8 @@ class rpt {
 				$class ="class='section bg'";
 			}
 			if (property_exists($p, "title")) {
-				$str .= "\n<div class='st'><h1 onclick='e=document.getElementById(\"$id\");if (e.style.display ===\"none\") e.style.display=\"block\"; else e.style.display=\"none\";'>$p->title</h1>\n";
+				$t = $this->rpt_var_replace($p->title);
+				$str .= "\n<div class='st'><h1 onclick='e=document.getElementById(\"$id\");if (e.style.display ===\"none\") e.style.display=\"block\"; else e.style.display=\"none\";'>$t</h1>\n";
 			}
 			$str .= "<div $class id='$id'>\n";
             $str .= $this->parse($p);
@@ -484,10 +487,14 @@ class rpt {
 				$style = "style='text-align: $p->align'";
 			else 
 				$style = "";
-			if (property_exists($p, "title"))
-            	$str .= "\n<h2 $style>$p->title</h2>\n";
-			if (property_exists($p, "subtitle"))
-            	$str .= "\n<h3 $style>$p->subtitle</h3>\n";
+			if (property_exists($p, "title")) {
+				$t = $this->rpt_var_replace($p->title);
+            	$str .= "\n<h2 $style>$t</h2>\n";
+			}
+			if (property_exists($p, "subtitle")) {
+				$t = $this->rpt_var_replace($p->subtitle);
+            	$str .= "\n<h3 $style>$t</h3>\n";
+			}
             $str .= $this->parse($p);
 			$str .= "</div>\n";
         }
@@ -533,8 +540,10 @@ class rpt {
 		if (property_exists($o, "header")) $hdr = $o->header;
 		if (property_exists($o, "hdr"))    $hdr = $o->hdr;
 		if (property_exists($o, "nolocl")) $nolocl = $o->nolocl;
-		if (property_exists($o, "title")) 
-			$str .= "<h2 style='text-align: center'>$o->title</h2>";
+		if (property_exists($o, "title")) {
+			$t = $this->rpt_var_replace($o->title);
+			$str .= "<h2 style='text-align: center'>$t</h2>";
+		}
 		if (property_exists($o, "data")) {
 			if (is_array($o->data)) $str .= $this->rpt_array($o->data, $hdr, $tailer);
 			else if (substr($o->data, 0, 4) == "sql(") {
@@ -659,8 +668,10 @@ class rpt {
             $str .= "\t\t<tr><td class='ligne2'>" . $this->locl->format($count) . "</td></tr>\n";
             if ($pcent != "") $str .= "\t\t<tr><td class='ligne3'>" . $this->locl->format($pcent)    . "</td></tr>\n";
 			else $str .= "\t\t<tr><td class='ligne3'>&nbsp;</td></tr>\n";
-			if (property_exists($b, "subtitle")) $subtitle = $b->subtitle;
-			else $subtitle = "";
+			if (property_exists($b, "subtitle")) {
+				$t = $this->rpt_var_replace($b->subtitle);
+				$subtitle = $t;
+			} else $subtitle = "";
 
 			$str .= "\t\t<tr><td class='ligne4'>$subtitle</td></tr>\n";
 			
@@ -674,16 +685,19 @@ class rpt {
 			err("bad async report element");
 			return "";
 		}
-		$token = scrm_do(json_encode($o->rpt_element));
+		$e = $this->rpt_var_replace(json_encode($o->rpt_element));
+		$token = scrm_do($e);
 		return "<div id='$o->id'><img width='50px' src='images/wait.gif' onload='ctrl(\"rpt\",  { \"token\": \"$token\"}, \"$o->id\", false)'/></div>\n";
 	}
 	function rpt_graph($o) {
 		$str = "";
 		if (property_exists($o, "title")) {
-            $str .= "<h2 style='text-align: center'>$o->title</h2>\n";
+			$t = $this->rpt_var_replace($o->title);
+            $str .= "<h2 style='text-align: center'>$t</h2>\n";
 		}
 		if (property_exists($o, "subtitle")) {
-            $str .= "<h4 style='text-align: center'>$o->subtitle</h4>\n";
+			$t = $this->rpt_var_replace($o->subtitle);
+            $str .= "<h4 style='text-align: center'>$t</h4>\n";
 		}
 		$data = [];
 		if (!property_exists($o, "data")) {
@@ -874,9 +888,10 @@ class rpt {
 
 		$str .= "<table class='spacing $bg'>\n\t<tr class='spacing'>\n";
         if (property_exists($o, "title")) {
+			$t = $this->rpt_var_replace($o->title);
 			$span = "colspan='2'";
 			if (!property_exists($o, "orient") || $o->orient == "vertical") $span="";
-            $str .= "\t\t<td class='spacing' $span><h2 style='text-align: center'>$o->title</h2></td>\n</tr>\n\t<tr class='spacing'>\n";
+            $str .= "\t\t<td class='spacing' $span><h2 style='text-align: center'>$t</h2></td>\n</tr>\n\t<tr class='spacing'>\n";
         }
 		$str .= "<td class='spacing'>\n";
         $str .= $this->rpt_pie((object) [ "labels" => $l, "values" => $d ]);
