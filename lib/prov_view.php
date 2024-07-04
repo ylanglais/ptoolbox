@@ -225,7 +225,7 @@ class prov_view {
 		case "smallserial":
 		case "serial":
 		case "bigserial":
-			if (!is_int($v) || $v === '' || $v === null) return "null";
+			if (!is_numeric($v) || $v === '' || $v === null) return "null";
 			return $v;
 			break;
 		case "date":
