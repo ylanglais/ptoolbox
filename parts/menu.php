@@ -14,6 +14,20 @@ function menu_content() {
 
 	$usr   = $_session_->user->login();
 	$roles = $_session_->user->roles();
+
+
+	$menu_cur = $menu_entry_cur = $menu_data_cur = null;
+	foreach (["menu_cur", "entry_cur", "data_cur" ] as $v) {
+		${$v} = null;
+		if ($_session_->has($v)) {
+			${$v} = $_session_->getvar($v);	
+		}
+	}
+	if (is_string($menu_cur) && is_string($entry_cur) && is_string($data_cur)) {
+		$initf = "menu_restore('$menu_cur', '$entry_cur', '$data_cur');";
+	} else
+		$initf = "";
+
 	$rstr = "";
 
 	foreach ($roles as $r) {
@@ -27,29 +41,29 @@ function menu_content() {
 
 	function menu_table($label, $dlink) {
 		$l = menu_esc($label);
-		return "<li class=\"menuentry\"><a class=\"menuentry\" target=\"_blank\" onclick=\"menu_table('$l', '$dlink');menu_onclick(this);\">$label</a></li>";
+		return "<li class=\"menuentry\"><a id='me_$label' class=\"menuentry\" target=\"_blank\" onclick=\"menu_table(this, '$l', '$dlink');\">$label</a></li>";
 	}
 	function menu_external($label, $url) {
-		return "<li class=\"menuentry\"><a class=\"menuentry\" target=\"_blank\" href='$url'>$label</a></li>";
+		return "<li class=\"menuentry\"><a id='me_$label' class=\"menuentry\" target=\"_blank\" href='$url'>$label</a></li>";
 	}
 	function menu_page($label, $url) {
 		$l = menu_esc($label);
-		return "<li class=\"menuentry\"><a class=\"menuentry\" onclick=\"menu_page('$url', '$label');menu_onclick(this);\">$label</a></li>";
+		return "<li class=\"menuentry\"><a id='me_$label' class=\"menuentry\" onclick=\"menu_page(this, '$url', '$label');\">$label</a></li>";
 	}
 	function menu_view($label, $entity) {
-		return "\t\t\t<li class='menuentry'><a class='menuentry' onclick='menu_view(\"$label\", \"$entity\");menu_onclick(this);'>$label</a></li>\n";
+		return "\t\t\t<li class='menuentry'><a id='me_$label' class='menuentry' onclick='menu_view(this, \"$label\", \"$entity\");'>$label</a></li>\n";
 	}
 	function menu_hdr($label, $url) {
 		$l = menu_esc($label);
-		return "<li class=\"menuentry\"><a class=\"menuentry\" onclick=\"menu_hdr('$url', '$l');menu_onclick(this);\">$label</a></li>";
+		return "<li class=\"menuentry\"><a id='me_$label' class=\"menuentry\" onclick=\"menu_hdr(this, '$url', '$l');\">$label</a></li>";
 	}
 	function menu_rpt($label, $rptname) {
 		$rn = menu_esc($rptname);
-		return "<li class=\"menuentry\"><a class=\"menuentry\" onclick=\"menu_rpt('$rn');menu_onclick(this);\">$label</a></li>";
+		return "<li class=\"menuentry\"><a id='me_$label' class=\"menuentry\" onclick=\"menu_rpt(this, '$rn');\">$label</a></li>";
 	}
 	function menu_form($label, $url) {
 		$l = menu_esc($label);
-		return "<li class=\"menuentry\"><a class=\"menuentry\" onclick=\"menu_form('$url', '$l');menu_onclick(this);\">$label</a></li>";
+		return "<li class=\"menuentry\"><a id='me_$label' class=\"menuentry\" onclick=\"menu_form(this, '$url', '$l');\">$label</a></li>";
 	}
 	$str = '<form id="menusubmit"  method="post" action="">
 		<input type="hidden" name="page" value="logout"/>
@@ -81,7 +95,7 @@ function menu_content() {
 		else if ($o->ptype == "View")     $str .= "\t\t\t". menu_view($o->page, $o->datalink) . "\n";
 	}
 	$str .= "\t\t</ul>\n\t</li>\n";
-	$str .= "<script>timeout_set(60);</script>
+	$str .= "<script>timeout_set(60);$initf</script>
 		<!-- Menu Déconnexion -->
 		<li class='menu'>
 			<a class='menu' onclick='document.getElementById(\"menusubmit\").submit()'>Déconnexion</a> 

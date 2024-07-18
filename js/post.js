@@ -18,7 +18,6 @@ function post(url, data) {
 	.then(response => response.text())
 	.then(html     => { open(response.text());})
 	.catch(function(err) { console.log(err); });
-	
 }
 function sync_post(url, data) {
     var ws = null;

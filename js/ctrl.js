@@ -3,7 +3,7 @@ function ctrl(ctrl, data, id = null, sync = true) {
 
 	if (id == null) {
 		return sync_post("ctrl.php", data);
-	}
+	} 
 	if (sync == false) {
 		async_load(id, "ctrl.php", data);
 	} else {
