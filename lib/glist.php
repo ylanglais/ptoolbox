@@ -36,6 +36,7 @@ function glist_user_pref_get($prov) {
 	if ($o->orderby != "" && $o->orderby != null && $o->orderby != "null") $opts["order"] = $o->orderby;
 	$opts["columns"] = $o->columns;
 
+	$prov->filter(json_decode($o->filter));
 	return $opts;
 }
 
@@ -341,6 +342,10 @@ function glist_popup($prov) {
 	return fsel("glist", '{"prov": ' . $p->data() .', "save_fsel": true}', $all, $sel, "glist_popup");
 }
 
+function glist_fdata($prov, $field) {
+	$p = new prov($prov);
+}
+
 function glist_ctrl() {
 	$a = new args();
 	$opts = [];
@@ -356,6 +361,7 @@ function glist_ctrl() {
 	if ($a->has("fsel")) $fsel = $a->val("fsel");
 	if ($prov === false) {
 		err("no provider");
+		return "no data";
 	} else {
 		if ($a->has("save_opts") && $a->val("save_opts") == true) {
 			glist_user_opt_save($prov, $opts);
@@ -363,7 +369,12 @@ function glist_ctrl() {
 			glist_user_fsel_save($prov, $fsel);
 		}
 	}
-
+	if ($a->has("fdata")) {
+		$fdata = $a->val("fdata");
+		$str = null;
+		if ($a->has("fld")) $str = $a->val("fld");
+		return $prov->fdata($fld, $str);
+	}	  
 	return glist(new prov($prov), $opts);
 }
 
