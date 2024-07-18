@@ -895,7 +895,7 @@ select {
 	font-family: $fontfamily;
 	font-size: 10pt;
 }
-option {
+option, select.datalist option {
 	color: $input_fg;
 	background-color: $bg;
 	border: 0px;
@@ -905,6 +905,14 @@ option {
 	margin-right: 4px;
 	font-family: $fontfamily;
 	font-size: 10pt;
+}
+select.datalist option:hover {
+	color: $reverse_fg;
+	background-color: $reverse_bg	
+}
+select.datalist option:checked {
+	color: $reverse_fg;
+	background-color: $reverse_bg	
 }
 option:checked {
 	color: $bg;
@@ -921,14 +929,26 @@ input {
 	font-family: $fontfamily;
 	font-size: 10pt;
 }
-input.required {
+input.required, select.required{
 	box-shadow: 0px 0px 3px $hover;
+}
+input.modified, select.modified {
+	color: $modified;
+}
+input.defval select.defval {
+	color: $defval;
 }
 input.conflict {
 	box-shadow: 0px 0px 2px $conflict;
 }
 input.set {
 	box-shadow: 0px 0px 2px $shadow;
+}
+div.datalist {
+	color: $input_fg;
+	background-color: $bg;
+	border: 0px;
+	box-shadow: 1px 1px 2px $shadow;
 }
 button,
 input[type="button"],

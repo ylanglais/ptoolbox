@@ -19,6 +19,7 @@ class prov_view {
 		$this->keys   = [];
 		$this->perm   = 'NONE';
 		$this->view   = false;
+		$this->filter = $filter;
 		$restored     = false;
 
 		if (is_string($view) && substr($view, 0, 12) == "__prov_view_") { 
@@ -153,6 +154,12 @@ class prov_view {
 		}
 		return $tc;
 	}
+	function filter($filter = null) {
+		if (is_null($filter)) return $this->filter;
+		return $this->filter = $filter;	
+	}
+	#
+
 	function name2cname($name) {
 		return $this->cols->{$name}->cname;
 	}
@@ -478,8 +485,57 @@ class prov_view {
 
 		return true;
 	}
+	function _whereclause() {
+		if ($this->init === false) return false;
+		$w = "";
+		if ($this->filter != null && is_array($this->filter->cdts) && $this->filter->cdts != []) {
+			# condition is based on a key value pair with %:
+			$w .= " where ";
+			$i = 0;
+			foreach ($this->filter->cdts as $k => $v) {
+				if ($i > 0) $w .= " and";
+				$i++;
+				$f = $this->cols->{$k}->cname; 
+				if ($this->cols->{$k}->type == 'columns') {
+					$vv = $v;
+				} else {
+					$vv = $this->var2cvar($v);
+				}	
+				switch($this->cols->{$k}->data_type) {
+				case "int":
+				case "int2":
+				case "int4":
+				case "integer":
+				case "boolean":
+				case "smallint":
+				case "bigint":
+				case "decimal":
+				case "numeric":
+				case "real":
+				case "double":
+				case "double precision":
+				case "smallserial":
+				case "serial":
+				case "bigserial":
+					$w .= "$f = $vv";
+					break;
+				case "date":
+				case "time":
+				case "datetime":
+					$w .= "$f = '$vv'";
+					break;
+				default:
+					$w .= "$f like '" . esc($vv) . "'";
+				}
+			}
+		}
+		return $v;
+	}
 	function query($start = 0, $stop = 25, $sortby = false, $order = false) {
 		$s = "select " . implode(', ', $this->slist) . " from ". $this->view->tname . " " . implode(' ', $this->joins);
+
+
+
 		if ($sortby !== false) {
 			$s .= " order by \"$sortby\"";
 			if ($order !== 'up') $s .= " desc";
@@ -497,6 +553,35 @@ class prov_view {
 	function view() {
 		if ($this->init === false) return false;
 		return null;
+	}
+
+	function fdata($f, $str = false, $max = 20) {
+		if ($this->init === false) return false;
+		if (!in_array($f, $this->fields)) return false;
+
+		$col   = false;
+		$table = false;
+		if ($this->frags->{$f}->type == "column") {
+			$table = $this->view->tname;
+			$col   = $this->frags->{$f}->cname;  
+		} else if ($this->frags->{$f}->type == "reference") {
+			$table = $this->frags->{$f}->ftname;  
+			$col   = $this->frags->{$f}->flname;  
+		} else {
+			err("cols->{$f}->data_type = " . $this->cols->{$f}->data_type);
+			return [];
+		}
+			
+		$s = "select distinct $col from $table";
+		if ($str !== false) {
+			$s .= " where $col like '$str%'";
+		} 
+		$s .= " limit $max"; 
+		#dbg(">v> $s");
+		$q = new query($s);
+		$d = [];
+		while ($o = $q->obj()) array_push($d, $o->{$col});
+		return $d;
 	}
 }
 

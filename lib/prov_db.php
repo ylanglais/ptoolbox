@@ -8,6 +8,7 @@ require_once("lib/audit.php");
 
 class prov_db { 
 	function __construct($d, $table = null, $filter = null) {
+		$this->id = false;
 		$this->init = false;
 		$loaded = false;
 		$flds   = [ "id", "dsrc", "table", "filter", "cols", "fields", "keys", "fkeys", "count", "type", "perm" ];
@@ -36,23 +37,26 @@ class prov_db {
 				exit();
 			}
 
-			$perm = get_perm("table", $d);
-			if ($perm != 'RONLY' && $perm != 'ALL') {
+			$base  = $m[1];
+			$table = $m[2];
+
+			$perm = get_perm("table", $table);
+
+			if ($perm != 'RONLY' && $perm != 'ALL' && $perm != 'SYSTEM') {
 				$s =  "Attempted access to table $d without due permission";
 				audit_log("SECURITY", $s);
 				err("SECURITY: ". get_user(). " $s");
 				return;
 			}
 
-			$base  = $m[1];
-			$table = $m[2];
 
 			$this->type   = "db";
 			$this->dsrc   = $base;
 			$this->id     = "prov_db_".$d."_".$table;
 
+			$this->fdata_maxrow = 20; 
+
 			$this->table  = $table;
-			$this->filter = $filter;
 			$this->cols   = (object)[];
 			$this->fields = [];
 			$this->keys   = [];
@@ -88,6 +92,10 @@ class prov_db {
 		}
 		$this->init = true;
 	}
+	function filter($filter = null) {
+		if (is_null($filter)) return $this->filter;
+		return $this->filter = $filter;	
+	}
 	#
 	# quote fields if filed is a reserved word
 	# Todo: Generalize in db driver
@@ -110,6 +118,16 @@ class prov_db {
 		if ($this->init === false) return false;
 		return $this->perm;
 	}
+/**
+	function is_text($f) {
+		$tdt = [ "character", "varying", "varchar", "char", "bpchar", "text" ];
+
+		if ($this->init === false) return false;
+		if (!property_exists($this->cols, $f)) false;
+		if (in_array($this->cols->$f->data_type, $tdt)) return true;
+		return false;
+	}
+**/
 	function quote($f, $v) {
 		if ($this->init === false) return false;
 		if (property_exists($this->cols, $f)) {
@@ -197,16 +215,16 @@ class prov_db {
 
 	function _whereclause() {
 		if ($this->init === false) return false;
-		$q = "";
-		if ($this->filter != null && is_array($this->filter->conditions) && $this->filter->conditions != []) {
+		$w = "";
+		if ($this->filter != null && is_array($this->filter->cdts) && $this->filter->cdts != []) {
+			$w = " where ";
 			# condition is based on a key value pair with %:
-			$q .= " where ";
 			$i = 0;
-			foreach ($this->filter->conditions as $k => $v) {
-				if ($i > 0) $q .= " and";
+			foreach ($this->filter->cdts as $k => $v) {
+				if ($i > 0) $w .= " and";
 				$i++;
 				if (property_exists($this->cols, $k)) {
-					switch($this->cols->$k->data_type) {
+					switch($this->cols->{$k}->data_type) {
 					case "int":
 					case "int2":
 					case "int4":
@@ -222,20 +240,21 @@ class prov_db {
 					case "smallserial":
 					case "serial":
 					case "bigserial":
-						$q .= "$k = $v";
+						$w .= "$k = $v";
 						break;
 					case "date":
 					case "time":
 					case "datetime":
-						$q .= "$k = '$v'";
+						$w .= "$k = '$v'";
 						break;
 					default:
-						$q .= "$k like '" . esc($v) . "'";
+						$w .= "$k like '" . esc($v) . "'";
 					}
 				} 
 			}
 		}
-		return $q;
+		
+		return $w;
 	}
 
 	function count() {
@@ -250,13 +269,7 @@ class prov_db {
 
 	function query($start = 0, $limit = 25, $sortby = false, $order = false) {
 		if ($this->init === false) return false;
-		$q = "select ";
-		if ($this->filter != null && is_array($this->filter->fields) && $this->filter->fields != []) {
-			$this->fields = $this->filter->filelds;
-			$q .= implode(", ", $this->fields); 
-		} else {
-			$q .= "*"; 
-		}
+		$q = "select * ";
 
 		#$i = 0;
 		foreach ($this->keys as $k) {
@@ -444,7 +457,7 @@ class prov_db {
 		}
 		$where = " where " . implode(" and ", $w);
 		$sql = "delete from $this->table $where";
-dbg($sql);
+		#dbg($sql);
 		$q = new query($this->db, $sql);
 		
 		if (($r = $q->obj()) === false) {
@@ -460,6 +473,20 @@ dbg($sql);
 	function view() {
 		if ($this->init === false) return false;
 		return null;
+	}
+	function fdata($f, $str = false, $max = 20) {
+		if ($this->init === false) return false;
+		if (!in_array($f, $this->fields)) return false;
+		$s = "select distinct $f from $this->table";
+		if ($str !== false )  {
+			$s .= " where lower($f) like lower('$str%')";
+		} 
+		$s .= " order by 1 limit $max"; 
+		#dbg(">d> $s");
+		$q = new query($s);
+		$d = [];
+		while ($o = $q->obj()) array_push($d, $o->{$f});
+		return $d;
 	}
 }
 ?>

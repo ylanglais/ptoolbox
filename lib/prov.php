@@ -105,9 +105,36 @@ class prov {
 		if ($this->prov == null) return null;
 		return $this->prov->update($data);
 	}
+	function filter($filter = null) {
+		if ($this->prov == null) return null;
+		return $this->prov->filter($filter);
+	}
 	function query($start = 0, $limit = 25, $sortby = false, $order = false) {
 		if ($this->prov == null) return null;
 		return $this->prov->query($start, $limit, $sortby, $order);
 	}
+	function fdata($field, $str = false, $max = 20) {
+		if ($this->prov == null) return null;
+		return $this->prov->fdata($field, $str, $max);
+	}
+}
+
+function prov_ctrl() {
+	$a = new args();
+	if ($a->has("prov_data") && $a->has("action")) {
+		$action = $a->val("action");
+		if ($action == "fdata") {
+			$pdata = $a->val("prov_data");
+			if (!$a->val("field")) return "";
+			$field = $a->val("field");
+			$str = false;
+			if ($a->has("str")) {
+				$str = $a->val("str");
+			}
+			$p = new prov($pdata);
+			return json_encode($p->fdata($field, $str));
+		}
+	}
+	return "";
 }
 ?>
