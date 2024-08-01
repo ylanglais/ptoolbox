@@ -5,6 +5,7 @@ require_once("lib/dbg_tools.php");
 require_once("lib/store.php");
 require_once("lib/session.php");
 require_once("lib/audit.php");
+require_once("lib/util.php");
 
 class prov_db { 
 	function __construct($d, $table = null, $filter = null) {
@@ -12,6 +13,8 @@ class prov_db {
 		$this->init = false;
 		$loaded = false;
 		$flds   = [ "id", "dsrc", "table", "filter", "cols", "fields", "keys", "fkeys", "count", "type", "perm" ];
+
+		$d = unb64($d);
 
 		if (is_string($d) && substr($d, 0, 10) == "__prov_db_") {
 			$d = substr($d, 2);
@@ -48,7 +51,6 @@ class prov_db {
 				err("SECURITY: ". get_user(). " $s");
 				return;
 			}
-
 
 			$this->type   = "db";
 			$this->dsrc   = $base;
@@ -213,15 +215,16 @@ class prov_db {
 		return json_decode(urldecode($id));
 	}
 
-	function _whereclause() {
+	function _whereclause($filter = null) {
 		if ($this->init === false) return false;
 		$w = "";
-		if ($this->filter != null && is_array($this->filter->cdts) && $this->filter->cdts != []) {
+		if ($filter != null && is_object($filter)) $filter = (object) $filter;
+		if ($filter != []) {
 			$w = " where ";
 			# condition is based on a key value pair with %:
 			$i = 0;
-			foreach ($this->filter->cdts as $k => $v) {
-				if ($i > 0) $w .= " and";
+			foreach ($filter as $k => $v) {
+				if ($i > 0) $w .= " and ";
 				$i++;
 				if (property_exists($this->cols, $k)) {
 					switch($this->cols->{$k}->data_type) {
@@ -253,7 +256,7 @@ class prov_db {
 				} 
 			}
 		}
-		
+			
 		return $w;
 	}
 
@@ -267,7 +270,7 @@ class prov_db {
 		return ($this->count = $o->count);
 	}
 
-	function query($start = 0, $limit = 25, $sortby = false, $order = false) {
+	function query($start = 0, $limit = 25, $sortby = false, $order = false, $filter = null) {
 		if ($this->init === false) return false;
 		$q = "select * ";
 
@@ -280,7 +283,7 @@ class prov_db {
 
 		$q .= " from $this->table";	
 
-		$q .= $this->_whereclause();
+		$q .= $this->_whereclause($filter);
 
 		if ($sortby !== false) {
 			$q .= " order by $sortby";
@@ -468,7 +471,7 @@ class prov_db {
 	}
 	function data() {
 		if ($this->init === false) return false;
-		return '"'. "__" . $this->id . '"';
+		return b64("__" . $this->id);
 	} 
 	function view() {
 		if ($this->init === false) return false;
@@ -479,11 +482,11 @@ class prov_db {
 		if (!in_array($f, $this->fields)) return false;
 		$s = "select distinct $f from $this->table";
 		if ($str !== false )  {
-			$s .= " where lower($f) like lower('$str%')";
+			$s .= " where lower(cast($f as char(1000))) like lower('$str%')";
 		} 
 		$s .= " order by 1 limit $max"; 
 		#dbg(">d> $s");
-		$q = new query($s);
+		$q = new query($this->db, $s);
 		$d = [];
 		while ($o = $q->obj()) array_push($d, $o->{$f});
 		return $d;

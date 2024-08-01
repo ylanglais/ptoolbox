@@ -21,7 +21,8 @@ class prov_view {
 		$this->view   = false;
 		$this->filter = $filter;
 		$restored     = false;
-
+		
+		$view = unb64($view);
 		if (is_string($view) && substr($view, 0, 12) == "__prov_view_") { 
 			if (($o = store::get($view)) !== false) { 
 				if (is_array($o) || is_object($o)) {
@@ -183,13 +184,17 @@ class prov_view {
 		if (($c = $this->col_data($name)) == false) return $val;
 		if ($c->type == "column") return $val;
 		if ($c->type == "reference") {
-			if ($val == "null") 
+			if ($val == "null") { 
 				$s = "select " . $c->finame . " from " . $c->ftname . " where " . $c->flname . " is null ";
-			else 
+			} else if (strstr($val, "%")) { 
+				$s = "select " . $c->finame . " from " . $c->ftname . " where lower(cast(" . $c->flname . " as char(1000))) like lower('$val')";
+			} else {
 				$s = "select " . $c->finame . " from " . $c->ftname . " where " . $c->flname . " = " . $this->quote($c->ftname, $c->flname, $val);
+			}
 			$q = new query($s);
 			if ($q->nrows() < 1) return false;
-			return $q->obj()->{$c->finame};
+			if ($q->nrows() == 1) return $q->obj()->{$c->finame};
+			return $q->all();
 		}
 		return $val;
 	}
@@ -485,23 +490,60 @@ class prov_view {
 
 		return true;
 	}
-	function _whereclause() {
+	function _quote_data($type, $val) {
+		switch($type) {
+		case "int":
+		case "int2":
+		case "int4":
+		case "integer":
+		case "boolean":
+		case "smallint":
+		case "bigint":
+		case "decimal":
+		case "numeric":
+		case "real":
+		case "double":
+		case "double precision":
+		case "smallserial":
+		case "serial":
+		case "bigserial":
+			return $val;
+			break;
+		default:
+			return "'" . esc($val) . "'";
+		}
+		return $val;
+	}
+	function _whereclause($filter = null) {
 		if ($this->init === false) return false;
 		$w = "";
-		if ($this->filter != null && is_array($this->filter->cdts) && $this->filter->cdts != []) {
+		if ($filter != null && is_array($filter) && $filter != []) {
 			# condition is based on a key value pair with %:
 			$w .= " where ";
 			$i = 0;
-			foreach ($this->filter->cdts as $k => $v) {
+			foreach ($filter as $k => $v) {
 				if ($i > 0) $w .= " and";
 				$i++;
-				$f = $this->cols->{$k}->cname; 
-				if ($this->cols->{$k}->type == 'columns') {
+				$f = $this->frags->{$k}->cname; 
+				if ($this->frags->{$k}->type == 'columns') {
 					$vv = $v;
+					$dt = $this->cols->{$k}->data_type;
 				} else {
-					$vv = $this->var2cvar($v);
+					$vv = $this->val2cval($k, $v);
+					$dt = $this->tables->{$this->frags->{$k}->ftname}->cols->{$this->frags->{$k}->finame}->data_type;
+					if (is_array($vv)) {
+						$fin = $this->frags->{$k}->finame;
+						$w .= " $f in (";
+						$vs = $vv;
+						$vals = [];
+						foreach($vs as $_v) {
+							array_push($vals, $this->_quote_data($dt, $_v->{$this->frags->{$k}->finame}));	
+						}
+						$w .= implode(",", $vals) . ")";	
+						continue;	
+					}
 				}	
-				switch($this->cols->{$k}->data_type) {
+				switch($dt) {
 				case "int":
 				case "int2":
 				case "int4":
@@ -529,25 +571,25 @@ class prov_view {
 				}
 			}
 		}
-		return $v;
+		return $w;
 	}
-	function query($start = 0, $stop = 25, $sortby = false, $order = false) {
+	function query($start = 0, $stop = 25, $sortby = false, $order = false, $filter = null) {
 		$s = "select " . implode(', ', $this->slist) . " from ". $this->view->tname . " " . implode(' ', $this->joins);
 
-
+		$s .= $this->_whereclause($filter);
 
 		if ($sortby !== false) {
 			$s .= " order by \"$sortby\"";
 			if ($order !== 'up') $s .= " desc";
 		}
 		$s .= " offset $start limit $stop";
+#dbg($s);
 		$q = new query($s);
 		return $q->all();	
 	}
 	function data() {
 		if ($this->init === false) return false;
-		#dbg( '"'. $this->id . '"');
-		return '"'. $this->id . '"';
+		return b64($this->id);
 	} 
 
 	function view() {
@@ -574,7 +616,7 @@ class prov_view {
 			
 		$s = "select distinct $col from $table";
 		if ($str !== false) {
-			$s .= " where $col like '$str%'";
+			$s .= " where lower(cast($col as char(1000))) like lower('$str%')";
 		} 
 		$s .= " limit $max"; 
 		#dbg(">v> $s");

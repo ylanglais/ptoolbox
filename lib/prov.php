@@ -6,12 +6,12 @@ require_once("lib/dbg_tools.php");
 require_once("lib/store.php");
 require_once("lib/prov_db.php");
 require_once("lib/prov_view.php");
+require_once("lib/util.php");
 
 class prov { 
 	function __construct($d, $datalink = null, $filter = null) {
 		$this->type = null;
 		$this->prov = null;
-
 		if (is_array($d)) $d = (object) $d;
 
 		if (is_object($d) && property_exists($d, "prov") && 
@@ -20,9 +20,10 @@ class prov {
 			$pv = "prov_".$d->prov->type;
 			$this->prov = new $pv($d, $datalink, $filter);
 		} else if (is_string($d)) {
+			$d = unb64($d);
 			if (preg_match("/^__(prov_[^_]*)_(.*)$/", $d, $m)) {
-			$pv = $m[1];
-			$this->prov = new $pv($d, null, $filter);
+				$pv = $m[1];
+				$this->prov = new $pv($d, null, $filter);
 			} else {
 				$pv = "prov_".$d;
 				$this->prov = new $pv($datalink, null, $filter);
@@ -109,9 +110,9 @@ class prov {
 		if ($this->prov == null) return null;
 		return $this->prov->filter($filter);
 	}
-	function query($start = 0, $limit = 25, $sortby = false, $order = false) {
+	function query($start = 0, $limit = 25, $sortby = false, $order = false, $filter = null) {
 		if ($this->prov == null) return null;
-		return $this->prov->query($start, $limit, $sortby, $order);
+		return $this->prov->query($start, $limit, $sortby, $order, $filter);
 	}
 	function fdata($field, $str = false, $max = 20) {
 		if ($this->prov == null) return null;

@@ -24,6 +24,8 @@ function gform($prov, $req = false, $opts = null) {
 	$html .= "<input type='hidden' id='opts' value='".json_encode($opts)."'/>";
 	$html .= "<input type='hidden' id='__ori__' value='".json_encode($o)  ."'/>";
 
+	$ovc = "onchange='this.classList.add(\"modified\");gform_changed(\"$id\");'";
+
 	foreach ($flds as $f) {
 		$html .= "<tr><th><label for='$f'>$f</label></th>";
 
@@ -47,12 +49,12 @@ function gform($prov, $req = false, $opts = null) {
 		if ($dt == "bool") {
 			$c = "";
 			if ($dv === true) $c = "checked";
-			$html .= "<td><input name='$f' id='$f' type='checkbox' $c $cl/></td></tr>\n";
+			$html .= "<td><input name='$f' id='$f' type='checkbox' $c $cl $ovc/></td></tr>\n";
 		} else if (($fk = $prov->has_fk($f)) !== false) {
 			$ft = $fk["ftable"];
 			$fc = $fk["fcol"];
 			$s = "select distinct $fc as opt from $ft order by 1";
-			$html .= "<td><select name='$f' id='$f' $cl>\n";
+			$html .= "<td><select name='$f' id='$f' $cl $ovc>\n";
 			$c = "";
 			if ($prov->nullable($f) == "YES") {
 				if ($dv === null) $c = "selected";
@@ -66,7 +68,7 @@ function gform($prov, $req = false, $opts = null) {
 			}
 			$html .= "</select></td>\n";
 		} else {
-			$html .= "<td><input name='$f' id='$f' type='text' $cl $vl/></td></tr>\n";
+			$html .= "<td><input name='$f' id='$f' type='text' $cl $vl $ovc/></td></tr>\n";
 		}
 	}
 

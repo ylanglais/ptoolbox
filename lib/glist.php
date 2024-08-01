@@ -36,7 +36,6 @@ function glist_user_pref_get($prov) {
 	if ($o->orderby != "" && $o->orderby != null && $o->orderby != "null") $opts["order"] = $o->orderby;
 	$opts["columns"] = $o->columns;
 
-	$prov->filter(json_decode($o->filter));
 	return $opts;
 }
 
@@ -119,14 +118,17 @@ function glist($prov, $opts = []) {
 		"sort" 		=> false, 
 		"order" 	=> "up", 
 		"columns"   => "[]",
-		"id" 		=> false , 
+		"filter"    => null,
+		"id" 		=> false, 
 		"ronly" 	=> false, 
 		"msel" 		=> false, 
 		"parentid"	=> false, 
 		"gform_id" 	=> false 
 	];
 
+
 	# first use, try to load user prefs for this provider:
+	if (is_string($opts)) $opts = json_decode($opts);
 	if ($opts == [] || !array_key_exists("start", $opts))  $opts = array_merge($opts, glist_user_pref_get($prov));
 	else if (is_object($opts)) $opts = (array) $opts; 
 
@@ -135,15 +137,20 @@ function glist($prov, $opts = []) {
 			if (!array_key_exists($k, $opts)) $opts[$k] = $v;
 		}
 	} else $opts = $dopts;
+
+	$pdat = $prov->data();
+
 	# 
 	# Gen identifier if not present:
 	if ($opts["id"] === false) $opts["id"]  = "glist_" . gen_elid();		
 	$opts["parentid"] = $id = $opts["id"];
 
-	$html = "<input type='hidden' id='".$id."_opts' value='". json_encode($opts) . "'/>\n";
+	$html  = "";
 	#
 	# Prepare table:
 	$html .= "<table class='glist' id='$id'>\n";
+	$html .= "<input type='hidden' id='".$id."_opts' value='". json_encode($opts) . "'/>\n";
+	$html .= "<input type='hidden' id='".$id."_pdat' value='". $prov->data()      . "'/>\n";
 
 	#
 	# Check permission:
@@ -165,7 +172,6 @@ function glist($prov, $opts = []) {
 	$fields = $prov->fields();
 	if ($fields === false) return $html . "<tr><td> No data </td></tr></table>\n";
 
-	$pdat = $prov->data();
 	$keys = $prov->keys();
 	if ($keys == []) $keys = $fields;
 
@@ -176,17 +182,20 @@ function glist($prov, $opts = []) {
 	#
 	# Compute header / footer only if required:
 	if ($opts["hdr"] || $opts["ftr"]) { 
-		$hdr = "<tr onclick='glist_popup(".$prov->data().")'>";
-		#$hdr = "<tr>";
+		$hdr = "<tr class='header' onclick='glist_popup(\"$id\")'>";
+		$ftr = "<tr class='footer'>";
 
 		if ($opts["ronly"] === false) {
-			$hdr .= "<th><input id='cktoggle' type='checkbox' onclick='event.cancelBubble=true;glist_toggle_selected(\"gmsel_".$prov->name()."\")'<th>";
+			$hdr .= "<th><input id='cktoggle' type='checkbox' onclick='event.cancelBubble=true;glist_toggle_selected(\"gmsel_".$prov->name()."\")'/></th>";
+			$ftr .= "<th></th>";
 		}
 		
 		#
 		# Line numbering if required:
-		if ($opts["ln"]) $hdr .= "<th>#</th>";
-
+		if ($opts["ln"]) {
+			$hdr .= "<th>#</th>";
+			$ftr .= "<th>#</th>";
+		}
 		$d = glist_dopts($opts);
 
 		foreach ($cols as $f) {
@@ -195,10 +204,20 @@ function glist($prov, $opts = []) {
 				$extra .= ' sel ';
 				$extra .= $opts["order"];
 			}
-			$hdr .= "<th>$f<div class='sort$extra' id='sort_$f' onclick='glist_sort(this, $pdat, $d, \"$f\")'></div></th>";
+			$hdr .= "<th><div><div><a id='a_$f' onclick='event.stopPropagation();glist_field_filter(this, \"$id\", \"$f\");'>$f</a>";
+#dbg($opts);
+			if (array_key_exists("filter", $opts) && $opts["filter"] != null) {
+				if (is_object($opts["filter"])) $opts["filter"] = (array) $opts["filter"];
+			 	if (array_key_exists($f, $opts["filter"])) {
+					$hdr .= "<img id='onc_ac_$f' src onerror='glist_field_filter(document.getElementById(\"a_$f\"), \"$id\", \"$f\");'/>";
+				}
+			}
+			$hdr .= "</div><div class='sort$extra' id='sort_$f' onclick='glist_sort(this, \"$id\", \"$f\")'></div></div></th>";
+			$ftr .= "<th>$f</th>";
 		}
 		$hdr .= "</tr></thead>\n";
-	} else $hdr = "";
+		$ftr .= "</tr></thead>\n";
+	} else $hdr = $ftr = "";
 
 	#
 	# Compute header / footer only if required:
@@ -216,7 +235,7 @@ function glist($prov, $opts = []) {
 	# Compute header / footer only if required:
 	#
 	# Get data from provider from start offset + nb lines per page:
-	$all = $prov->query($opts["start"], $opts["page"], $opts["sort"], $opts["order"]);
+	$all = $prov->query($opts["start"], $opts["page"], $opts["sort"], $opts["order"], $opts["filter"]);
 	if (!is_array($all) || (count($all) == 0)) {
 		#
 		# No data present: 
@@ -258,7 +277,7 @@ function glist($prov, $opts = []) {
 
 			$html .= "<tr onmouseover='this.classList.add(\"over\")' onmouseout='this.classList.remove(\"over\")'";
 			if ($qry != []) {
-				$vdata = '{ "prov": '. $pdat . ', "req": '. json_encode($qry) . ', "opts": '.json_encode($opts) .'}';
+				$vdata = '{ "prov": "'. $pdat . '", "req": '. json_encode($qry) . ', "opts": '.json_encode($opts) .'}';
 				$html .= " onclick='glist_view(\"".$opts["gform_id"]."\", $vdata)'";
 			} 
 			$html .=">";
@@ -292,7 +311,7 @@ function glist($prov, $opts = []) {
 	}
 	#
 	# Append footer (copy of header) if required:
-	if ($opts["ftr"]) $html .= $hdr; 
+	if ($opts["ftr"]) $html .= $ftr; 
 
 	$n = $nc; 
 	if ($opts["ronly"] === false) $n++;
@@ -304,42 +323,39 @@ function glist($prov, $opts = []) {
 		#
 		# Add navigation bar:
 		if ($so > 0) {
-			$d = glist_dopts($opts, 0, $pl);
-			$html .= "<a onclick='glist_go(\"$id\", $pdat, $d)'><img height='25px' src='images/start.norm.png' onmouseover='this.src=\"images/start.pre.png\"' onmouseout='this.src=\"images/start.norm.png\"'/></a>";
-			$d = glist_dopts($opts, $po, $pl);
-			$html .= "<a onclick='glist_go(\"$id\", $pdat, $d)'><img height='25px' src='images/sarrow.left.norm.png' onmouseover='this.src=\"images/sarrow.left.pre.png\"' onmouseout='this.src=\"images/sarrow.left.norm.png\"'/></a>";
+			$html .= "<a onclick='glist_go(\"$id\", 0, $pl)'><img height='25px' src='images/start.norm.png' onmouseover='this.src=\"images/start.pre.png\"' onmouseout='this.src=\"images/start.norm.png\"'/></a>";
+			$html .= "<a onclick='glist_go(\"$id\", $po, $pl)'><img height='25px' src='images/sarrow.left.norm.png' onmouseover='this.src=\"images/sarrow.left.pre.png\"' onmouseout='this.src=\"images/sarrow.left.norm.png\"'/></a>";
 		} else {
 			$html .= "<img height='25px' src='images/start.dis.png'/>";
 			$html .= "<img height='25px' src='images/sarrow.left.dis.png'/>";
 		}
 
-		$d = glist_dopts($opts, $so, $pl);
-		$html .= "<input type='text' style='width: 15px; text-align: right;' value='$cp' id='glist_inp_$id' onchange='glist_go(\"$id\", $pdat, $d, (this.value - 1) * $pl, $pl)'/> on $np";
+		#$d = glist_dopts($opts, $so, $pl);
+		$html .= "<input type='text' style='width: 15px; text-align: right;' value='$cp' id='glist_inp_$id' onchange='glist_go(\"$id\", (this.value - 1) * $pl, $pl)'/> on $np";
 
 		if ($no <= $lo) {
-			$d = glist_dopts($opts, $no, $pl);
-			$html .= "<a onclick='glist_go(\"$id\", $pdat, $d)'><img height='25px' src='images/sarrow.right.norm.png' onmouseover='this.src=\"images/sarrow.right.pre.png\"' onmouseout='this.src=\"images/sarrow.right.norm.png\"'/></a>";
-			$d = glist_dopts($opts, $lo, $pl);
-			$html .= "<a onclick='glist_go(\"$id\", $pdat, $d)'><img height='25px' src='images/end.norm.png' onmouseover='this.src=\"images/end.pre.png\"' onmouseout='this.src=\"images/end.norm.png\"'/></a>";
+			$html .= "<a onclick='glist_go(\"$id\", $no, $pl)'><img height='25px' src='images/sarrow.right.norm.png' onmouseover='this.src=\"images/sarrow.right.pre.png\"' onmouseout='this.src=\"images/sarrow.right.norm.png\"'/></a>";
+			$html .= "<a onclick='glist_go(\"$id\", $lo, $pl)'><img height='25px' src='images/end.norm.png' onmouseover='this.src=\"images/end.pre.png\"' onmouseout='this.src=\"images/end.norm.png\"'/></a>";
 		} else {
 			$html .= "<img height='25px' src='images/sarrow.right.dis.png'/>";
 			$html .= "<img height='25px' src='images/end.dis.png'/>";
 		}
 	}
-	$d = glist_dopts($opts, $so, $pl);
-	$html .= "</td><td class='navpad'>lignes par page:<input style='width: 20px; text-align: right;' id='lpp' value='$pl' onchange='glist_go(\"$id\", $pdat, $d, null, this.value)'></tr></tfoot></table>";
+	#$d = glist_dopts($opts, $so, $pl);
+	$html .= "</td><td class='navpad'>lignes par page:<input style='width: 20px; text-align: right;' id='lpp' value='$pl' onchange='glist_go(\"$id\", null, this.value)'></tr></tfoot></table>";
 
 	return $html;
 }
 
 function glist_popup($prov) {
+#dbg($prov);
 	$p = new prov($prov);
 	$all = $p->fields();	
 	$sel = [];
 	if (($o = glist_user_pref_get($p)) != [])
 		if (array_key_exists("columns", $o)) 
 			$sel = json_decode($o["columns"]);
-	return fsel("glist", '{"prov": ' . $p->data() .', "save_fsel": true}', $all, $sel, "glist_popup");
+	return fsel("glist", '{"prov": "' . $p->data() .'", "save_fsel": true}', $all, $sel, "glist_popup");
 }
 
 function glist_fdata($prov, $field) {
@@ -352,13 +368,15 @@ function glist_ctrl() {
 	$fsel = [];
 
 	if ($a->has("glist_popup")) {
-		dbg($a->val("glist_popup"));
+		#dbg($a->val("glist_popup"));
 		return glist_popup($a->val("glist_popup"));
 	}
 
-	if ($a->has("prov")) $prov = $a->val("prov");
-	if ($a->has("opts")) $opts = $a->val("opts");
-	if ($a->has("fsel")) $fsel = $a->val("fsel");
+	if ($a->has("prov"))   $prov = $a->val("prov");
+	if ($a->has("opts"))   $opts = $a->val("opts");
+	if ($a->has("fsel"))   $fsel = $a->val("fsel");
+	if ($a->has("filter")) $filt = $a->val("filter");
+
 	if ($prov === false) {
 		err("no provider");
 		return "no data";

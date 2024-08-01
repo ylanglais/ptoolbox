@@ -606,11 +606,10 @@ table.glist {
 	table-layout: auto !important;
 	border: 0.5px solid $normal;
 }
-table.glist th {
+table.glist tr.header th {
 	width: auto !important;
 	position: sticky;
 	top: 0;
-	z-index: 2;
 }
 table.glist tr {
 	border: 0px solid $normal;
