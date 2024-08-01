@@ -101,4 +101,16 @@ function fmt_float($_float, $dec = -1) {
 	return $out;
 }
 
+function unb64($data) {
+	$h = "__b64__";
+	$t = "__46b__";
+	if (preg_match('%^'.$h.'([a-zA-Z0-9/+]*={0,2})'.$t.'$%', $data, $m))
+		return base64_decode($m[1]);
+	return $data;
+}
+function b64($data) {
+	$h = "__b64__";
+	$t = "__46b__";
+	return $h . base64_encode($data) . $t;
+}
 ?>
