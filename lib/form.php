@@ -66,9 +66,17 @@ class form {
 		$this->action = $a->val("action");
 		$this->vars = $vars;
 	}
-	function sql($string) {
+	function sql($dbs_or_sql, $sql = false) {
+		if ($sql === false) {
+			$dbs = "defaut";
+			$sql = $dbs_or_sql;
+		} else {
+			$dbs = $dbs_or_sql;
+		}
+		$db = new db($dbs);
+		$q  = new query($db, $sql);
+		return $q->all();
 	}
-
 	function data() {
 		return json_encode($this->vars);
 	}
@@ -107,7 +115,6 @@ class form {
 	
 	function draw() {
 		$str = "<div id='form' >\n<table class='form'><tr>";
-		$str .= "<tr>";
 		foreach ($this->param_groups as $i => $params) {
 			$str .= "<td>" .$this->draw_params($params)  . "</td>";
 		}
