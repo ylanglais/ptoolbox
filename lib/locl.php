@@ -25,6 +25,14 @@ class locl {
 		setlocale(LC_ALL, "C");
 	}
 
+	function type_detect($val) {
+		if (is_float($val))          return "float";
+		if (is_numeric($val))        return "numeric";
+		if (substr($val, -1) == "%") return "percentage";
+		if (is_date($val))			 return "date";
+		return "string";
+	}
+
 	/**
 	 * Generic formatter to transform a value according to the locale
      * @param if $val is :
@@ -34,21 +42,21 @@ class locl {
 	 * - no transformation in any other case. 
 	 */
 	function format($val) {
-		if (is_float($val)) {
+		$fmt = $this->type_detect($val);
+		switch ($fmt) {
+		case "float":
 			$v = number_format($val, 1, $this->lc->decimal_point, $this->lc->thousands_sep);   
 			if (substr($v, -2) == $this->lc->decimal_point . "0") $v = substr($v, 0, -2);
 			return $v;  
-		} else if (is_numeric($val)) {
+		case "numeric":
 			return number_format($val, 0, $this->lc->decimal_point, $this->lc->thousands_sep);
-		} else if (substr($val, -1) == "%") {
+		case "percentage":
 			return $this->format((float) substr($val, 0, -1)) . "%"; 
+		case "date":
+		case "string":
+		default:
+			return $val;
 		}
-		/*** 
-		else if (is_date($v)) {
-			$dt = new DateTime($v);
-			return 
-		}
-		***/
 		return $val;    
 	}
 	/**

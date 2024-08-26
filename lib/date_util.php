@@ -1,5 +1,20 @@
 <?php
 
+function is_date($val) {
+	if (DateTime::createFromFormat('Y-m-d', $val) !== false) return true;
+	if (DateTime::createFromFormat('Y/m/d', $val) !== false) return true;
+	if (DateTime::createFromFormat('d/m/Y', $val) !== false) return true;
+	if (DateTime::createFromFormat('Y-m-d H:i', $val) !== false) return true;
+	if (DateTime::createFromFormat('Y/m/d H:i', $val) !== false) return true;
+	if (DateTime::createFromFormat('d/m/Y H:i', $val) !== false) return true;
+	if (DateTime::createFromFormat('Y-m-d H:i:s', $val) !== false) return true;
+	if (DateTime::createFromFormat('Y/m/d H:i:s', $val) !== false) return true;
+	if (DateTime::createFromFormat('d/m/Y H:i:s.u', $val) !== false) return true;
+	if (DateTime::createFromFormat('Y-m-d H:i:s.u', $val) !== false) return true;
+	if (DateTime::createFromFormat('Y/m/d H:i:s.u', $val) !== false) return true;
+	if (DateTime::createFromFormat('d/m/Y H:i:s.u', $val) !== false) return true;
+	return false;
+}
 function tz_offset($remote_tz, $origin_tz = null) {
     if($origin_tz === null) {
         if(!is_string($origin_tz = date_default_timezone_get())) {

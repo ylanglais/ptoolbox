@@ -756,6 +756,9 @@ td.right {
 td.number {
 	text-align: right;
 }
+td.center {
+	text-align: center;
+}
 td.ckbx {
 	text-align: center; 
 }
@@ -1283,10 +1286,9 @@ table.results {
 	margin-bottom: 2.3vh;
 	width: 75%;
 	border: 0px;
-/* table-layout: fixed; */
 }
 table.results tr {
-	text-align: right;
+	text-align: left;
 	padding: .5vw;
 	margin:  .9vw;
 	border: 0px;
@@ -1311,7 +1313,7 @@ table.glist tr.over {
 	background-color: $selected_bg;
 }
 table.results th {
-	text-align: right;
+	text-align: center;
 	background-color: $reverse_bg;
 	color: $reverse_fg;
 	padding: .5vw;

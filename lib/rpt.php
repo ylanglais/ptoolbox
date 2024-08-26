@@ -500,7 +500,7 @@ class rpt {
         }
         return $str;
     }
-    function rpt_array($o, $hdr = true, $tailer = false, $nolocl = false) {
+    function rpt_array($o, $hdr = true, $tailer = false, $nolocl = false, $lnum = false) {
         if (!is_array($o)) return "";
         $str = "\t<table class='results'>\n";
         $i = 0;
@@ -508,22 +508,39 @@ class rpt {
         foreach ($o as $l) {
             $str .= "\t\t<tr>";
             $i++;
+			$j = -1;
             foreach ($l as $c) {
+				$j++;
+				$fmt = $this->locl->type_detect($c);
+				$cla = "";
+				switch ($fmt) {
+				case "numeric":
+					if ($j == 0 && $lnum) {
+						$cla = " class='num'";
+						 break;
+					}
+				case "float":	
+				case "percentage":	
+					$cla = " class='number'";
+					break;
+				case "date": 
+					$cla=" class='center'";
+				}
 				if ($i == 1) {
 					if  ($hdr) { 
 						if (!$nolocl) $str .= "<th>" . $this->locl->format($c) . "</th>";
 						else $str .= "<th>$c</th>";
 					} else {
 						if (!$nolocl) $str .= "<td>" . $this->locl->format($c) . "</td>";
-						else $str .= "<td>$c</td>";
+						else $str .= "<td$cla>$c</td>";
 					}
                 } else {
 					if ($i == $n && $tailer === true) {
 						if (!$nolocl) $str .= "<th>" . $this->locl->format($c) . "</th>";
 						else $str .= "<th>$c</th>";
 					} else {
-						if (!$nolocl) $str .= "<td>" . $this->locl->format($c) . "</td>";
-						else $str .= "<td>$c</td>";
+						if (!$nolocl) $str .= "<td$cla>" . $this->locl->format($c) . "</td>";
+						else $str .= "<td$cla>$c</td>";
 					}
                 }
             }
@@ -550,7 +567,7 @@ class rpt {
 				$lnum = false;
 				if (property_exists($o, "linenumbers") && $o->linenumbers === true) $lnum = true;
 				if (property_exists($o, "lnum")        && $o->lnum        === true) $lnum = true;
-				$str .= $this->rpt_array($this->table_parse($o->data, $hdr, $lnum), $hdr, $tailer, $nolocl);
+				$str .= $this->rpt_array($this->table_parse($o->data, $hdr, $lnum), $hdr, $tailer, $nolocl, $lnum);
 			}
 		}
 		return $str;
