@@ -121,10 +121,10 @@ function menu_view(e, page, datalink) {
 function menu_data_reload() {
 	switch (data_cur.type) {
 	case 'form':
-		menu_form(entry_cur, data_cur.fname, data_cur.titre);
+		menu_form(entry_cur, data_cur.name, data_cur.titre);
 		break;
 	case 'rpt':
-		menu_rpt(entry_cur, data_cur.rptname);
+		menu_rpt(entry_cur, data_cur.rpt_name);
 		break;
 	case 'page':
 		menu_page(entry_cur, data_cur.page)
