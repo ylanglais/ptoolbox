@@ -98,25 +98,23 @@ class prov_view {
 					$this->frags->{$o->name}->{$k} = $v;
 				}
 				if ($this->frags->{$o->name}->type == "column") {
-					$this->cols->{$o->name} = $this->tables->{$this->view->tname}->cols->{$o->cname};
+					$this->cols->{$o->name} = $this->tables->{$this->view->tname}->cols->{$o->sc};
 					array_push($this->fields, $o->name);
-					array_push($this->slist, $this->view->tname . ".$o->cname as \"$o->name\"");
-					if (in_array($o->cname, $keys)) array_push($this->keys, $o->name);
+					array_push($this->slist, $this->view->tname . ".$o->sc as \"$o->name\"");
+					if (in_array($o->sc, $keys)) array_push($this->keys, $o->name);
 
 				} else if ($this->frags->{$o->name}->type == "reference") {
-					$tid = $this->_tid($o->fsrc, $o->ftname);
-					$this->_add_table($o->fsrc, $o->ftname);
-					$this->cols->{$o->name} = $this->tables->{$o->ftname}->cols->{$o->flname};
+					$this->cols->{$o->name} = $this->tables->{$o->ft}->cols->{$o->fdc};
 					#
 					# Set nullability to origin table: 
-					$this->cols->{$o->name}->is_nullable = $this->tables->{$this->view->tname}->cols->{$o->cname}->is_nullable;
+					$this->cols->{$o->name}->is_nullable = $this->tables->{$this->view->tname}->cols->{$o->sc}->is_nullable;
 
-					$this->cols->{$o->name}->ftable = $o->ftname;
-					$this->cols->{$o->name}->fcol   = $o->flname;
-					if (in_array($o->cname, $keys)) array_push($this->keys, $o->name);
+					$this->cols->{$o->name}->ftable = $o->ft;
+					$this->cols->{$o->name}->fcol   = $o->fdc;
+					if (in_array($o->sc, $keys)) array_push($this->keys, $o->name);
 					array_push($this->fields, $o->name);
-					array_push($this->slist, "$o->ftname.$o->flname as \"$o->name\"");
-					array_push($this->joins, "left join $o->ftname on " . $this->view->tname . ".$o->cname = $o->ftname.$o->finame");
+					array_push($this->slist, "$o->ft.$o->fdc as \"$o->name\"");
+					array_push($this->joins, "left join $o->ft on " . $this->view->tname . ".$o->sc = $o->ft.$o->fjc");
 				} else if ($this->frags->{$o->name}->type == "vallist") {
 				} else if ($this->frags->{$o->name}->type == "values") {
 				} else if ($this->frags->{$o->name}->type == "entity") {
@@ -161,8 +159,8 @@ class prov_view {
 	}
 	#
 
-	function name2cname($name) {
-		return $this->cols->{$name}->cname;
+	function name2sc($name) {
+		return $this->cols->{$name}->sc;
 	}
 
 	function col_data($name) {
@@ -185,15 +183,15 @@ class prov_view {
 		if ($c->type == "column") return $val;
 		if ($c->type == "reference") {
 			if ($val == "null") { 
-				$s = "select " . $c->finame . " from " . $c->ftname . " where " . $c->flname . " is null ";
+				$s = "select " . $c->fjc . " from " . $c->ft . " where " . $c->fdc . " is null ";
 			} else if (strstr($val, "%")) { 
-				$s = "select " . $c->finame . " from " . $c->ftname . " where lower(cast(" . $c->flname . " as char(1000))) like lower('$val')";
+				$s = "select " . $c->fjc . " from " . $c->ft . " where lower(cast(" . $c->fdc . " as char(1000))) like lower('$val')";
 			} else {
-				$s = "select " . $c->finame . " from " . $c->ftname . " where " . $c->flname . " = " . $this->quote($c->ftname, $c->flname, $val);
+				$s = "select " . $c->fjc . " from " . $c->ft . " where " . $c->fdc . " = " . $this->quote($c->ft, $c->fdc, $val);
 			}
 			$q = new query($s);
 			if ($q->nrows() < 1) return false;
-			if ($q->nrows() == 1) return $q->obj()->{$c->finame};
+			if ($q->nrows() == 1) return $q->obj()->{$c->fjc};
 			return $q->all();
 		}
 		return $val;
@@ -313,12 +311,12 @@ class prov_view {
 		foreach ($req as $k => $v) {
 			if ($this->frags->{$k}->type == "column") {
 				if ($v == null) array_push($w, "$k is null"); 
-				else            array_push($w, $this->frags->{$k}->cname. " = ". $this->quote($this->view->tname, $this->frags->{$k}->cname, $v));
+				else            array_push($w, $this->frags->{$k}->sc. " = ". $this->quote($this->view->tname, $this->frags->{$k}->sc, $v));
 			} else if ($this->frags->{$k}->type == "reference") {
 				#
 				# if column is not nullable => add table and hard join:
-				$t = $this->frags->{$k}->ftname;
-				$f = $this->frags->{$k}->flname;
+				$t = $this->frags->{$k}->ft;
+				$f = $this->frags->{$k}->fdc;
 				if ($v == null) array_push($w, "$t.$f is null"); 
 				else            array_push($w, "$t.$f = ". $this->quote($t, $f, $v));
 			}
@@ -346,12 +344,12 @@ class prov_view {
 		$vals = [];
 
 		foreach ($this->frags as $k => $f) {
-			array_push($flds, $f->cname);
+			array_push($flds, $f->sc);
 			if ($f->type == "column") {
-				array_push($vals, $this->quote($this->view->tname, $f->cname, $dat->{$k}));
+				array_push($vals, $this->quote($this->view->tname, $f->sc, $dat->{$k}));
 			} else if ($f->type == "reference") {
 				$v = $this->val2cval($k, $dat->{$k});
-				array_push($vals, $this->quote($this->view->tname, $f->cname, $v));
+				array_push($vals, $this->quote($this->view->tname, $f->sc, $v));
 			} 
 			
 		}
@@ -369,7 +367,7 @@ class prov_view {
 			if ($this->frags->{$k}->type == 'reference') {
 				$v = $this->val2cval($k, $v);
 			} 
-			$f = $this->frags->{$k}->cname;
+			$f = $this->frags->{$k}->sc;
 			$v = $this->quote($this->view->tname, $f, $v);
 			$f = $this->fquote($k);
 			if ($v == null || $v == 'null') {
@@ -416,11 +414,11 @@ class prov_view {
 			if ($fr->type == "column") {
 				$ov = $ori->{$k};
 				$nv = $dat->{$k};
-				$f  = $fr->cname;
+				$f  = $fr->sc;
 			} else if ($fr->type == "reference") { 
 				$ov = $this->val2cval($k, $ori->{$k});
 				$nv = $this->val2cval($k, $dat->{$k});
-				$f  = $fr->cname;
+				$f  = $fr->sc;
 			} 
 			#dbg("$k: $fr->type , $f => ov = $ov, nv = $nv");
 			
@@ -437,7 +435,7 @@ class prov_view {
 			# If new data != ori => add set member:
 			if ($dat->{$k} != $ori->{$k}) {
 				$nv = $this->quote($this->view->tname, $f, $nv);
-				array_push($set, $fr->cname . " = $nv");
+				array_push($set, $fr->sc . " = $nv");
 			}
 		}
 				
@@ -469,10 +467,10 @@ class prov_view {
 		foreach ($this->frags as $k => $fr) {
 			if ($fr->type == "column") {
 				$nv = $dat->{$k};
-				$f  = $fr->cname;
+				$f  = $fr->sc;
 			} else if ($fr->type == "reference") { 
 				$nv = $this->val2cval($k, $dat->{$k});
-				$f  = $fr->cname;
+				$f  = $fr->sc;
 			} 
 			# 
 			# if column is key => add it to where clause:
@@ -524,20 +522,20 @@ class prov_view {
 			foreach ($filter as $k => $v) {
 				if ($i > 0) $w .= " and";
 				$i++;
-				$f = $this->frags->{$k}->cname; 
+				$f = $this->frags->{$k}->sc; 
 				if ($this->frags->{$k}->type == 'columns') {
 					$vv = $v;
 					$dt = $this->cols->{$k}->data_type;
 				} else {
 					$vv = $this->val2cval($k, $v);
-					$dt = $this->tables->{$this->frags->{$k}->ftname}->cols->{$this->frags->{$k}->finame}->data_type;
+					$dt = $this->tables->{$this->frags->{$k}->ft}->cols->{$this->frags->{$k}->fjc}->data_type;
 					if (is_array($vv)) {
-						$fin = $this->frags->{$k}->finame;
+						$fin = $this->frags->{$k}->fjc;
 						$w .= " $f in (";
 						$vs = $vv;
 						$vals = [];
 						foreach($vs as $_v) {
-							array_push($vals, $this->_quote_data($dt, $_v->{$this->frags->{$k}->finame}));	
+							array_push($vals, $this->_quote_data($dt, $_v->{$this->frags->{$k}->fjc}));	
 						}
 						$w .= implode(",", $vals) . ")";	
 						continue;	
@@ -605,10 +603,10 @@ class prov_view {
 		$table = false;
 		if ($this->frags->{$f}->type == "column") {
 			$table = $this->view->tname;
-			$col   = $this->frags->{$f}->cname;  
+			$col   = $this->frags->{$f}->sc;  
 		} else if ($this->frags->{$f}->type == "reference") {
-			$table = $this->frags->{$f}->ftname;  
-			$col   = $this->frags->{$f}->flname;  
+			$table = $this->frags->{$f}->ft;  
+			$col   = $this->frags->{$f}->fdc;  
 		} else {
 			err("cols->{$f}->data_type = " . $this->cols->{$f}->data_type);
 			return [];
