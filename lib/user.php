@@ -102,7 +102,7 @@ class user {
 			if      ($o->type == 'table') $tab[$o->link] = $o->perm;
 			else if ($o->type == 'view')  $viw[$o->link] = $o->perm;
 		}
-		$q =  new query("SELECT type, link, perm from param.right where role_id in (select $this->role_id from $this->user_role_table where $this->user_id = '$this->id')");
+		$q =  new query("SELECT type, link, perm from param.right where role_id in (select $this->role_id from $this->user_role_table where $this->user_id = '$this->id' order by 1 desc)");
 		while ($o = $q->obj()) {
 			if      ($o->type == 'table') $tab[$o->link] = $o->perm;
 			else if ($o->type == 'view')  $viw[$o->link] = $o->perm;
