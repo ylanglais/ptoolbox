@@ -15,7 +15,7 @@ $title = style::value("application_title");
 <meta http-equiv="expires" content="Thu, 01 Jan 1970 00:00:00 GMT" />
 <script>
 	window.onbeforeunload = function () {}
-	function preventBack(){window.history.forward();}
+	function preventBack(){window.history.forward();};
 	setTimeout("preventBack()", 0);
 	window.onunload=function(){return false;};
 </script>
@@ -38,4 +38,4 @@ foreach (['js', 'usr/js'] as $dir) {
 ?>
 
 </head>
-<body onbeforeunload='timeout_logout("body onbeforeunload")'> 
+<body onbeforeunload='timeout_logout("body onbeforeunload");'> 
