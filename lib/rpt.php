@@ -333,18 +333,6 @@ class rpt {
 		if ($all == [])       return false;
 		return $all;
 	}
-
-/*
-	function rpt_textbox() (
-	}	
-	function rpt_param($o) {
-		$rpt_parm_types = [ "string", "int", "double", "date", "boolen" ];
-		if (!is_object($o)) return "";
-		if (!property_exists($o, "name"))    return "";
-		if (!property_exists($o, "type"))    return "";
-		if (!property_exists($o, "default")) return "";
-	}
-*/
 	function var_set($k, $v) {
 		$this->vars[$k] = $v;
 	}
@@ -382,41 +370,6 @@ class rpt {
 			$t = $this->rpt_var_replace($o->title);
 			$str = "<h1>$t</h1>";
 		}
-/******
-		if (file_exists("header.html")) $str .= file_get_contents("header.html"); 
-
-		$str .= "<body>\n<style>\n" . file_get_contents("style.css") . "</style>\n";
-
-        if (!is_object($o) || (!property_exists($o, "rpt_logo") && (!property_exists($o, "rpt_headlines") || !is_array($o->rpt_headlines)))) {
-			#_warn("badly formed header skipped");
-            return $str;
-        }
-		if (property_exists($o, "logo") && !file_exists($o->logo)) {
-			$o->logo = "images/logo.png";
-		}
-        if (!property_exists($o, "rpt_headlines") || !is_array($o->rpt_headlines)) {
-            $str .= "<header id='header'>\n<table class='entete'>\n\t<tr><td><img class='logo' src='". $this->get_image($o->logo) . "'/></td></tr>\n</table>\n</header>\n";
-            return $str;
-        } 
-
-        $str .= "<header id='header'>";
-
-        $n = count($o->rpt_headlines);
-        $str .= "<table class='entete'>\n\t<tr><td rowspan='$n'>";
-        if (property_exists($o, "logo")) {
-            $str .= "<img class='logo' src='" . $this->get_image($o->logo) . "'/>";
-        } 
-        $str .= "</td>\n";
-        $i = 0;
-        foreach ($o->rpt_headlines as $h) {
-            if ($i > 0) {
-                $str .= "\t<tr>";
-            }
-            $i++;
-            $str .= "<td style='text-align: right;'>$h->label:</td><td>$h->value</td></tr>\n";
-        }
-        $str .= "</table>\n</header>\n";
-******/
         return $str;
     }
     function rpt_columns($o) {
@@ -459,7 +412,7 @@ class rpt {
 		return $this->nsec++;
 	}
     function rpt_sections($o) {
-        $str = "";
+        $str = "<div id='rpt_body'>";
         foreach ($o as $p) {
 			$id = "s". $this->secid();
 			$class = "class='section'";
@@ -474,7 +427,7 @@ class rpt {
             $str .= $this->parse($p);
 			$str .= "</div></div>\n";
         }
-        return $str;
+        return $str . "</div>";
     }
     function rpt_subsections($o) {
         $str = "";

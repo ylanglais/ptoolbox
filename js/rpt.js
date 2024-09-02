@@ -7,8 +7,12 @@ function rpt_reload(id) {
 	if ((f = document.getElementById('rpt_form')) != null) data.rpt_form = JSON.parse(f.value);
 	if (id == null) id = "data_area";
 
-	var div = document.getElementById('form_div');
+	if (document.getElementById("rpt_body") == null) tgt = 'data_area'; 
+	else tgt = 'rpt_body';
 
+	progress(tgt,  data.rpt_name);
+
+	var div = document.getElementById('form_div');
 
 	if (f != null ) {
 	for (j of data.rpt_form) for (i in j) {
@@ -19,9 +23,7 @@ function rpt_reload(id) {
 			} else if (j[i].type == 'list' || j[i].type == 'mlist') {
 				var r = [];
 				var v = document.getElementById(i);
-				console.log(i + " + " + JSON.stringify(v));
 				for (let o of v.options) {	
-					//console.log("text: " + o.text + " value: "+ o.value);
 					if (o.selected) {
 						r.push(o.text);
 					}
