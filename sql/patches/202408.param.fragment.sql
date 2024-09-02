@@ -27,3 +27,6 @@ alter table param.fragment2 rename to fragment;
 
 ALTER TABLE ONLY param.fragment
     ADD CONSTRAINT fragment_pkey PRIMARY KEY (entity, name);
+
+insert into db.changelog (action) values ('patch 202408.param.fragment.sql');
+
