@@ -24,7 +24,7 @@ function menu_content() {
 		}
 	}
 	if (is_string($menu_cur) && is_string($entry_cur) && is_string($data_cur)) {
-		$initf = "menu_restore('$menu_cur', '$entry_cur', '$data_cur');";
+		$initf = "window.addEventListener('load', (event) => {menu_restore('$menu_cur', '$entry_cur', '$data_cur');});";
 	} else
 		$initf = "";
 
@@ -95,11 +95,14 @@ function menu_content() {
 		else if ($o->ptype == "View")     $str .= "\t\t\t". menu_view($o->page, $o->datalink) . "\n";
 	}
 	$str .= "\t\t</ul>\n\t</li>\n";
-	$str .= "<script>timeout_set(60);$initf</script>
-		<!-- Menu Déconnexion -->
+	$str .= " <!-- Menu Déconnexion -->
 		<li class='menu'>
 			<a class='menu' onclick='document.getElementById(\"menusubmit\").submit()'>Déconnexion</a> 
 		</li>
-	</ul>";
+	</ul>
+	<script>
+	timeout_set(60);
+	$initf
+	</script>";
 	return $str;
 }
