@@ -90,7 +90,7 @@ function menu_save(data) {
 function data_cur_set(data) {
 	data_cur = data;
 	if (menu_cur != null)
-		menu_save({'menu_cur': menu_cur.id, 'entry_cur': entry_cur.id, 'data_cur': JSON.stringify(data)});	
+		menu_save({'menu_cur': menu_cur.id, 'entry_cur': entry_cur.id, 'data_cur': JSON.stringify(data)}, null, false);	
 }
 function menu_form(e, fname, titre) {
 	menu_entry(e);
