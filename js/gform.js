@@ -1,10 +1,10 @@
 function gform_changed(id) {
-	var ori = JSON.parse(document.getElementById("__ori__").value);
+	var ori = JSON.parse(document.getElementById("__ori_" + id).value);
 	var dat = gform_data(id);
 }
 function gform_data(id) {
 	var data = {};
-	const div = document.getElementById(id);
+	const div = document.getElementById("__gform_" + id);
 	if (div == null) return {};
 	var inps = div.getElementsByTagName('input');
 	for (i of inps) {
@@ -37,13 +37,15 @@ function gform_data(id) {
 	// return data
 	return data;
 }
-function gform_action(id, pdata, action) {
+function gform_action(id, action) {
 	var gfdat = gform_data(id);
 	//var req   = JSON.parse(document.getElementById("__req__").value);
-	var ori   = JSON.parse(document.getElementById("__ori__").value);
-	var data  = { "data": gfdat, "prov": pdata, "ori": ori };
-	ctrl("gform", {"data": data, "action": action}, id);
-	let sopt = document.getElementById("opts").value;
+	var ori   = JSON.parse(document.getElementById("__ori_" + id).value);
+	let sopt = document.getElementById("__opts_" + id).value;
 	let opts = JSON.parse(sopt);
-	glist_go(opts.parentid, pdata, opts, opts.start, opts.lines); 
+	let pdat = glist_pdat(opts.parentid);
+
+	var data  = { "data": gfdat, "prov": pdat, "ori": ori };
+	ctrl("gform", {"data": data, "action": action}, "__gform_" + id);
+	glist_go(opts.parentid, opts.start, opts.lines); 
 }
