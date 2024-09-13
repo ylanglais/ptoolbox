@@ -19,7 +19,7 @@ class args {
 	function err() {
 		err(json_encode(["_POST" => $_POST, "_GET" => $_GET]));
 	}
-	function _dbg() { return dbg(); }
+	function _dbg() { return $this->dbg(); }
 	function dbg() {
 		dbg(json_encode(["_POST" => $_POST, "_GET" => $_GET]));
 	}

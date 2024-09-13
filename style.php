@@ -146,6 +146,7 @@ div.minical {
 	box-shadow: 2px 2px 4px $shadow;
 }
 div.data_area {
+	z-index: 0;
     box-shadow: 3px 3px 5px $shadow;
 }
 div.data_modal {
@@ -165,6 +166,7 @@ div.data_modal_hourglass {
 	text-align: center; 
 	vertical-align: middle;
 	color: white;
+	z-index: 100;
 }
 th.minical.month {
 	text-align: center;
@@ -474,8 +476,8 @@ a.menuentry.current {
 /* 
  * Anchor definitions:
  */ 
-a:link    { color: blue }
-a:visited { color: #800080 }
+a:link    { color: $bleu1 }
+a:visited { color: $bleu2 }
 a.prjlink {
 	cursor: pointer;
 	text-decoration: none;
@@ -486,7 +488,7 @@ a.prjlink:hover {
 	color: $hover;
 }
 a.data.current {
-	color: red;
+	color: $rouge1;
 }
 a.prjlink.current {
 	color: $normal;
@@ -555,7 +557,7 @@ table.data tr td.data {
 td.current {
 	color: $selected_fg;
 /*
-	color: red;
+	color: $rouge1;
 	background-color: yellow;
 */
 }
@@ -745,7 +747,7 @@ td.hdr.over {
 	font-weight: bold;
 }
 td.red {
-	color: red;
+	color: $rouge1;
 }
 td.orange {
 	color: orange;
@@ -777,12 +779,12 @@ td.url {
 }
 td.bad { 
 	text-align: center; 
-	color: red;    
+	color: $rouge1;    
 	font-weight: bold;
 }
 td.dread {
 	text-align: center; 
-	background-color: red; 
+	background-color: $rouge1; 
 	color: yellow;    
 }
 td.bof {
@@ -809,7 +811,7 @@ td.total.number {
 	font-weight: bold;
 }
 td.total.number.red {
-	color: red;
+	color: $rouge1;
 	text-align: right;
 	font-style: italic;
 	border-bottom: 2px solid $normal;
@@ -1393,7 +1395,7 @@ text.graph.legend {
 }
 text.graph.pie.legend{
 	font-size: clamp(8px, 40%, 12px);
-	fill: black;
+	fill: $bleu2;
 }
 line.graph.legend {
 	stroke-width: 2px;

@@ -115,6 +115,12 @@ class svg {
 		$this->size   = min($width, $height);
 		$this->scale  = $this->size / 2;
 		$this->colors = ['#8eb021', '#ffd351', '#3b7fc4', '#d04437', '#FFF400', '#654982', '#f691b2', '#999999', '#815b3a', '#f79232', '#59afe1', '#f15c75', '#00FF26', '#0500FF', '#FF0900', '#E8FF00', '#00FFD3', '#9400FF', '#FF04', '#FFC800', '#B5FF00', '#2A7C9C', '#2C2A9C', '#722A9C', '#9C2A9C', '#9C2A63', '#9C2A2A', '#9C772A', '#979C2A', '#649C2A'];
+
+		if (file_exists("conf/svg.php")) {
+			include("conf/svg.php");
+			if (isset($svg_colors)) $this->colors = $svg_colors;
+		}
+
 		$this->ncolors = count($this->colors);
 
 		$r = false;
