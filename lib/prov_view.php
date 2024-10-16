@@ -62,11 +62,11 @@ class prov_view {
 			$this->view->dsrc = $this->_ckds($this->view->dsrc);
 			$this->id     = "__prov_view__" . $this->name;
 
-			$this->view->tid = $this->_tid($this->view->dsrc, $this->view->st);
-			$this->_add_table($this->view->dsrc, $this->view->st);
+			$this->view->tid = $this->_tid($this->view->dsrc, $this->view->tname);
+			$this->_add_table($this->view->dsrc, $this->view->tname);
 
 			$this->refs     = [];
-			$q = new query("select * from param.fragment where entity = '$this->name' order by forder");
+			$q = new query("select * from param.fragment where entity = '$this->name' order by corder");
 			#
 			# view:
 			# type: fragment type 
@@ -89,7 +89,7 @@ class prov_view {
 				left join ref.gender on ref.gender.id = public.person.gender;
 			***/
 			$db = new db();
-			$keys = (array) $db->table_keys($this->view->st);
+			$keys = (array) $db->table_keys($this->view->tname);
 
 			while ($o = $q->obj()) {
 				$this->frags->{$o->name} = (object)[];
@@ -98,23 +98,24 @@ class prov_view {
 					$this->frags->{$o->name}->{$k} = $v;
 				}
 				if ($this->frags->{$o->name}->type == "column") {
-					$this->cols->{$o->name} = $this->tables->{$this->view->st}->cols->{$o->sc};
+					$this->cols->{$o->name} = $this->tables->{$this->view->tname}->cols->{$o->sc};
 					array_push($this->fields, $o->name);
-					array_push($this->slist, $this->view->st . ".$o->sc as \"$o->name\"");
+					array_push($this->slist, $this->view->tname . ".$o->sc as \"$o->name\"");
 					if (in_array($o->sc, $keys)) array_push($this->keys, $o->name);
 
 				} else if ($this->frags->{$o->name}->type == "reference") {
+					$this->_add_table($this->view->dsrc, $o->ft);
 					$this->cols->{$o->name} = $this->tables->{$o->ft}->cols->{$o->fdc};
 					#
 					# Set nullability to origin table: 
-					$this->cols->{$o->name}->is_nullable = $this->tables->{$this->view->st}->cols->{$o->sc}->is_nullable;
+					$this->cols->{$o->name}->is_nullable = $this->tables->{$this->view->tname}->cols->{$o->sc}->is_nullable;
 
 					$this->cols->{$o->name}->ftable = $o->ft;
 					$this->cols->{$o->name}->fcol   = $o->fdc;
 					if (in_array($o->sc, $keys)) array_push($this->keys, $o->name);
 					array_push($this->fields, $o->name);
 					array_push($this->slist, "$o->ft.$o->fdc as \"$o->name\"");
-					array_push($this->joins, "left join $o->ft on " . $this->view->st . ".$o->sc = $o->ft.$o->fjc");
+					array_push($this->joins, "left join $o->ft on " . $this->view->tname . ".$o->sc = $o->ft.$o->fjc");
 				} else if ($this->frags->{$o->name}->type == "values") {
 				} else if ($this->frags->{$o->name}->type == "vallist") {
 					$this->cols->{$o->name} = $this->tables->{$o->ft}->cols->{$o->fdc};
@@ -145,7 +146,7 @@ class prov_view {
 
 
 
-					array_push($this->joins, "left join $o->ft on " . $this->view->st . ".$o->sc = $o->ft.$o->fjc");
+					array_push($this->joins, "left join $o->ft on " . $this->view->tname . ".$o->sc = $o->ft.$o->fjc");
 
 				} else if ($this->frags->{$o->name}->type == "entity") {
 				} else if ($this->frags->{$o->name}->type == "entitylist") {
@@ -329,7 +330,7 @@ class prov_view {
 	}
 	function count() {
 		if ($this->init  === false) return false;
-		$s = "select count(*) from ". $this->view->st . " " . implode(' ', $this->joins) ;
+		$s = "select count(*) from ". $this->view->tname . " " . implode(' ', $this->joins) ;
 		$q = new query($s);
 		$o = $q->obj();
 		if ($o === false || !is_object($o) || !property_exists($o, "count")) return ($this->count = 0);
@@ -341,7 +342,7 @@ class prov_view {
 		foreach ($req as $k => $v) {
 			if ($this->frags->{$k}->type == "column") {
 				if ($v == null) array_push($w, "$k is null"); 
-				else            array_push($w, $this->frags->{$k}->sc. " = ". $this->quote($this->view->st, $this->frags->{$k}->sc, $v));
+				else            array_push($w, $this->frags->{$k}->sc. " = ". $this->quote($this->view->tname, $this->frags->{$k}->sc, $v));
 			} else if ($this->frags->{$k}->type == "reference") {
 				#
 				# if column is not nullable => add table and hard join:
@@ -352,7 +353,7 @@ class prov_view {
 			}
 		}
 		$where = " where " . implode(" and ", $w);
-		$s = "select " . implode(', ', $this->slist) . " from ". $this->view->st . " " . implode(' ', $this->joins) . " $where";
+		$s = "select " . implode(', ', $this->slist) . " from ". $this->view->tname . " " . implode(' ', $this->joins) . " $where";
 		$q = new query($s);		
 		return $q->all();
 	}
@@ -376,14 +377,14 @@ class prov_view {
 		foreach ($this->frags as $k => $f) {
 			array_push($flds, $f->sc);
 			if ($f->type == "column") {
-				array_push($vals, $this->quote($this->view->st, $f->sc, $dat->{$k}));
+				array_push($vals, $this->quote($this->view->tname, $f->sc, $dat->{$k}));
 			} else if ($f->type == "reference") {
 				$v = $this->val2cval($k, $dat->{$k});
-				array_push($vals, $this->quote($this->view->st, $f->sc, $v));
+				array_push($vals, $this->quote($this->view->tname, $f->sc, $v));
 			} 
 			
 		}
-		$s = "insert into " . $this->view->st . " (" . implode($flds, ",") . ") values (" . implode($vals, ",") . ")";
+		$s = "insert into " . $this->view->tname . " (" . implode($flds, ",") . ") values (" . implode($vals, ",") . ")";
 		$q = new query($s);
 		if ($q->nrows() != 1) {
 			err("$s : " . $q->err());
@@ -398,7 +399,7 @@ class prov_view {
 				$v = $this->val2cval($k, $v);
 			} 
 			$f = $this->frags->{$k}->sc;
-			$v = $this->quote($this->view->st, $f, $v);
+			$v = $this->quote($this->view->tname, $f, $v);
 			$f = $this->fquote($k);
 			if ($v == null || $v == 'null') {
 				array_push($w, "$f is null"); 
@@ -414,7 +415,7 @@ class prov_view {
 			return false;
 		}
 
-		$s = "select * from " . $this->view->st . " where " . $this->_where($keyvals);
+		$s = "select * from " . $this->view->tname . " where " . $this->_where($keyvals);
 		#dbg("-> $s");
 		$q = new query($s);
 		if ($q->nrows() < 1) return false;
@@ -455,7 +456,7 @@ class prov_view {
 			# 
 			# if column is key => add it to where clause:
 			if ($this->keys == [] || in_array($k, $this->keys)) {
-				$ov = $this->quote($this->view->st, $f, $ov);
+				$ov = $this->quote($this->view->tname, $f, $ov);
 				if (!is_int($ov) && ($ov === null || $ov == "null")) 
 					array_push($whe, $f . " is null");
 				else
@@ -464,12 +465,12 @@ class prov_view {
 			#
 			# If new data != ori => add set member:
 			if ($dat->{$k} != $ori->{$k}) {
-				$nv = $this->quote($this->view->st, $f, $nv);
+				$nv = $this->quote($this->view->tname, $f, $nv);
 				array_push($set, $fr->sc . " = $nv");
 			}
 		}
 				
-		$s = "update " . $this->view->st . " set " . implode(", ", $set) . " where " . implode(" and ", $whe);
+		$s = "update " . $this->view->tname . " set " . implode(", ", $set) . " where " . implode(" and ", $whe);
 		#dbg(">> update: $s");
 		$q = new query($s);
 
@@ -505,14 +506,14 @@ class prov_view {
 			# 
 			# if column is key => add it to where clause:
 			if ($this->keys == [] || in_array($k, $this->keys)) {
-				$nv = $this->quote($this->view->st, $f, $nv);
+				$nv = $this->quote($this->view->tname, $f, $nv);
 				if (!is_int($nv) && ($nv === null || $nv == "null")) 
 					array_push($whe, $f . " is null");
 				else
 					array_push($whe, $f . " = $nv");
 			}	
 		}
-		$s = "delete from " . $this->view->st . " where " . implode(" and ", $whe);
+		$s = "delete from " . $this->view->tname . " where " . implode(" and ", $whe);
 #dbg($s);
 		$q = new query($s);		
 
@@ -602,7 +603,7 @@ class prov_view {
 		return $w;
 	}
 	function query($start = 0, $stop = 25, $sortby = false, $order = false, $filter = null) {
-		$s = "select " . implode(', ', $this->slist) . " from ". $this->view->st . " " . implode(' ', $this->joins);
+		$s = "select " . implode(', ', $this->slist) . " from ". $this->view->tname . " " . implode(' ', $this->joins);
 
 		$s .= $this->_whereclause($filter);
 
@@ -632,7 +633,7 @@ class prov_view {
 		$col   = false;
 		$table = false;
 		if ($this->frags->{$f}->type == "column") {
-			$table = $this->view->st;
+			$table = $this->view->tname;
 			$col   = $this->frags->{$f}->sc;  
 		} else if ($this->frags->{$f}->type == "reference") {
 			$table = $this->frags->{$f}->ft;  
