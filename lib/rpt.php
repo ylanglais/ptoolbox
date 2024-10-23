@@ -23,7 +23,8 @@ class rpt {
 		$this->lang     = '';
 		$this->nsec     = 0;
 		$this->nsub     = 0;
-		$this->odb		= null;
+		$this->dbs		= [];
+		$this->sqldbg   = false;
 
 		$this->vars     = [];
 		$this->form     = [];
@@ -32,7 +33,7 @@ class rpt {
 
 		if (file_exists("conf/rpt.php")) {
 			include("conf/rpt.php");
-			foreach ([ "locale", "lang", "colors" ] as $k) {
+			foreach ([ "locale", "lang", "colors", "sqldbg" ] as $k) {
 				if (isset(${"rpt_$k"})) $this->$k = ${"rpt_$k"};
 			}
 		}
@@ -66,24 +67,36 @@ class rpt {
 	function rpt_name($o) {
 		$this->rpt_name = $o;
 	}
+	function rpt_dbs($o) {
+		if (is_object($o) && property_exists($o, "dbs")) {
+			$this->rpt_db($o);
+		}
+		if (!is_array($o)) {
+			warn("rpt_dbs param is not an array (".json_encode($o).")");
+			return;
+		}
+		foreach ($o as $d) $this->rpt_db($d);
+	}
 	function rpt_db($o) {
 		$dbopts = null;
+		$name = "default";
+		if (property_exists($o, "name")) { $name = $o->name;} 
 		if (property_exists($o, "dbs")) {
 			if (property_exists($o, "dbuser") && property_exists($o, "dbpass")) {
 				if (property_exists($o, "dbopts")) {
-					$this->odb = new db($o->dbs, $o->dbuser, $o->dbpass, $o->dbopts); 
+					$this->dbs[$name] = new db($o->dbs, $o->dbuser, $o->dbpass, $o->dbopts); 
 				} else { 
-					$this->odb = new db($o->dbs, $o->dbuser, $o->dbpass); 
+					$this->dbs[$name]  = new db($o->dbs, $o->dbuser, $o->dbpass); 
 				}
 			} else {
-				$this->odb = new db($o->dbs);
+				$this->dbs[$name] = new db($o->dbs);
 			}
 		} else {
-			$this->odb = new db();
+			$this->dbs[$name] = new db();
 		}
 	}
 	function rpt_form($o) {
-		$str = "<div id='form_div'><table class='form'><tr>";
+		$str = "<div id='form_div'><table class='form'>";
 		$this->form = $o;
 		foreach ($o as $i) foreach ($i as $k => $data) {
 			$str .= "\t<tr><th><label for='$k'>". $data->label."</label>";
@@ -325,10 +338,17 @@ class rpt {
 		if (substr($str, 0, 4) == 'sql(') {
 			$str = substr($str, 4, -1);
 		}
+		if (preg_match("/^[ 	]*([^, 	]*)[ 	]*,[ 	]*([Ss][Ee][Ll][Ee][Cc][Tt].*)$/", $str, $m)) {
+			$dbn = $m[1];
+			$str = $m[2];
+		} else {
+			$dbn = "default";
+		}
 		if (strstr($str, "rpt_var(")) {
 			$str = $this->rpt_var_replace($str);
 		}
-		$q   = new query($str, $this->odb);
+		if ($this->sqldbg) dbg($str);
+		$q   = new query($str, $this->dbs[$dbn]);
 		$all = $q->all();
 		if ($all == [])       return false;
 		return $all;
