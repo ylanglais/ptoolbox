@@ -765,6 +765,14 @@ class svg {
 		$a0 = - M_PI / 2.;
 		$i  = 0;
 		$text = "";
+		if (count($values) == 1) {
+			$text = "<circle r='$r' cx='". ($this->width / 2.) ."' cy='". ($r) ."' fill='". $this->color(0). "'/>";
+			$rco = 0.5;
+			$xt = $this->width / 2.;
+			$yt = $this->height / 2;
+			$text .= "<text id='".$this->noquo($labels[$i])."' class='graph pie legend' x='$xt' y='$yt' dominant-baseline='middle' text-anchor='middle' >".$this->locl->format($labels[$i])."</text>\n";
+			return $outs. $text . $this->fini();
+		}
 		foreach ($values as $v) {
 			$x0 = cos($a0)  * $r + $this->Ox;
 			$y0 = sin($a0)  * $r + $this->Oy;
