@@ -299,6 +299,21 @@ class rpt {
 		}
 		return $str;
 	}
+	function series_parse($str, $series = 'series', $x = 'date', $y = 'count') {
+		if (substr($str, 0, 4) == "sql(") {
+			$all = $this->_rpt_sql($str);
+			$ser = [];
+			foreach ($all as $r) {
+				if (!array_key_exists($r->$series, $ser)) $ser[$r->$series] = [];
+				$ser[$r->$series][$r->$x] = $r->$y;
+			}
+			return $ser;
+		}
+		if (substr($data, 0, 4) == "rpt_var(") {
+			return $this->var_get(substr($str, 6, -1));
+		}
+		return $str;
+	} 
     function parse($o) {
 		$div = false;
 		if (is_null($o) || $o === false) return;
@@ -679,6 +694,7 @@ class rpt {
 		$token = scrm_do($e);
 		return "<div id='$o->id'><img width='50px' src='images/wait.gif' onload='ctrl(\"rpt\",  { \"token\": \"$token\"}, \"$o->id\", false)'/></div>\n";
 	}
+
 	function rpt_graph($o) {
 		$str = "";
 		if (property_exists($o, "title")) {
@@ -689,13 +705,8 @@ class rpt {
 			$t = $this->rpt_var_replace($o->subtitle);
             $str .= "<h4 style='text-align: center'>$t</h4>\n";
 		}
-		$data = [];
 		if (!property_exists($o, "data")) {
 			_err("badly formed rpt_graph block: no data");
-			return "";
-		}
-		if (!is_array($o->data)) {
-			_err("badly formed rpt_graph : invalid data (array or action strinc)");
 			return "";
 		}
 			
@@ -714,9 +725,20 @@ class rpt {
 		if (property_exists($o, "x")) $x = $o->x;
 		if (property_exists($o, "y")) $y = $o->y;
 
-		foreach ($o->data as $series) {
-			$data[$series->name] = $this->data_parse($series->value, $x, $y);
+	
+		$data = [];
+		if (property_exists($o, "series")) {
+			$data = $this->series_parse($o->data, $o->series, $x, $y);
+		
+		} else if (property_exists($o, "data") && is_array($o->data)) { 
+			foreach ($o->data as $series) {
+				$data[$series->name] = $this->data_parse($series->value, $x, $y);
+			}
+		} else {
+			_err("badly formed rpt_graph : invalid data");
+			return "";
 		}
+
 		$svg = new svg($w, $h);
 		$svg->colors($this->colors); 
 		if (property_exists($o, "xy") && $o->xy === true)
