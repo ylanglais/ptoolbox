@@ -141,11 +141,6 @@ class prov_view {
 			
 			***/
 
-			
-					
-
-
-
 					array_push($this->joins, "left join $o->ft on " . $this->view->tname . ".$o->sc = $o->ft.$o->fjc");
 
 				} else if ($this->frags->{$o->name}->type == "entity") {
@@ -272,6 +267,7 @@ class prov_view {
 		case "date":
 		case "time":
 		case "datetime":
+		case "timestamp":
 			if ($v == "") return "null";
 			return "'$v'";
 			break;
@@ -593,6 +589,7 @@ class prov_view {
 				case "date":
 				case "time":
 				case "datetime":
+				case "timestamp":
 					$w .= "$f = '$vv'";
 					break;
 				default:

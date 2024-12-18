@@ -159,6 +159,7 @@ class prov_db {
 				case "date":
 				case "time":
 				case "datetime":
+				case "timestamp":
 					if ($v == "") return "null";
 					return "'$v'";
 					break;
@@ -248,6 +249,7 @@ class prov_db {
 					case "date":
 					case "time":
 					case "datetime":
+					case "timestamp":
 						$w .= "$k = '$v'";
 						break;
 					default:
@@ -337,7 +339,14 @@ class prov_db {
 		else
 			$dat = $data;
 
+
 		if (is_array($dat)) $dat = (object) $dat;
+
+		$tst = (object) [];
+		foreach ($this->keys as $k) {
+			if (property_exists($dat, $k)) { $tst->$k = $dat->$k; }
+		}
+		if (($ori = $this->get($tst)) != false) return $this->update((object) [ "data" => $dat, "ori" => $ori[0] ]); 
 
 		$cols = [];
 		$vals = [];
@@ -388,7 +397,7 @@ class prov_db {
 		$whr = [];
 
 		# create where clause:
-		foreach ($this->keys as $k) {
+		foreach ($this->fields as $k) {
 			if (!property_exists($ori, $k)) {
 				err("missing key field $k");
 				return '{"status": false, "error": "missing key field '. $k .'"}';
@@ -399,13 +408,17 @@ class prov_db {
 			else                             array_push($whr, "$k = $v");
 		}
 
+		$autoupdate = 0;
 		foreach ($this->fields as $f) {
-			if ($ori->$f != $dat->$f) {
+			if (property_exists($dat, $f) && (!property_exists($ori, $f) || $ori->$f != $dat->$f)) {
+				if ($f == "mstamp") $autoupdate = 1;
 				$k = $this->fquote($f); 
 				$v = $dat->$f;
 				array_push($set, "$k = " . $this->quote($f, $v));
 			}
 		}
+		# Auto update of "updated" field:
+		if (in_array("mstamp", $this->fields) && !$autoupdate) array_push($set, "mstamp = now()"); 
 
 		if ($set != [] ) {
 			$sql = "update $this->table set " . implode(",", $set) . " where " . implode (" and ", $whr);
