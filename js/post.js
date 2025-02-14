@@ -21,6 +21,32 @@ function sync_load(id, url, data) {
 async function post(url, data) {
  	fetch(url, { method: "POST", credentials: 'same-origin', cache: 'no-cache', headers: {  'Content-Type': 'application/json' }, body: JSON.stringify(data)} );
 }
+async function download(url, data) {
+	console.log("in download");
+ 	fetch(url, { 
+		method: "POST", 
+		credentials: 'same-origin', 
+		cache: 'no-cache', 
+		headers: {  'Content-Type': 'application/json' }, body: JSON.stringify(data)})
+	.then(res  => {
+		cdis  = res.headers.get('Content-Disposition'); 
+		parts = cdis.split(';');
+		fpart = parts[1].split("=");
+		fname = fpart[1];
+		res.blob().then(blob => { 
+			console.log(blob);
+			var url = window.URL.createObjectURL(blob); 
+			var a      = document.createElement("a");
+				a.href = url;
+				a.download = fname;
+				document.body.appendChild(a);
+console.log(document.getElementById("a"));
+				a.click(); 
+				window.URL.revokeObjectURL(url);
+				document.body.removeChild(a);
+		});
+	 });
+}
 function sync_post(url, data) {
     var ws = null;
 	ws = new XMLHttpRequest();

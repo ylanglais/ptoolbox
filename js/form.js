@@ -42,4 +42,19 @@ function form_load(name, form, action) {
 	progress('form_result', form.fname);
 	ctrl("form", data, 'form_result');
 }
+function form_download(name, form, action) {
+ 	form = atob(form);
+	form = JSON.parse(form);
+	let data = {};
+	data["fname"] = form.fname;
+	data["form"]   = true;
+	data["action"] = action;
 
+	if (form.param_groups != []) {
+		for (j in form.param_groups) 
+			parse_params(data, form.param_groups[j]);
+	}
+
+	//console.log(data);
+	ctrl("form", data, null, false, true);
+}

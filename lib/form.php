@@ -93,7 +93,7 @@ class form {
 			if ($p["type"] == "date") {
 				$str .= "<td><input id='$n' name='$n' onclick='date_cal_open(this);' size='16' pattern='[0-3][0-9]/[0-1][0-9]/20[0-9][0-9]' placeholder='jj/mm/aaaa' value='"
 					   . date_db_to_human($this->vars->$n) . "'/></td></tr>\n";
-			} else if ($p["type"] == "string") {
+			} else if ($p["type"] == "string" || $p["type"] == "int" || $p["type"] == "integer") {
 				$str .= "<td><input id='$n' name='$n' value='" . $this->vars->$n. "'/></td></tr>\n";
 			} else if ($p["type"] == "list" || $p["type"] == 'mlist') {
 				$m = ""; 
@@ -121,8 +121,18 @@ class form {
 		$i++;
 		$str .= "\t</tr><tr class='but'><td class='submit' colspan='$i'>";
 		foreach ($this->actions as $a) {
+			$txt = "";
+			$act = "form_load";
+dbg($a);
+			if (is_array($a)) $a = (object) $a;
+			if (is_object($a)) {
+				if (property_exists($a, "text")) { $txt = $a->text; }
+				if (property_exists($a, "type") && $a->type == "download") $act = "form_download";
+	 		} else if (is_string($a)) {
+				$txt = $a;
+			}
 			$str .= "<input type='hidden' name='form' value='true'/>"; #<input type='hidden' name='vars' value='".json_encode($this)."'/>";
-			$str .= "<button onclick=\"form_load('form_result', '".base64_encode(json_encode($this))."', '$a')\">$a</button>";
+			$str .= "<button onclick=\"$act('form_result', '".base64_encode(json_encode($this))."', '$txt')\">$txt</button>";
 		}
 		$str .= "</td></tr>\n</table>\n</div>\n<div id='form_result' class='formresult'></div>\n";
 		return $str;
