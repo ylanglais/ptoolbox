@@ -40,7 +40,6 @@ async function download(url, data) {
 				a.href = url;
 				a.download = fname;
 				document.body.appendChild(a);
-console.log(document.getElementById("a"));
 				a.click(); 
 				window.URL.revokeObjectURL(url);
 				document.body.removeChild(a);
