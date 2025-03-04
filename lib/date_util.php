@@ -32,10 +32,10 @@ function yyyymmddhhmmss() {
 		$g = getdate();
 		return sprintf("%4d%02d%02d%02d%02d%02d", $g['year'], $g['mon'], $g['mday'], $g['hours'], $g['minutes'], $g['seconds']);
 }
-function timestamp() {
+function timestamp($sep='/') {
 		$g = getdate();
 		$u = substr(explode(".", explode(" ",microtime())[0])[1], 0, 3);
-		return sprintf("%4d/%02d/%02d %02d:%02d:%02d.%03d", $g['year'], $g['mon'], $g['mday'], $g['hours'], $g['minutes'], $g['seconds'], $u);
+		return sprintf("%4d$sep%02d$sep%02d %02d:%02d:%02d.%03d", $g['year'], $g['mon'], $g['mday'], $g['hours'], $g['minutes'], $g['seconds'], $u);
 }
 function dbstamp() {
 		$g = getdate();

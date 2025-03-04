@@ -1,5 +1,12 @@
 <?php
 
+function ping($host, $timeout = 1) {
+	exec("/usr/bin/ping -c1 -W$timeout $host 2>&1 ", $o, $st);
+    if (0 != $st)
+		return false; 
+	return true;
+}
+
 function get_ip() {
 	if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
 		return $_SERVER['HTTP_CLIENT_IP'];

@@ -107,12 +107,13 @@ $a = new args();
 $token = get_token(); 
 #
 # Check 
-if ($_session_->isnew() || $token == false) {
+#if ($_session_->isnew() || $token == false) {
+if ($token == false) {
 	#
 	# Check sourceIP:
 	$sip = sip_get();
 	if ($api_filter_ip === true) {
-		$q = new query("select hostname from api_ip where ip = '$sip'");
+		$q = new query("select hostname from tech.api_ip where ip = '$sip'");
 		if ($q->nrows() != 1)  {
 			_err('api connexion attempts from non authorized ip : '.$sip);
 			api_forbiden("unauthorized ip");
@@ -155,7 +156,7 @@ if ($_session_->isnew() || $token == false) {
 	$tok->sip = $sip;
 	$tok->exp = datetime_shift("+" . $api_expiration_minutes . " minutes");
 	 
-	$token = openssl_encrypt(json_encode($tok), $api_method, $api_key, 0, $api_iv);
+	$token = openssl_encrypt(json_encode($tok), $api_method, $api_key, 0, hex2bin($api_iv));
 
 
 	$_session_->create($u);
@@ -167,17 +168,16 @@ if ($_session_->isnew() || $token == false) {
 } else {
 	#
 	# Check token:
-	$tok = json_decode(openssl_decrypt($token, $api_method, $api_key, 0, $api_iv));
+	$tok = json_decode(openssl_decrypt($token, $api_method, $api_key, 0, hex2bin($api_iv)));
 	if (!is_object($tok) || !property_exists($tok, "sip") || !property_exists($tok, "exp") /*|| !property_exists($tok, "usr") || !property_exists($tok, "rol")*/) {
 		$_session_->destroy();
 		api_auth_required("bad token");
 	}
-
 	if ($tok->sip != sip_get()) {
 		$_session_->destroy();
 		api_auth_required("inconsistent ip");
 	} 
-	if (time() > $tok->exp) {
+	if (timestamp('-') > $tok->exp) {
 		$_session_->destroy();
 		api_auth_required("session expired");
 	}
@@ -202,16 +202,15 @@ case "ping":
 	break;
 
 case "probe":
-	if ($a->post("WHAT") === false)             api_reply("Nothing to probe");
-	if ($a->post("DTYP") === false)             api_reply("No dtyp to probe");
-	if ($a->post("DATA") === false)             api_reply("No data to probe");
-
+	if ($a->has("WHAT") === false)             api_reply("Nothing to probe");
+	if ($a->has("DTYP") === false)             api_reply("No dtyp to probe");
+	if ($a->has("DATA") === false)             api_reply("No data to probe");
 	$what = $a->post("WHAT");
 	$dtyp = $a->post("DTYP");
 	$data = $a->post("DATA");
 
-	if (!file_exists("usr/$what.php"))          api_reply("ko", "$what doesn't exist");
-	if (!(include("usr/$what.php")))            api_reply("ko", "$what is an inconsistent probe"); 
+	if (!file_exists("probe/$what.php"))          api_reply("ko", "$what doesn't exist");
+	if (!(include("probe/$what.php")))            api_reply("ko", "$what is an inconsistent probe"); 
 
 	$probe = new $what();
 
@@ -267,7 +266,7 @@ default:
 			} 
 			api_reply(...$rr);
 		} else {
-			api_notfount("bad request $req::$action");
+			api_notfound("bad request $req::$action");
 		}
 	} else {
 		api_notfound("bad request ($req)");
