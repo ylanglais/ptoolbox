@@ -4,7 +4,6 @@ require_once("lib/curl.php");
 require_once("lib/dbg_tools.php");
 
 class cw {
-
 	function __construct() {
 		$file = "conf/cw.php";
 		if (!file_exists($file)) {
@@ -39,7 +38,16 @@ class cw {
 	}
 
 	function servers() {
-		return $this->get("servers");
+		$p = 1;	
+		$s = [];
+		while ($b = $this->get("servers", [ "page" => $p, "per_page" => 100 ])) {
+			if (!is_array($b) || $b == []) break;
+			
+			$p++;
+			$s = array_merge($s, $b);
+			if (count($b) < 100) break;
+		}
+		return $s;
 	}
 
 	function server($id) {
