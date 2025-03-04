@@ -139,7 +139,7 @@ function glist($prov, $opts = []) {
 	} else $opts = $dopts;
 
 	$pdat = $prov->data();
-
+dbg($opts);
 	# 
 	# Gen identifier if not present:
 	if ($opts["id"] === false) $opts["id"]  = "glist_" . gen_elid();		
@@ -233,7 +233,7 @@ function glist($prov, $opts = []) {
 
 	#
 	# Compute header / footer only if required:
-	#
+	 
 	# Get data from provider from start offset + nb lines per page:
 	$all = $prov->query($opts["start"], $opts["page"], $opts["sort"], $opts["order"], $opts["filter"]);
 	if (!is_array($all) || (count($all) == 0)) {
@@ -247,9 +247,10 @@ function glist($prov, $opts = []) {
 	} else {
 		#
 		# Compute paging:
+dbg($opts["filter"]);
 		$pl = $opts["page"];
 		$so = $opts["start"];
-		$nr = $prov->count();
+		$nr = $prov->count($opts["filter"]);
 		$np = ceil($nr / $pl);
 		$lo = ($np - 1) * $pl;
 
@@ -375,7 +376,7 @@ function glist_ctrl() {
 	if ($a->has("prov"))   $prov = $a->val("prov");
 	if ($a->has("opts"))   $opts = $a->val("opts");
 	if ($a->has("fsel"))   $fsel = $a->val("fsel");
-	if ($a->has("filter")) $filt = $a->val("filter");
+	//if ($a->has("filter")) $filt = $a->val("filter");
 
 	if ($prov === false) {
 		err("no provider");
