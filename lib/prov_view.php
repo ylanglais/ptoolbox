@@ -2,6 +2,7 @@
 require_once("lib/prov.php");
 require_once("lib/db.php");
 require_once("lib/query.php");
+require_once("lib/util.php");
 
 class prov_view {
 	function __construct($view = null, $filter = null) {
@@ -324,7 +325,7 @@ class prov_view {
 	function type() {
 		return $this->type;
 	}
-	function count() {
+	function count($filter = null) {
 		if ($this->init  === false) return false;
 		$s = "select count(*) from ". $this->view->tname . " " . implode(' ', $this->joins) ;
 		$q = new query($s);

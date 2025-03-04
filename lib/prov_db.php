@@ -229,6 +229,10 @@ class prov_db {
 				$i++;
 				if (property_exists($this->cols, $k)) {
 					switch($this->cols->{$k}->data_type) {
+					case "bool": 
+					case "boolean": 
+						$w .= "$k = $v";
+						break;
 					case "int":
 					case "int2":
 					case "int4":
@@ -262,10 +266,12 @@ class prov_db {
 		return $w;
 	}
 
-	function count() {
+	function count($filter = null) {
 		if ($this->init === false) return false;
 		if ($this->count !== false) return $this->count;
-		$sql = "select count(*) as count from $this->table " . $this->_whereclause();
+dbg($filter);
+		$sql = "select count(*) as count from $this->table " . $this->_whereclause($filter);
+dbg($sql);
 		$q = new query($this->db, $sql);
 		$o = $q->obj();
 		if ($o === false || !is_object($o) || !property_exists($o, "count")) return ($this->count = 0);
@@ -338,7 +344,6 @@ class prov_db {
 			$dat = $data->data;
 		else
 			$dat = $data;
-
 
 		if (is_array($dat)) $dat = (object) $dat;
 

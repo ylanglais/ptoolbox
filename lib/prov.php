@@ -46,9 +46,9 @@ class prov {
 		if ($this->prov == null) return null;
 		return $this->prov->perm();	
 	}
-	function count() {
+	function count($filter = null) {
 		if ($this->prov == null) return null;
-		return $this->prov->count();
+		return $this->prov->count($filter);
 	}
 	function data() {
 		if ($this->prov == null) return null;
