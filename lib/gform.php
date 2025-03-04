@@ -8,7 +8,7 @@ function gform($prov, $req = false, $opts = null) {
 	$html = "";
 
 	$id   = gen_elid();
-	$html .= "<div class='gform' id='$id'>\n";
+	$html .= "<div class='gform' id='__gform_$id'>\n";
 
 	$o = false;
 	 
@@ -19,10 +19,8 @@ function gform($prov, $req = false, $opts = null) {
 	} 
 	$flds = $prov->fields();
 	$html .= "<table class='form'>\n";
-	if (property_exists($opts, "parentid"))
-		$html .= "<input type='hidden'  id='__parentid__' value='$opts->parentid'/>";
-	$html .= "<input type='hidden' id='opts' value='".json_encode($opts)."'/>";
-	$html .= "<input type='hidden' id='__ori__' value='".json_encode($o)  ."'/>";
+	$html .= "<input type='hidden' id='__opts_$id' value='".json_encode($opts)."'/>";
+	$html .= "<input type='hidden' id='__ori_$id' value='".json_encode($o)  ."'/>";
 
 	$ovc = "onchange='this.classList.add(\"modified\");gform_changed(\"$id\");'";
 
@@ -72,12 +70,11 @@ function gform($prov, $req = false, $opts = null) {
 		}
 	}
 
-	$pdat = $prov->data();
 	if (is_object($opts) && property_exists($opts, "ronly") && $opts->ronly !== true) {
 		$html .= "<tr><td colspan='3'>";
-		$html .= "<input type='button' value='New'    onclick='gform_action(\"$id\", $pdat, \"new\")'/>\n";
-		$html .= "<input type='button' value='Update' onclick='gform_action(\"$id\", $pdat, \"update\")'/>\n";
-		$html .= "<input type='button' value='Delete' onclick='gform_action(\"$id\", $pdat, \"delete\")'/>\n";
+		$html .= "<input type='button' value='New'    onclick='gform_action(\"$id\", \"new\")'/>\n";
+		$html .= "<input type='button' value='Update' onclick='gform_action(\"$id\", \"update\")'/>\n";
+		$html .= "<input type='button' value='Delete' onclick='gform_action(\"$id\", \"delete\")'/>\n";
 		$html .= "</td></tr>";
 	}
 	$html .= "</table>\n";
