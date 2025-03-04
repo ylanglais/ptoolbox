@@ -49,6 +49,9 @@ class zabbix {
 	function host_by_grpid($grpid) {
 		return $this->_post("host.get", ["groupids" => $grpid]);
 	}
+	function host_get($params = []) {
+		return $this->_post("host.get", $params);
+	}
 	function service_get($params = []) {
 		return $this->_post("service.get", $params);
 	}
@@ -61,7 +64,6 @@ class zabbix {
 	function alert_get($params = []) {
 		return $this->_post("sla.get", $params);
 	}
-	
 	function hostinterface_get($params = []) {
 		return $this->_post("hostinterface.get", $params);
 	}
