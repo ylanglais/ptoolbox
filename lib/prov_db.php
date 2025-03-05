@@ -43,8 +43,7 @@ class prov_db {
 			$base  = $m[1];
 			$table = $m[2];
 
-			$perm = get_perm("table", $table);
-
+			$perm = get_perm("table", "$base.$table");
 			if ($perm != 'RONLY' && $perm != 'ALL' && $perm != 'SYSTEM') {
 				$s =  "Attempted access to table $d without due permission";
 				audit_log("SECURITY", $s);
