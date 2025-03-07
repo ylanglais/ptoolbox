@@ -139,7 +139,6 @@ function glist($prov, $opts = []) {
 	} else $opts = $dopts;
 
 	$pdat = $prov->data();
-dbg($opts);
 	# 
 	# Gen identifier if not present:
 	if ($opts["id"] === false) $opts["id"]  = "glist_" . gen_elid();		
@@ -247,7 +246,6 @@ dbg($opts);
 	} else {
 		#
 		# Compute paging:
-dbg($opts["filter"]);
 		$pl = $opts["page"];
 		$so = $opts["start"];
 		$nr = $prov->count($opts["filter"]);

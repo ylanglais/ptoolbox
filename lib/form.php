@@ -123,7 +123,6 @@ class form {
 		foreach ($this->actions as $a) {
 			$txt = "";
 			$act = "form_load";
-dbg($a);
 			if (is_array($a)) $a = (object) $a;
 			if (is_object($a)) {
 				if (property_exists($a, "text")) { $txt = $a->text; }

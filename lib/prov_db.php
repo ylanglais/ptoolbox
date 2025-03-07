@@ -172,7 +172,7 @@ class prov_db {
 
 	function defval($f) {
 		if ($this->init === false) return false;
-		if (property_exists($this->cols, $f)) {
+		if (property_exists($this->cols, $f) && property_exists($this->cols->{$f}, "column_default")) {
 			return $this->cols->{$f}->column_default;
 		}
 		return "";
@@ -268,9 +268,7 @@ class prov_db {
 	function count($filter = null) {
 		if ($this->init === false) return false;
 		if ($this->count !== false) return $this->count;
-dbg($filter);
 		$sql = "select count(*) as count from $this->table " . $this->_whereclause($filter);
-dbg($sql);
 		$q = new query($this->db, $sql);
 		$o = $q->obj();
 		if ($o === false || !is_object($o) || !property_exists($o, "count")) return ($this->count = 0);

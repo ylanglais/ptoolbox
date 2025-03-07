@@ -130,7 +130,6 @@ class user {
 			$b = $a; 
 			array_push($b, "*");
 			$k = implode(".", $b); 
-
 			if (array_key_exists($k, $this->rights[$type])) {
 				return $this->rights[$type][$k];
 			} 
@@ -179,7 +178,7 @@ class user {
 				$this->load_rights();
 				
 				return true;
-			} else { _warn("ldap not matching"); }
+			} #else { #_warn("ldap not matching"); }
 
 			# test local auth:
 			$auth = new auth_local();
