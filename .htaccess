@@ -1,4 +1,20 @@
 RewriteEngine on
-RewriteBase /
-RewriteRule ^api/([A-Za-z]+)$ api.php?req=$1
-RewriteRule ^api/([A-Za-z]+)/([A-Za-z]+)$ api.php?req=$1&action=$2
+#RewriteBase /
+#RewriteCond %{REQUEST_FILENAME} !-d
+#RewriteCond %{REQUEST_FILENAME}\.php -f
+
+#RewriteRule ^(.*[^/])$ $1/ 
+#
+RewriteRule ^api/$ 								api.php
+RewriteRule ^probe/$ 							api.php
+RewriteRule ^ctrl/$ 							ctrl.php
+RewriteRule ^(.*/)$ 							$1.php
+#
+RewriteRule ^api/([A-Za-z]+)$ 					api.php?req=$1
+RewriteRule ^api/([A-Za-z]+)/([A-Za-z]+)$ 		api.php?req=$1&action=$2
+
+RewriteRule ^probe/([A-Za-z]+)$ 				api.php?req=probe&what=$1
+RewriteRule ^probe/([A-Za-z]+)/([A-Za-z]+)$ 	api.php?req=probe&what=$1&dtyp=$2
+#
+#RewriteRule ^probe/([A-Za-z]+)$ 			api.php?req=$1
+#RewriteRule ^probe/([A-Za-z]+)/([A-Za-z]+)$ api.php?req=$1&action=$2

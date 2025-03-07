@@ -1,0 +1,5 @@
+#!/usr/bin/bash
+LFMTDB_URL="http://lfmtdbrec/api/"
+#LFMTDB_CKI="PHPSESSID"
+LFMTDB_USER="api"
+LFMTDB_PASS="rIRNsZ75eY5Is"

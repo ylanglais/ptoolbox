@@ -1,0 +1,26 @@
+#!/usr/bin/bash
+#vim:ft=bash:ts=4:sw=4
+#
+. .lfmtdbrec.pconf
+export TOKEN=""
+
+_token_get() {
+	data="{ \"req\": \"login\", \"login\": \"$LFMTDB_USER\", \"passwd\": \"$LFMTDB_PASS\" }"
+	curl -s -X POST $LFMTDB_URL -d "$data" -H "Content-type: application/json" -L -c .cookies -b .cookies 
+}
+_curl_post() {
+	ld=$1
+	curl -s -X POST $LFMTDB_URL -d "$ld" -H "Content-type: application/json" -H "Authorization: Bearer $TOKEN" -L -c .cookies -b .cookies 
+}
+probe_init() {
+	r=$(_token_get)
+	TOKEN=$(echo $r | jq -r '.data.token')
+	#echo "token = $TOKEN"
+}
+probe_send() {
+	what=$1
+	dtyp=$2
+	data=$3
+    _curl_post "{\"req\": \"probe\", \"WHAT\": \"$what\", \"DTYP\": \"$dtyp\", \"DATA\": $data}" 
+}
+probe_init

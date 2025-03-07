@@ -100,7 +100,8 @@ function api_reply($msg, $data = '', $token = false) {
 }
 #
 # Start/Restore session:
-if (!isset($_session_)) $_session_ = new session();
+#if (!isset($_session_)) $_session_ = new session();
+$_session_ = new session();
 $a = new args();
 
 
@@ -132,16 +133,13 @@ if ($token == false) {
 		_err('api connexion attempts with missing parameters from ' . $sip);
 		api_forbiden("missing parameters");
 	}
-
 	$u = new user();
-
 	#
 	# Check passwd:
 	if (!($u->auth_check($a->post("login"), $a->post("passwd"),  $_SERVER['REMOTE_ADDR']))) {
 		_err('api connexion attempts with bad login/passwd pair '.$a->post('login').' from ' . $_SERVER['REMOTE_ADDR']);
 		api_forbiden("bad login/passwd");
 	}
-
 	#
 	# check if user is authorized to use api:
 	if (!$u->has_role("api")) {
@@ -157,7 +155,6 @@ if ($token == false) {
 	$tok->exp = datetime_shift("+" . $api_expiration_minutes . " minutes");
 	 
 	$token = openssl_encrypt(json_encode($tok), $api_method, $api_key, 0, hex2bin($api_iv));
-
 
 	$_session_->create($u);
 	$a->clean("passwd");
@@ -202,19 +199,23 @@ case "ping":
 	break;
 
 case "probe":
+	$data = null;
 	if ($a->has("WHAT") === false)             api_reply("Nothing to probe");
 	if ($a->has("DTYP") === false)             api_reply("No dtyp to probe");
-	if ($a->has("DATA") === false)             api_reply("No data to probe");
+	#if ($a->has("DATA") === false)            api_reply("No data to probe");
+
 	$what = $a->post("WHAT");
 	$dtyp = $a->post("DTYP");
-	$data = $a->post("DATA");
 
-	if (!file_exists("probe/$what.php"))          api_reply("ko", "$what doesn't exist");
-	if (!(include("probe/$what.php")))            api_reply("ko", "$what is an inconsistent probe"); 
+	if ($a->has("DATA")) $data = $a->post("DATA");
+
+	if (!file_exists("probe/$what.php"))        api_reply("ko", "$what doesn't exist");
+	if (!(include("probe/$what.php")))          api_reply("ko", "$what is an inconsistent probe"); 
 
 	$probe = new $what();
 
-	$d = null;
+	$d = json_encode($data);
+/***
 	if ($data != null) {
 		$d = json_decode($data);
 		if ($d == null) {
@@ -222,11 +223,12 @@ case "probe":
 			api_reply("ko", "malformed data");
 		}
 	}
+***/
 	if (!method_exists($probe, $dtyp)) 	api_reply("ko", "$what probe has not method called $dtyp");
 
 	$r = $probe->$dtyp($d);
 
-	api_reply("ok", json_encode($r));
+	api_reply("ok", $r);
 	break;
 
 default:
