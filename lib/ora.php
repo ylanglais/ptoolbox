@@ -66,7 +66,7 @@ class ora {
 			}
 		}
 #dbg("$db_user, $db_pass, $db_dsn");
-		if (($this->oci = oci_connect($db_user, $db_pass, $db_dsn)) === false) {
+		if (($this->oci = oci_connect($db_user, $db_pass, $db_dsn, "UTF8")) === false) {
 			_err("Cannot connect to db using $db_dsn: " . oci_errorInfo());
 			$this->oci = false;
 			return;
@@ -88,7 +88,7 @@ class oqry {
 		$oci = 	$ora->oci();
 		if ($oci === false) return;
 		if (($this->qry = oci_parse($ora->oci(), $query)) === false) {
-			err("Cannot proces query $qry: " . oci_error() . "\n");
+			err("Cannot proces query $query: " . oci_error() . "\n");
 			$this->err = oci_error();
 			$this->qry = false;
 			return;

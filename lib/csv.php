@@ -87,7 +87,7 @@ class csv {
 	 * @param $k	the column name to check
 	 * @return false if no column is named $k, else return true
 	 */
-	function has_key(string $k): boolean {
+	function has_key(string $k): bool {
 		if (!key_exists($k, $this->flds)) return false;	
 		return true;
 	}
@@ -98,7 +98,8 @@ class csv {
 	 * @param $field	may be a field number if int or a field name if string or unset/empty to get the whole line as an object 
 	 * @return null	if empty or field num out of bounds or field is not a proper column name, the whole line as an object if $field is empty, the requested field if found
 	 */
-	function get(int $line, boolean|int|string $field = false): null|string|object {
+	#function get(int $line, boolean|int|string $field = false): null|string|object {
+	function get(int $line, $field = false) {
 		if ($this->nlines == 0) {
 			err("empty file");
 			return NULL;
@@ -158,7 +159,7 @@ class csv {
 	 * @param $object	the new line
 	 * @return false if no column defnition present else true;
 	 */
-	function push(object $obj): boolean {
+	function push(object $obj): bool {
 		#
 		# Check we have at list header & field list:
 		if (!$this->hdr || !$this->flds) {
@@ -188,7 +189,8 @@ class csv {
 	 * @param $encl	encloser (default none)
 	 * @return true if ok or false if an error occured
 	 */
-	function write(string $file, boolean $header = true, string $sep = ";", string $encl = ''): boolean {
+	#function write(string $file, boolean $header = true, string $sep = ";", string $encl = ''): boolean {
+	function write(string $file, $header = true, $sep = ";", $encl = ''): bool {
 		#
 		# Check we have at list header & field list:
 		if (!$this->hdr || !$this->flds) {
@@ -234,7 +236,7 @@ class csv {
 	 * @param $encl	encloser (default none)
 	 * @return true if ok or false if an error occured
 	 */
-	function read(string $file, string $sep = ";", string $encl = ''): boolean  {
+	function read(string $file, string $sep = ";", string $encl = ''): bool  {
 		# TODO: allow 1st line not to be a header if header already given.
 		if (!file_exists($file)) {
 			err("file '$file' does not exist");

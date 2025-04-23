@@ -1,0 +1,6 @@
+
+alter table infra.host add column cyberwatch bool default false;
+alter table infra.host add column sentinel1 bool default false;
+alter table infra.host add column comments varchar(200);
+alter table infra.host add column monitored bool default false;
+insert into db.changelog (action) values ('patch 202412.hosts.sql');

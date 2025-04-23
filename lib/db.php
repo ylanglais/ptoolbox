@@ -318,7 +318,8 @@ class db {
 		while ($r = $this->data()) {
 			$c = (object) [];
 			foreach ($r as $k => $v) { 
-				if ($k == "column_default" && preg_match("/^([^:]*)::(.*)$/", $v, $m)) $v = $m[2];
+				if ($k == "column_default" && preg_match("/^([^:]*)::(.*)$/", $v, $m)) $v = $m[1];
+				else 
 				$c->$k = $v; 
 			}
 			$cols[$c->column_name] = $c;

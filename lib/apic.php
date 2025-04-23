@@ -33,7 +33,7 @@ class apic {
 	function __destruct() {
 		$c = new curl($this->url, $this->hdr, $this->noproxy, $this->debug);
 		if ($this->url === false) return;
-		$c->post("logout");
+		$c->post("", '{ "req": "logout" }');
 	}
 
 	function _connect() {
@@ -42,7 +42,7 @@ class apic {
 			err("connot connect");
 			return;
 		}
-		if (($r = trim($c->post("login", '{ "login":"'. $this->login . '", "passwd":"'. $this->passwd .'"}' ))) === false) {
+		if (($r = trim($c->post('', '{ "req": "login", "login":"'. $this->login . '", "passwd":"'. $this->passwd .'"}' ))) === false) {
 			$this->url = false;
 			err("cannot connect to api");
 			return;
@@ -64,7 +64,7 @@ class apic {
 		array_push($this->hdr, "Authorization: Bearer $token");
 	}
 
-	function call($action, $data = false) {
+	function call($api, $action, $data = false) {
 		if ($this->url === false) {
 			err("not connected");
 			return false;
@@ -76,7 +76,10 @@ class apic {
 			err("connot connect");
 			return false;
 		}
-		$r = $c->post($action, $data);
+		if ($data == "") {
+			$data = "{}";
+		}
+		$r = $c->post("", '{ "req": "' . $api . '", "action" : "'.$action. '", "data" : '. $data. '}');
 		if ($r === false) return false;
 		$r = trim($r);
 		$o = json_decode($r);
@@ -95,13 +98,13 @@ class apic {
 	}
 
 	function test() {
-		$r = $this->call("ping");
+		$r = $this->call("test", "ping");
 		if (is_object($r) && property_exists($r, "tstamp")) return true;
 		return false;
 	}
 
 	function ping() {
-		$r = $this->call("ping");
+		$r = $this->call("test", "ping");
 		if (is_object($r) && property_exists($r, "tstamp")) 
 			return $r->tstamp;
 		return false;
