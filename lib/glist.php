@@ -198,6 +198,7 @@ function glist($prov, $opts = []) {
 		$d = glist_dopts($opts);
 
 		foreach ($cols as $f) {
+	$all = $prov->query($opts["start"], $opts["page"], $opts["sort"], $opts["order"], $opts["filter"]);
 			$extra = "";
 			if ($f == $opts["sort"]) {
 				$extra .= ' sel ';
@@ -341,7 +342,11 @@ function glist($prov, $opts = []) {
 		}
 	}
 	#$d = glist_dopts($opts, $so, $pl);
-	$html .= "</td><td class='navpad'>lignes par page:<input style='width: 20px; text-align: right;' id='lpp' value='$pl' onchange='glist_go(\"$id\", null, this.value)'></tr></tfoot></table>";
+	$html .= "</td><td class='navpad'>lignes par page:<input style='width: 20px; text-align: right;' id='lpp' value='$pl' onchange='glist_go(\"$id\", null, this.value)'></tr>";
+	$html .= "<tr><td class='hdr' colspan='$n'><a onclick='glist_view(\"".$opts["gform_id"]."\", \"{}\")'><img height='25px' src='images/add.norm.png' onmouseover='this.src=\"images/add.pre.png\"' onmouseout='this.src=\"images/add.norm.png\"'/></a></td>";
+	$html .= "<td><button onclick='glist_export(\"$id\")'>Export to CSV</button></td></tr>";
+
+	$html .= "</tfoot></table>";
 
 	return $html;
 }
@@ -359,6 +364,45 @@ function glist_popup($prov) {
 
 function glist_fdata($prov, $field) {
 	$p = new prov($prov);
+}
+
+function glist_export($prov, $opts, $type = "csv") {
+	$prov = new prov($prov);
+	$fields = $prov->fields();
+	if ($fields === false) return null;
+
+	$cols = json_decode($opts->columns);
+	if ($cols == []) $cols = $fields;
+
+	$csv = implode(";", $cols) . "\n";
+
+	$all = $prov->query($opts->start, 0, $opts->sort, $opts->order, $opts->filter);
+	foreach ($all as $i => $d) {
+		$l = [];
+		foreach ($cols as $c) {
+			if (strstr(";", $d->$c)) $s = '"'.$d->$c.'"';
+			else $s = $d->$c; 
+			array_push($l, $s);
+		}
+		$csv .=	 implode(";", $l) . "\n";
+	}
+	$date = today("");
+	header("Pragma: public");
+	header("Expires: 0"); // set expiration time
+	header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
+	header("Content-Type: application/force-download");
+	header("Content-Type: application/octet-stream");
+	header("Content-Type: application/download");
+	header("Content-Disposition: attachment; filename=".$prov->name().".$date.csv");
+	header("Content-Transfer-Encoding: binary");
+	header("Content-Length: ".strlen($csv));
+	header("Content-Type: text/csv");
+	ob_flush();
+	flush();
+	print($csv . "\n");
+	ob_flush();
+	flush();
+	exit;		
 }
 
 function glist_ctrl() {
@@ -386,6 +430,15 @@ function glist_ctrl() {
 			glist_user_fsel_save($prov, $fsel);
 		}
 	}
+
+	if ($a->has("cmd")) {
+		$cmd = $a->val("cmd");
+		$fmt = "csv";
+		if ($a->has("format")) $fmt = $a->val("format");
+		glist_export($prov, $opts, $fmt); 
+		exit;
+	}
+	
 	if ($a->has("fdata")) {
 		$fdata = $a->val("fdata");
 		$str = null;
@@ -393,6 +446,7 @@ function glist_ctrl() {
 		return $prov->fdata($fld, $str);
 	}	  
 	return glist(new prov($prov), $opts);
+	
 }
 
 ?>

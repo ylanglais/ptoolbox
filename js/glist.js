@@ -126,4 +126,8 @@ function glist_fdata_list(e, id, fld) {
 	fdata = ctrl("glist", {"fdata":fld, "prov": pdat});
 	e.backup = e;
 }
-
+function glist_export(id) {
+	pdat = glist_pdat(id);
+	opts = glist_opts(id);
+	ctrl("glist", {"opts":opts, "prov": pdat, "cmd": "export", "format": "csv"}, null, false, true);
+}
