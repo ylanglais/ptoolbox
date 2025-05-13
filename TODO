@@ -10,14 +10,20 @@ NEW:
 GLIST:  
 	- Add row count/goto row
 	- Count distinct on each columns
+	- Save/load view (fsel+filter)
+
+PROV:
+	- Automatic index (seq, uuid,...)
 
 PROV_DB
-	- Implement glist filter support
 
 PROV_VIEW:
-	- implement glist filter support
 	- simplify
 	- idee: reuse rcu dst ?
+	- Add m:n relation tables
+
+IMPORTER: 
+	- plug importer (rely on PROV: Automatic index)
 
 GFORM:
 	- Default, 
@@ -25,6 +31,9 @@ GFORM:
 	- Interactive lookup (popups).
 	- Dropdown combo
 	- Actions from wf 
+	- New empty form
+	- Hide index
+	- Ordering widget
 
 DBEXPL:
 	- Add oracle/ora/odbc
