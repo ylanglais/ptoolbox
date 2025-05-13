@@ -7,9 +7,8 @@ require_once("lib/date_util.php");
 
 class majos {
 	#const req = "select name, distrib from infra.host where isvm and ison = true and lastping is not null and osfamily = 'LINUX' and env = 'test'";
-	#const req = "select name, distrib from infra.host where isvm and ison = true and lastping is not null and osfamily = 'LINUX' and (type is null or type != 'Appliance')";
-	const req = "select name, distrib from infra.host where isvm and ison = true and lastping is not null and name='mongodb-1'";
-
+	#const req = "select name, distrib from infra.host where isvm and ison = true and lastping is not null and name='mongodb-1'";
+	const req = "select name, distrib from infra.host where isvm and ison = true and lastping is not null and osfamily = 'LINUX' and (type is null or type != 'Appliance')";
 
 	function host_list_csv() {
 		$q = new query(self::req);
@@ -37,6 +36,5 @@ class majos {
 		$p->put($a);
 	}
 }
-
 
 ?>
