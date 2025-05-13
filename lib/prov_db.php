@@ -295,7 +295,11 @@ class prov_db {
 			if ($order !== 'up')
 				$q .= " desc";
 		}
-		$q .= " limit $limit offset $start"; 
+		if ($limit == 0) {
+			$q .= " offset $start";	
+		} else {
+			$q .= " limit $limit offset $start"; 
+		}
 		#dbg("query= $q");
 		$q = new query($this->db, $q);
 		return $q->all();	

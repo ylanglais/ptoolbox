@@ -609,7 +609,9 @@ class prov_view {
 			$s .= " order by \"$sortby\"";
 			if ($order !== 'up') $s .= " desc";
 		}
-		$s .= " offset $start limit $stop";
+		
+		$s .= " offset $start";
+		if ($stop > 0) $s .= " limit $stop";
 #dbg($s);
 		$q = new query($s);
 		return $q->all();	
