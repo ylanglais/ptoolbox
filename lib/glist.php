@@ -376,7 +376,7 @@ function glist_export($prov, $opts, $type = "csv") {
 
 	$csv = implode(";", $cols) . "\n";
 
-	$all = $prov->query($opts->start, 0, $opts->sort, $opts->order, $opts->filter);
+	$all = $prov->query(0, 0, $opts->sort, $opts->order, $opts->filter);
 	foreach ($all as $i => $d) {
 		$l = [];
 		foreach ($cols as $c) {
