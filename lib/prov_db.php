@@ -219,7 +219,7 @@ class prov_db {
 		if ($this->init === false) return false;
 		$w = "";
 		if ($filter != null && is_object($filter)) $filter = (object) $filter;
-		if ($filter != []) {
+		if (is_array($filter) && $filter != []) {
 			$w = " where ";
 			# condition is based on a key value pair with %:
 			$i = 0;
@@ -295,11 +295,8 @@ class prov_db {
 			if ($order !== 'up')
 				$q .= " desc";
 		}
-		if ($limit == 0) {
-			$q .= " offset $start";	
-		} else {
-			$q .= " limit $limit offset $start"; 
-		}
+		if ($start > 0) $q .= " offset $start";	
+		if ($limit > 0)  $q .= " limit $limit";
 		#dbg("query= $q");
 		$q = new query($this->db, $q);
 		return $q->all();	
