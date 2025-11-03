@@ -416,44 +416,5 @@ class db {
 	}
 #
 ######################################################################################
-/*
- *  Obsolete features:
-
-	function entity($name, $tmpl = []) { 
-		$sql = "select * from $name";
-
-		$tc = $this->table_columns($name);
-		if ($tc == []) return false;
-
-		$where = [] ;
-		if ($tmpl != []) {
-			foreach ($tmpl as $k => $v) {
-				array_push($where, "$k = $v");
-			}	
-		}
-		if ($where != []) $wc = " where" . implode(" and ", $where);
-		
-		$this->query($sql . " $wc");
-		return $this->obj();
-	}
-
-	function entity_list($name, $tmpl = []) { 
-		$sql = "select * from $name";
-
-		$tc = $this->table_columns($name);
-		if ($tc == []) return false;
-
-		$where = [] ;
-		if ($tmpl != []) {
-			foreach ($tmpl as $k => $v) {
-				array_push($where, "$k = $v");
-			}	
-		}
-		if ($where != []) $wc = " where" . implode(" and ", $where);
-		
-		$this->query($sql . " $wc");
-		return $this->all();
-	}
-****/
 }
 ?>

@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 . ./probe.lib
 echo "probe: majos.list_get():"
 r=$(probe_send "majos" "host_list" 1)
@@ -12,10 +12,10 @@ do
 
 	case $os in
 	"UBUNTU" | "DEBIAN")
-		rep=$(ssh -q root@$host "dpkg -l | tail -n +6 | wc -l;apt-get --just-print upgrade | grep '^Inst' | wc -l")
+		rep=$(__ssh root@$host "dpkg -l | tail -n +6 | wc -l;apt-get --just-print upgrade | grep '^Inst' | wc -l")
 		;;
 	"CENTOS"|"OL"|"ORACLE"|"REDHAT"|"SUZE")
-		rep=$(ssh -q root@$host "rpm -qa | wc -l; yum check-update | tail -n +4 | wc -l")
+		rep=$(__ssh root@$host "rpm -qa | wc -l; yum check-update | tail -n +4 | wc -l")
 		;;
 	*)
 		;;

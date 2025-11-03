@@ -24,7 +24,7 @@ function dbexp_table_list($dbs) {
 	$str = "<table class='glist'><tr><th>Tables</th></tr>\n";
 	$drv = "pgsql";
 	if ($dbs != "default") {
-		$q = new query("select * from tech.dbs where dbs = '$dbs'");
+		$q = new query("select * from tech.dbs where dbs = :dbs", [ ":dbs" => $dbs ]);
 		if ($q->nrows() < 1) return "";
 		$o = $q->obj();
 		$drv = $o->drv;
@@ -35,7 +35,7 @@ function dbexp_table_list($dbs) {
 		$q = new query($ora, "select distinct owner as schema FROM all_tables");
 		while ($o = $q->obj()) { 
 			$s = $o->SCHEMA;
-			$q2 = new query($ora, "SELECT TABLE_NAME as table_name from all_tables where Owner = '$s'");
+			$q2 = new query($ora, "SELECT TABLE_NAME as table_name from all_tables where Owner = :schema", [":schema" => $s]);
 			while($o2 = $q2->obj()){
 				array_push($l, "$s." . $o2->TABLE_NAME);
 			}

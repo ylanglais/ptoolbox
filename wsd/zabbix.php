@@ -52,6 +52,9 @@ class zabbix {
 	function host_get($params = []) {
 		return $this->_post("host.get", $params);
 	}
+	function interface_get($params = []) {
+		return $this->_post("hostinterface.get", $params);
+	}
 	function service_get($params = []) {
 		return $this->_post("service.get", $params);
 	}

@@ -1,6 +1,8 @@
 <?php 
 
 require_once("lib/args.php");
+require_once("lib/db.php");
+require_once("lib/query.php");
 require_once("lib/stats.php");
 
 class form {

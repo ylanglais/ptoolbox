@@ -20,7 +20,12 @@ function _schema() {
  */
 function audit_login_error($login, $ip, $error) {
 	$t  = _schema() . "connection";
-	new query("insert into $t values ('', '$login', now(), null, '$ip', '$error')");
+	new query("insert into $t values (:empty, :login, now(), null, :ip, :error)", [
+		":empty" => "",
+		":login" => $login,
+		":ip"    => $ip,
+		":error" => $error
+	]);
 }
 
 /** 
@@ -31,7 +36,11 @@ function audit_login_error($login, $ip, $error) {
  */
 function audit_login($sid, $login, $ip) {
 	$t  = _schema() . "connection";
-	new query("insert into $t values ('$sid', '$login', now(), null, '$ip', 'login')");
+	new query("insert into $t values (:sid, :login, now(), null, :ip, 'login')", [
+		":sid"   => $sid,
+		":login" => $login,
+		":ip"    => $ip
+	]);
 }
 
 /** 
@@ -40,7 +49,9 @@ function audit_login($sid, $login, $ip) {
  */
 function audit_logout($sid) {
 	$t  = _schema() . "connection";
-	new query("update $t set until=now(), State='logout' where id = '$sid' and State = 'login' and since = (select max(since) from $t where id = '$sid' and State = 'login')");
+	new query("update $t set until=now(), State='logout' where id = :sid' and State = 'login' and since = (select max(since) from $t where id = :sid and State = 'login')", [
+		":sid" => $sid
+	]);
 }
 /** 
  * function to log message to table audit.log
@@ -51,9 +62,21 @@ function audit_log($level, $msg) {
 	$ip  = get_ip();
 	if ($ip === false) $ip = 'no ip';
 	$usr = get_user();
-	new query("insert into audit.log values (to_char(now(), 'YYYY-MM-DD HH24:MI:SS.MS'), '$ip',  '$usr', '$level', '" . esc($msg) . "')"); 
+	new query("insert into audit.log values (to_char(now(), 'YYYY-MM-DD HH24:MI:SS.MS'), :ip,  :usr, :level, :msg)", [
+		":ip"    => $ip,
+		":usr"   => $usr,
+		":level" => $level,
+		":msg"   => $msg
+	]); 
 }
 function audi_action($entiy, $entityid, $version, $action, $comment) {
-	#new query("insert into audit.actions values (to_char(now(), 'YYYY-MM-DD HH24:MI:SS.MS'), '$ip',  '$usr', '$level', '" . esc($msg) . "')"); 
+/*
+	new query("insert into audit.actions values (to_char(now(), 'YYYY-MM-DD HH24:MI:SS.MS'), :ip,  :usr, :level, :msg)", [
+		":ip"    => $ip,
+		":usr"   => $usr,
+		":level" => $level,
+		":msg"   => $msg
+	]); 
+*/
 }
 ?> 

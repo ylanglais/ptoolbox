@@ -114,7 +114,7 @@ if ($token == false) {
 	# Check sourceIP:
 	$sip = sip_get();
 	if ($api_filter_ip === true) {
-		$q = new query("select hostname from tech.api_ip where ip = '$sip'");
+		$q = new query("select hostname from tech.api_ip where ip = :ip", [":ip" => $sip]);
 		if ($q->nrows() != 1)  {
 			_err('api connexion attempts from non authorized ip : '.$sip);
 			api_forbiden("unauthorized ip");

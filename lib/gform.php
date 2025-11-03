@@ -1,8 +1,9 @@
 <?php
 
 require_once("lib/args.php");
-require_once("lib/prov.php");
 require_once("lib/util.php");
+require_once("lib/query.php");
+require_once("lib/prov.php");
 
 function gform($prov, $req = false, $opts = null) {
 	$html = "";

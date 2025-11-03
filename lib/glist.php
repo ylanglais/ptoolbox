@@ -21,11 +21,11 @@ function glist_user_pref_get($prov) {
 	$opts = [];
 	$uid = get_user_id();
 	$pid = $prov->id();
-	$q =  new query("select * from param.glist where user_id = $uid and provider = '$pid'");
+	$q =  new query("select * from param.glist where user_id = :uid and provider = :pid", [ ":uid" => $uid, ":pid" => $pid ]);
 	if ($q->nrows() <= 0) {
-		$q =  new query("select * from param.glist where role_id in (select role_id from tech.user_role where user_id = $uid and role_id > 0 order by role_id)  and provider = '$pid' order by role_id");
+		$q =  new query("select * from param.glist where role_id in (select role_id from tech.user_role where user_id = :uid and role_id > 0 order by role_id)  and provider = :pid order by role_id", [ ":uid" => $uid, ":pid" => $pid ]);
 		if ($q->nrows() <= 0) {
-			$q =  new query("select * from param.glist where role_id = 0 and provider = '$pid'");
+			$q =  new query("select * from param.glist where role_id = 0 and provider = :pid", [ ":pid" => $pid ]);
 			if ($q->nrows() <= 0) {
 				return $opts;
 			}
@@ -40,7 +40,7 @@ function glist_user_pref_get($prov) {
 }
 
 function glist_user_pref_has($pid, $uid) {
-	$q =  new query("select * from param.glist where user_id = $uid and provider = '$pid'");
+	$q =  new query("select * from param.glist where user_id = :uid and provider = :pid", [ ":uid" => $uid, ":pid" => $pid ]);
 	if ($q->nrows() > 0) return true;
 	return false;
 }
@@ -57,9 +57,9 @@ function glist_user_fsel_save($prov, $fsel) {
 	$pid = $prov->id();
 	$fsel = json_encode($fsel);
 	if (glist_user_pref_has($pid, $uid)) {
-		new query("update param.glist set columns = '$fsel' where user_id = '$uid' and provider = '$pid'");
+		new query("update param.glist set columns = :fsel where user_id = :uid and provider = :pid", [ ":fsel" => $fsel, ":uid" => $uid, ":pid" => $pid ]);
 	} else {
-		new query("insert into param.glist (user_id, provider, columns) values ($uid, '$pid', '$fsel')"); 
+		new query("insert into param.glist (user_id, provider, columns) values (:uid, :pid, :fsel)", [ ":uid" => $uid, ":pid" => $pid,  ":fsel" => $fsel ]); 
 	}
 }
 
@@ -78,9 +78,9 @@ function glist_user_opt_save($prov, $opts) {
 	$uid = get_user_id();
 	$pid = $prov->id();
 	if (glist_user_pref_has($pid, $uid)) {
-		new query("update param.glist set sortby = '$sb', orderby = '$ob' where user_id = '$uid' and provider = '$pid'");
+		new query("update param.glist set sortby = :sb, orderby = :ob where user_id = :uid and provider = :pid", [ ":sb" => $sb, ":ob" => $ob, ":uid" => $uid, ":pid", $pid ]);
 	} else {
-		new query("insert into param.glist (user_id, provider, sortby, orderby) values ($uid, '$pid', '$sb', '$ob')"); 
+		new query("insert into param.glist (user_id, provider, sortby, orderby) values (:uid, :pid, :sb, :ob)", [ ":uid" => $uid, ":pid", $pid, ":sb" => $sb, ":ob" => $ob ]); 
 	}
 }
 function glist_user_pref_save($prov, $opts) {
@@ -101,9 +101,21 @@ function glist_user_pref_save($prov, $opts) {
 	$uid = get_user_id();
 	$pid = $prov->id();
 	if (glist_user_pref_has($pid, $uid)) {
-		new query("update param.glist set sortby = '$sb', orderby = '$ob', columns = '$co' where user_id = '$uid' and provider = '$pid'");
+		new query("update param.glist set sortby = :sb, orderby = :ob, columns = :co where user_id = :uid and provider = :pid", [ 
+			":sb"  => $sb, 
+			":ob"  => $ob, 
+			":co"  => $co, 
+			":uid" => $uid, 
+			":pid" => $pid 
+		]);
 	} else {
-		new query("insert into param.glist (user_id, provider, sortby, orderby, columns) values ($uid, '$pid', '$sb', '$ob', '$co')"); 
+		new query("insert into param.glist (user_id, provider, sortby, orderby, columns) values (:uid, :pid, :sb, :ob, :co)", [ 
+			":uid" => $uid, 
+			":pid" => $pid,
+			":sb"  => $sb, 
+			":ob"  => $ob, 
+			":co"  => $co
+		]);
 	}
 }
 function glist($prov, $opts = []) {
@@ -139,6 +151,7 @@ function glist($prov, $opts = []) {
 	} else $opts = $dopts;
 
 	$pdat = $prov->data();
+
 	# 
 	# Gen identifier if not present:
 	if ($opts["id"] === false) $opts["id"]  = "glist_" . gen_elid();		
@@ -198,7 +211,7 @@ function glist($prov, $opts = []) {
 		$d = glist_dopts($opts);
 
 		foreach ($cols as $f) {
-	$all = $prov->query($opts["start"], $opts["page"], $opts["sort"], $opts["order"], $opts["filter"]);
+			$all = $prov->query($opts["start"], $opts["page"], $opts["sort"], $opts["order"], $opts["filter"]);
 			$extra = "";
 			if ($f == $opts["sort"]) {
 				$extra .= ' sel ';
@@ -375,12 +388,11 @@ function glist_export($prov, $opts, $type = "csv") {
 	if ($cols == []) $cols = $fields;
 
 	$csv = implode(";", $cols) . "\n";
-
 	$all = $prov->query(0, 0, $opts->sort, $opts->order, $opts->filter);
 	foreach ($all as $i => $d) {
 		$l = [];
 		foreach ($cols as $c) {
-			if (strstr(";", $d->$c)) $s = '"'.$d->$c.'"';
+			if ($d->$c != "" && strstr(";", $d->$c)) $s = '"'.$d->$c.'"';
 			else $s = $d->$c; 
 			array_push($l, $s);
 		}

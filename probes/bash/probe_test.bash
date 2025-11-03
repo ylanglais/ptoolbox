@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 . ./probe.lib
 echo "pinging:"
 _curl_post '{"req": "ping"}' | grep -v "^[ 	]*$"

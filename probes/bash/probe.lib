@@ -23,4 +23,7 @@ probe_send() {
 	data=$3
     _curl_post "{\"req\": \"probe\", \"WHAT\": \"$what\", \"DTYP\": \"$dtyp\", \"DATA\": $data}" 
 }
+__ssh() {
+	ssh -q -o StrictHostKeyChecking=no -o ConnectTimeout=1 $*
+}
 probe_init

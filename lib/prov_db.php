@@ -218,7 +218,10 @@ class prov_db {
 	function _whereclause($filter = null) {
 		if ($this->init === false) return false;
 		$w = "";
-		if ($filter != null && is_object($filter)) $filter = (object) $filter;
+		if ($filter != null) {
+			if (is_string($filter)) $filter = json_decode($filter);
+			if (is_object($filter)) $filter = (array) $filter;
+		}
 		if (is_array($filter) && $filter != []) {
 			$w = " where ";
 			# condition is based on a key value pair with %:
@@ -261,7 +264,6 @@ class prov_db {
 				} 
 			}
 		}
-			
 		return $w;
 	}
 
@@ -287,7 +289,6 @@ class prov_db {
 		}
 
 		$q .= " from $this->table";	
-
 		$q .= $this->_whereclause($filter);
 
 		if ($sortby !== false) {
@@ -297,7 +298,7 @@ class prov_db {
 		}
 		if ($start > 0) $q .= " offset $start";	
 		if ($limit > 0)  $q .= " limit $limit";
-		#dbg("query= $q");
+	#dbg("query= $q");
 		$q = new query($this->db, $q);
 		return $q->all();	
 	}
@@ -305,17 +306,12 @@ class prov_db {
 	function get($req, $limit = 0, $start = 0, $sortby = false, $order = false) {
 		if ($this->init === false) return false;
 		$w = [];
+		$sdat = [];
+		$i = 0;
 		foreach ($req as $k => $v) {
-			$t = $this->cols->{$k}->data_type;
-			#dbg("$k => $v ($t vs ".gettype($v).")");
-			if ($t == 'bool' || $t == 'boolean') {
-				if ($v === true) array_push($w, "$k = true");
-				else 			 array_push($w, "$k = false");
-			} else if (gettype($v) == 'null' || $v === 'null' || $v === null) {
-				array_push($w, "$k is null"); 
-			} else {
-	           array_push($w, "$k = ". $this->quote($k, $v));
-			}
+			$i++;
+			array_push($w,    "$k = :prm$i");
+			$sdat[":prm$i"] = $v;
 		}
 		$where = " where " . implode(" and ", $w);
 		$sql = "select * from $this->table $where";
@@ -326,7 +322,7 @@ class prov_db {
 		}
 		if ($limit > 0)      $sql .= " limit $limit offset $start";
 		#dbg($sql);
-		$q = new query($this->db, $sql);
+		$q = new query($this->db, $sql, $sdat);
 		return $q->all();
 	}
 	function put($data) {
@@ -353,14 +349,18 @@ class prov_db {
 
 		$cols = [];
 		$vals = [];
-
+		$sdat = [];
+		$i = 0;
 		foreach ($this->fields as $f) {
+			$i++;
 			$k = $this->fquote($f);
 			if (property_exists($dat, $f)) {
-				array_push($vals,  $this->quote($f, $dat->$f));
+				array_push($vals, ":prm$i");
+				$sdat[":prm$i"] = $dat->$f;
 				array_push($cols, $k);
 			} else if (property_exists($this->cols->$f, "column_default")) {
-				array_push($vals, $this->quote($f, $this->cols->$f->column_default));
+				array_push($vals, ":prm$i");
+				$sdat[":prm$i"] = $this->cols->$f->column_default;
 				array_push($cols, $k);
 			} else if ($this->cols->$f === false) {
 				err("$f is a required column");
@@ -369,7 +369,7 @@ class prov_db {
 		}
 		$sql = "insert into $this->table (".  implode(",", $cols) . ") values (". implode(",", $vals) .")";
 		#dbg($sql);
-		$q = new query($this->db, $sql);
+		$q = new query($this->db, $sql, $sdat);
 		if ($q->nrows() != 1) {
 			err("$sql : " . $q->err());
 			return  '{"status": false, "query": "'.$sql.'", "error": "'.$q->err().'"}';
@@ -388,27 +388,33 @@ class prov_db {
 		if (!is_object($data) 
 			|| !property_exists($data, "data")
 			|| !property_exists($data, "ori")) {
+		if (!property_exists($data, "data")) dbg("no data");
+		if (!property_exists($data, "ori"))  dbg("no ori");
+ 
 			err("Incomplete data (".json_encode($data).")");
 			return '{"status": false; "error": "incomplete data"}';
 			return false;
 		}
 		#
-		$ori = $data->ori;
-		$dat = $data->data;
+		$ori = (object) $data->ori;
+		$dat = (object) $data->data;
 
 		$set = [];
 		$whr = [];
 
+		$sdat = [];
+		$i = 0;
+
 		# create where clause:
-		foreach ($this->fields as $k) {
+		foreach ($this->keys as $k) {
 			if (!property_exists($ori, $k)) {
 				err("missing key field $k");
 				return '{"status": false, "error": "missing key field '. $k .'"}';
 			}
 			
-			$v = $this->quote($k, $ori->$k);
-			if ($v == 'null' || $v === null) array_push($whr, "$k is null"); 
-			else                             array_push($whr, "$k = $v");
+			$i++;
+			array_push($whr, "$k = :prm$i");
+			$sdat[":prm$i"] = $ori->$k;
 		}
 
 		$autoupdate = 0;
@@ -416,19 +422,26 @@ class prov_db {
 			if (property_exists($dat, $f) && (!property_exists($ori, $f) || $ori->$f != $dat->$f)) {
 				if ($f == "mstamp") $autoupdate = 1;
 				$k = $this->fquote($f); 
-				$v = $dat->$f;
-				array_push($set, "$k = " . $this->quote($f, $v));
+				$i++;
+				array_push($set, "$k = :prm$i");
+				if ($dat->$f === true)  $dat->$f = 'true';
+				if ($dat->$f === false) $dat->$f = 'false';
+				$sdat[":prm$i"] =  $dat->$f;
 			}
 		}
+
 		# Auto update of "updated" field:
-		if (in_array("mstamp", $this->fields) && !$autoupdate) array_push($set, "mstamp = now()"); 
+		if (in_array("mstamp", $this->fields) && !$autoupdate) {
+			array_push($set, "mstamp = now()"); 
+		}
 
 		if ($set != [] ) {
 			$sql = "update $this->table set " . implode(",", $set) . " where " . implode (" and ", $whr);
-			$q = new query($this->db, $sql);
+			$q = new query($this->db, $sql, $sdat);
 			if ($q->nrows() != 1) {
 				$e = $q->err();
 				err("$sql : $e");
+				err($sdat);
 				return  '{"status": false, "query": "'.$sql.'", "error": "'.$e.'"}';
 			}
 		}
@@ -443,12 +456,14 @@ class prov_db {
 			err("cannot delete readonly data");
 			return '{"status": false; "error": "cannot insert readonly data"}';
 		}
-		if (is_object($data) || property_exists($data, "data")) { 
+		if (is_object($data) && property_exists($data, "data")) { 
 			$dat = $data->data;
 		} else {
 			$dat = $data;
 		}
 		$w = [];
+		$sdat = [];
+		$i = 0;
 		if ($this->fkeys != []) {	
 			foreach ($this->fkeys as $f) {
 				if  (!property_exists($dat, $f)) {
@@ -456,28 +471,23 @@ class prov_db {
 					return false;
 				}
 				$k = $this->fquote($f);
-				$v = $this->quote($f, $data[$f]);
-				if ($v == null || $v == 'null') {
-					array_push($w, "$k is null"); 
-				} else {
-		        	array_push($w, "$k = $v");
-				}
+				$i++;
+				array_push($w, "$k = :prm$i");
+				$sdat[":prm$i"] = $data[$f];
+
 			}
 		} else {
 			foreach ($dat as $f => $v) {
 				$k = $this->fquote($f);
-				$v = $this->quote($f, $v);
-				if ($v == null || $v == 'null') {
-					array_push($w, "$k is null"); 
-				} else {
-		        	array_push($w, "$k = $v");
-				}
+				$i++;
+				array_push($w, "$k = :prm$i");
+				$sdat[":prm$i"] = $v;
 			}
 		}
 		$where = " where " . implode(" and ", $w);
 		$sql = "delete from $this->table $where";
 		#dbg($sql);
-		$q = new query($this->db, $sql);
+		$q = new query($this->db, $sql, $sdat);
 		
 		if (($r = $q->obj()) === false) {
 			err("$sql : " . $q->err());

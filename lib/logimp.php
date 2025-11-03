@@ -98,9 +98,6 @@ class logimp {
 			"start_import" => $istart, 
 			"end_import"   => dbstamp(), 
 			"type"         => $this->type]); 
-
-		#new query("insert into espp.files values ('$cksum', $nline, $logln, $badln, '$stime', '$etime', '$istart', now(), 'audit')");
-
 	}
 }
 

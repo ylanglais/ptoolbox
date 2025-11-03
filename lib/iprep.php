@@ -27,9 +27,7 @@ class iprep {
 		}
 	}
 	private function lookup($ip) {
-		$s = "select * from tech.iprep where ip = '$ip'";
-		#dbg($s);
-		$q = new query($this->db, $s);
+		$q = new query($this->db, "select * from tech.iprep where ip = :ip", [ ":ip" => $ip]);
 		if ($q->nrows() == 0) return false;
 		return $q->obj();
 	}

@@ -55,7 +55,7 @@ function adm_user_ui($a, $uid) {
 		if (($until   = $a->post("until"))   === false) $until   = ""; 
 		$roles = [];
 	} else {
-		$q       = new query("select * from tech.user where id = '$uid'");
+		$q       = new query("select * from tech.user where id = :uid", [":uid" => $uid]);
 		$o       = $q->obj();
 		$login   = $o->login;
 		$mail    = $o->mail;
@@ -67,7 +67,7 @@ function adm_user_ui($a, $uid) {
 		if ($o->until != "") $until = date_db_to_human($o->until);
 		else                 $until = "";
 
-		$q = new query("select role_id from tech.user_role where user_id = '$uid' order by 1");
+		$q = new query("select role_id from tech.user_role where user_id = :uid order by 1", [ ":uid" => $uid] );
 		while ($o = $q->obj()) {
 			array_push($roles, $o->role_id);
 		}
@@ -164,20 +164,40 @@ if (($uid = $a->post("uid")) !== false || $a->post("newuser") == true) {
 			if (($nid = adm_user_new_id()) === false) {
 				dbg_err("cannot find a new id");
 			} else {
-				$sql = "insert into tech.user values ('$nid', '$usr->login', '', '$usr->name', '$usr->surname', '$usr->mail', '$active', $since, $until)";
+				$sql = "insert into tech.user values (:nid, :login, :empty, :name, :surname, :mail, :active, :since, :until)", [
+					':nid'     => $nid, 
+					':login'   => $usr->login, 
+					":empty"   => '', 
+					':name'    => $usr->name, 
+					':surname' => $usr->surname, 
+					':mail'    =>$usr->mail, 
+					':active'  => $active, 
+					':since'   => $since, 
+					':until'   => $until
+				]);
 				new query($sql);
 
-				foreach ($rol as $r)  new query("insert into tech.user_role values ($nid, '$r')");
+				foreach ($rol as $r)  new query("insert into tech.user_role values (:nid, :rol)", [ ":nid" => $nid, ":rol" => $r ]);
 				$auth = new auth_local();
 				$auth->update($usr->login, 'ChangeMe');
 				#audit_action("tech.user", "
 			}
 		} else if ($act == "update") {
-			$sql = "update tech.user set login = '$usr->login', mail = '$usr->mail', name = '$usr->name', surname = '$usr->surname', active = $active, since = $since, until = $until where id = '$usr->uid'";
-			new query($sql);
+			$sql = "update tech.user set login = :login, mail = :mail, name = :name, surname = :surname, active = :active, since = :since, until = :until where id = :uid";
+			$sdat = [
+				":login"   => $usr->login,
+				":mail"    => $usr->mail,
+				":name"    => $usr->name,
+				":surname" => $usr->surname,
+				":active"  => $active,
+				":since"   => $since,
+				":until"   => $until,
+				":udi"     => $usr->uid
+			];
+			new query($sql, $sdat);
 
-			new query("delete from tech.user_role where user_id = $usr->uid");
-			foreach ($rol as $r)  new query("insert into tech.user_role values ($usr->uid, $r)");
+			new query("delete from tech.user_role where user_id = :uid", [ ":uid" => $usr->uid ]);
+			foreach ($rol as $r)  new query("insert into tech.user_role values (:uid, :r)", [ ":uid" => $usr->uid, ":r" => $r]);
 		} 
 	}
 	adm_user_list();

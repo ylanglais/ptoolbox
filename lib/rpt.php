@@ -80,13 +80,14 @@ class rpt {
 	function rpt_db($o) {
 		$dbopts = null;
 		$name = "default";
-		if (property_exists($o, "name")) { $name = $o->name;} 
-		if (property_exists($o, "dbs")) {
+		if (is_string($o)) $name = $o;
+		else if (property_exists($o, "name")) { $name = $o->name;} 
+		else if (property_exists($o, "dbs")) {
 			if (property_exists($o, "dbuser") && property_exists($o, "dbpass")) {
 				if (property_exists($o, "dbopts")) {
 					$this->dbs[$name] = new db($o->dbs, $o->dbuser, $o->dbpass, $o->dbopts); 
 				} else { 
-					$this->dbs[$name]  = new db($o->dbs, $o->dbuser, $o->dbpass); 
+					$this->dbs[$name] = new db($o->dbs, $o->dbuser, $o->dbpass); 
 				}
 			} else {
 				$this->dbs[$name] = new db($o->dbs);
@@ -363,7 +364,11 @@ class rpt {
 			$str = $this->rpt_var_replace($str);
 		}
 		if ($this->sqldbg) dbg($str);
-		$q   = new query($str, $this->dbs[$dbn]);
+		if ($this->dbs == []) $this->rpt_db($dbn);	
+		if (array_key_exists($dbn, $this->dbs)) 
+			$q   = new query($str, $this->dbs[$dbn]);
+		else 
+			$q   = new query($str);
 		$all = $q->all();
 		if ($all == [])       return false;
 		return $all;

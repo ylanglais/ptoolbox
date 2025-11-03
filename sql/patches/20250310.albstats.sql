@@ -1,14 +1,17 @@
 create table stats.alconf (
 	name	varchar(50) unique not null,
 	fntmpl  varchar(100),
-	format  varchar(1000),
-	fields  varchar(1000)
 );
+create table stats.alfmts( 
+	name    varchar(50) references stats.alconf(name),
+	rexexp  varchar(1000) not null,
+	vars    varchar(500)  not null
+)
 create table stats.albstats (
-	name varchar(50) references stats.alconf(name),
-	stamp datetime,
-	hits integer,
-	uip  integer,
+	name 	varchar(50) references stats.alconf(name),
+	stamp 	datetime,
+	hits 	integer,
+	uip  	integer,
 	unique (name, stamp)
 );
 

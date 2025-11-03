@@ -52,7 +52,7 @@ class ora {
 			else 
 				$dbs = $db_dsn;
 
-			$q = new query("select drv, host, port, name, \"user\", pass from tech.dbs where dbs = '$dbs'");
+			$q = new query("select drv, host, port, name, \"user\", pass from tech.dbs where dbs = :dbs", [ ":dbs" => $dbs ]);
 			if ($q === false) {
 				$db_dsn  = $dbs;
 			} else {
@@ -66,7 +66,7 @@ class ora {
 			}
 		}
 #dbg("$db_user, $db_pass, $db_dsn");
-		if (($this->oci = oci_connect($db_user, $db_pass, $db_dsn, "UTF8")) === false) {
+		if (($this->oci = oci_connect($db_user, $db_pass, $db_dsn, "AL32UTF8" /*"UTF8"*/)) === false) {
 			_err("Cannot connect to db using $db_dsn: " . oci_errorInfo());
 			$this->oci = false;
 			return;
@@ -81,20 +81,30 @@ class ora {
 	
 }
 class oqry {
-	function __construct($ora, $query) {
+	function __construct($ora, $query, $data = []) {
 		$this->err = false;	
 		$this->qry = false;	
 		$this->ora = $ora;
 		$oci = 	$ora->oci();
 		if ($oci === false) return;
 		if (($this->qry = oci_parse($ora->oci(), $query)) === false) {
-			err("Cannot proces query $query: " . oci_error() . "\n");
+			err("Cannot process query $query: " . oci_error());
 			$this->err = oci_error();
 			$this->qry = false;
 			return;
 		}
+		if (is_array($data) && $data != []) {
+			dbg($data);
+			foreach ($data as $k => $v) {
+				if (oci_bind_by_name($this->qry, $k, $data[$k], -1) === false) {
+					err("Error binding data ($k with $v) " . oci_error());
+					$this->err = oci_error();
+					$this->qry = false;
+				} 
+			}
+		}
 		if (($status = oci_execute($this->qry, OCI_COMMIT_ON_SUCCESS)) === false) {
-			err("Error executing query $query: " . oci_error() . "\n");
+			err("Error executing query $query: " . oci_error());
 			$this->err = oci_error();
 			$this->qry = false;
 			return;

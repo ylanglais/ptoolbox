@@ -38,7 +38,7 @@ class albstats {
 		}
 		$cksum = md5_file($filename);
 #dbg("cksum $filename = $cksum");
-		$q = new query("select * from espp.files where cksum = '$cksum' order by start_import");
+		$q = new query("select * from espp.files where cksum = :cksum order by start_import", [ ":cksum" => $cksum ]);
 		if ($q->nrows() >= 1) {
 			err("file $filename has already been imported (md5sum: $cksum");
 			return;
@@ -69,8 +69,25 @@ class albstats {
 
 $this->rexps = [
 	"re"     => '#^.*| ([0-9]*)/([0-9]*)/([0-9]*) ([0-2][0-9]):([0-5][0-9]):([0-5][0-9])\.([0-9]*) ([^ ]*) "[^"]*" [0-9]* [0-9]* "[^"]*" "[^"]*$"',
-	"fields" => [ "Y", "M", "D","h", "m", "s", "u", "ip"],
-	"cols"   => [ "name" => "this(%name)", "stamp" => "var(%Y)-var(%M)", "nb", "unique(%ip)" ]
+	"vars"   => [
+					[ 
+						"name"   => "ts",
+				  		"type"   => "datatime",
+				  		"value"  => "\$m[1]-var(%M)-var(%D) %h:%m:%s.%u",
+					], [ 
+						"name"   => "key",
+				  		"type"   => "datatime",
+				  		"value"  => "var(%Y)-var(%M)-var(%D) %h:%m",
+					], [
+						"name"   => "ip",
+				  		"type"   => "string",
+				  		"value"  => "var(%Y)-var(%M)-var(%D) %h:%m",
+
+
+ "fields" => [ "Y", "M", "D","h", "m", "s", "u", "ip"],
+	"key"    => "%Y-var(%M)-var(%D) %h:%m",
+	"data"   => [ "hits" => "nb", "uip" => "%ip" ],
+	"cols"   => [ "name" => "this(%name)", "stamp" => "key", "hits" => "nb", "uip" => "count(uip)" ]
 ];
 
 		$res = [];
@@ -87,27 +104,38 @@ $this->rexps = [
 					foreach ($m as $n => $var) {
 						$vals[$f->fields][$n]] = $m[$n];
 					}
-					if (!isset($res[$l])) $res[$l] = [];	
 
-					foreach ($f->cols as $k => $v) {
+
+					$key = $this->expand_vars($vals, $f->key)
+
+
+
+					if (!isset($res[$key])) $res[$key] = [];	
+					
+
+					foreach ($f->data as $k => $v) {
 						if ($v == "nb") {
-							$res[$l][$k]++;
+							$res[$key][$k]++;
 						} else {
 							$this->expand_vars($vals, $v);
-							
-						
-
-					$res[$l]
-					
+								if (!is_array($res[$key][$k]) $res[$key][$k] = [];
+								$res[$key][$k][$v]++;
+						}
+					}
 				}
-
-
 			}
-
-
 		}		
 		$clo($f);
-		new query("insert into stats.albfiles values ('$cksum', $nline, $logln, $badln, '$stime', '$etime', '$istart', now(), 'log')");
+		new query("insert into stats.albfiles values (:cksum, :nline, :cksum, :nline, :logln, :badln, :stime, :etime, :istart, now(), 'log')", [
+			":cksum"   => $cksum,
+			":nline"   => $nline,
+			":logln"   => $logln,
+			":badln"   => $badln,
+			":stime"   => $stime,
+			":etime"   => $etime,
+			":istgart" => $istart
+		]);
+	
 		#if (substr($filename, -3) != '.gz') {
 		#	dbg("recompress/compress file");
 		#	exec("gzip $filename");
