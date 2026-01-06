@@ -28,6 +28,7 @@ class majos {
 		}
 	}
 	function save($a) {
+		if (is_string($a)) $a = json_decode($a);
 		if (!is_object($a)) return;
 	
 		$p = new prov("db", "default.infra.majos");
