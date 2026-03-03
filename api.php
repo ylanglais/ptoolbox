@@ -179,6 +179,7 @@ if ($token == false) {
 		api_auth_required("session expired");
 	}
 }
+#$a->dbg();
 if ($a->has('req') === false) api_notfound("no request passed");
 $req = $a->val("req");
 $action = ""; 
@@ -237,9 +238,10 @@ default:
 		if (method_exists($req, $action)) {
 			$l = mthd_args($req, $action);
 			$alst = [];
+			$dat = $a->val("data");
 			foreach ($l as $o) {
-				if ($a->has($o->name)) {
-					$v = $a->val($o->name);
+				if (!array_key_exists($o->name)) {
+					$v = $dat->{$o->name};
 					if ($o->type != []) {
 						$ok = false;
 						foreach ($o->type as $t) {
@@ -247,7 +249,7 @@ default:
 								$ok = true; break;
 							}
 							$chk = "is_". $t;
-							#dbg("$t --> $chk($v) --> ". $chk($v) ? "true": "false");
+							dbg("$t --> $chk($v) --> ". $chk($v) ? "true": "false");
 							if (function_exists($chk) && $chk($v)) {
 								$ok = true; break;	
 							}
