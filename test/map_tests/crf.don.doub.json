@@ -1,0 +1,147 @@
+{
+    "map_name": "Croix rouge - Identity",
+    "map_version": "1.0",
+    "engversion": "1.0",
+    "author": "HTR",
+    "revisions": [{
+		"date": "26/05/2021",
+		"author": "HTR",
+		"title": "initial version"
+	}],
+    "flux": "DON",
+    "sources": [{
+		"medium": "csv",
+		"type": "main",
+		"srcname": "unused or ???", 
+		"name": "identity",
+		"key": "doneteur_id",
+		"params": {
+			"file": "CRF_donateurs_uniques.rand.10000.V1.1.txt",
+			"sep": "\t",
+			"del": "\""
+		}
+	}, {
+		"medium":    "db",
+		"type":      "ref",
+		"name":      "origin",
+		"key":       "name",
+		"refkey":    "fichier_id",
+		"srcname": 	 "fichier_id",
+		"params": {
+			"table":  "ref.origin",
+			"schema": "", 
+			"dsn":    "pgsql:host=localhost;dbname=rcu1",
+			"user":   "ylanglais",
+			"pass":   "vcstHqqVWwEPg0Io"
+		}
+	}, {
+		"medium":    "db",
+		"type":      "ref",
+		"name":      "title",
+		"key":       "libelle",
+		"refkey":    "civilite",
+		"srcname": 	 "civilite",
+		"params": {
+			"table":  "ref.title",
+			"schema": "", 
+			"dsn":    "pgsql:host=localhost;dbname=rcu1",
+			"user":   "ylanglais",
+			"pass":   "vcstHqqVWwEPg0Io"
+		}
+    }],
+    "dest": {
+        "medium": "db",
+        "type": "main",
+        "mode": "line",
+        "params": {
+            "schema": "rcu",
+            "dsn": "pgsql:host=localhost;dbname=rcu1",
+            "user": "ylanglais",
+            "pass": "vcstHqqVWwEPg0Io"
+        }
+    },
+    "fragments": [{
+		"type": "main",
+		"table": "rcu.person",
+		"id": { "field": "id", "type": "uuid" },
+		"ref": "fichier_id",
+		"mode": "RW"
+	}, {
+		"table": "rcu.origin",
+		"type": "ref",
+		"id": { "field": "id", "type": "uuid" },
+		"link": [ {
+			"id": "entity_id",
+			"table": "entity"
+		}],
+		"mode": "RW"
+	}, {
+		"type": "ref",
+		"table": "rcu.email",
+		"id": { "field": "id", "type": "uuid" },
+		"ref": "email",
+		"mode": "RW"
+	}, {
+		"type": "ref",
+		"table": "rcu.phone",
+		"id": { "field": "id", "type": "uuid" },
+		"ref": "phone",
+		"mode": "RW"
+	}, {
+		"type": "ref",
+		"table": "rcu.address",
+		"id": { "field": "id", "type": "uuid" },
+		"ref": "city",
+		"mode": "RW"
+	}, {
+		"type": "ref",
+		"table": "rcu.lnk_channel", 
+		"id": { "field": "id", "type": "uuid" },
+		"link": [
+			{ "id": "entity_id",  "table": "entity"   }, 
+			{ "id": "channel_id", "table": "channel"  }
+		],
+		"mode": "RW"
+	}],
+    "map": [
+		{ "dest": "rcu.person.last_name",        "main":      "nom" 		                                        },
+		{ "dest": "rcu.person.first_name",       "main":      "prenom1" 	                                        },
+		{ "dest": "rcu.person.title",            "map_value": "map_ref(title, code)"                                },
+        { "dest": "rcu.person.gender",           "map_value": "map_if(map_equal(map_src(civilite), 'M'), 'H', map_if(map_in(map_src(civilite), MME|MLLE), 'F', null ))" },
+		{ "dest": "rcu.person.dob", 			 "map_value": "map_date_fr2iso(map_src(date_naissance))"            },
+
+		{ "dest": "rcu.person.modified_on",		 "map_value": "map_date_fr2iso(map_src(date_dernier_evenement))"	},
+		{ "dest": "rcu.person.created_on",		 "map_value": "map_date_fr2iso(map_src(date_dernier_evenement))"	},
+
+        { "dest": "rcu.origin",                  "link":      [ "rcu.person"                ]                       },
+		{ "dest": "rcu.origin.origin", 	         "map_value": "map_ref(origin, id)"                                 },
+		{ "dest": "rcu.origin.origin_id",        "main":      "donateur_id"                                         },
+
+		{ "dest": "rcu.phone.phone",       		 "main":      "phone"                                               },
+		{ "dest": "rcu.phone.dq_result",   		 "main":      "phone_quality_code"                                  },
+		{ "dest": "rcu.lnk_channel",             "link":      [ "rcu.person", "rcu.phone"   ]                       },
+		{ "dest": "rcu.origin",                  "link":      [ "rcu.phone"                 ]                       },
+		{ "dest": "rcu.origin.origin", 	         "map_value": "map_ref(origin, id)"                                 },
+
+		{ "dest": "rcu.email.email",       		 "main":      "email_adress"                                        },
+		{ "dest": "rcu.email.dq_result",   		 "main":      "email_quality_code"                                  },
+		{ "dest": "rcu.lnk_channel",             "link":      [ "rcu.person", "rcu.email"   ]                       },
+		{ "dest": "rcu.origin",                  "link":      [ "rcu.email"                 ]						},
+		{ "dest": "rcu.origin.origin", 	         "map_value": "map_ref(origin, id)"                                 },
+
+		{ "dest": "rcu.address.line_1",          "main":      "adr2_in"                                             },
+		{ "dest": "rcu.address.line_2",          "main":      "adr3_in"                                             },
+		{ "dest": "rcu.address.line_3",          "main":      "adr4_in"                                             },
+		{ "dest": "rcu.address.line_4",          "main":      "adr5_in"                                             },
+		{ "dest": "rcu.address.postal_code",     "main":      "cp"                                                  },
+		{ "dest": "rcu.address.city",            "main":      "ville"                                               },
+		{ "dest": "rcu.address.fk_country_iso2", "main":      "code_pays"                                           },
+		{ "dest": "rcu.address.insee_com",		 "main":      "INSEE"                                               },
+		{ "dest": "rcu.address.dq_result",		 "main":      "RNVP_quality_code"                                   },
+
+		{ "dest": "rcu.lnk_channel",             "link":      [ "rcu.person", "rcu.address"	]                       },
+		{ "dest": "rcu.origin",                  "link":      [ "rcu.address"               ]                       },
+		{ "dest": "rcu.origin.origin", 	         "map_value": "map_ref(origin, id)"                                 },
+		{ "dest": "rcu.origin.origin_id",        "main":      "adresse_id"                                          }
+    ]
+}

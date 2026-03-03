@@ -1,0 +1,65 @@
+{
+	"map_name": "test_contact",
+	"map_version": "1.0",
+	"engversion": "1.0",
+	"author":      "YLA",
+	"revisions" : [{
+		"date": "02/12/2020",
+		"author": "YLA",
+		"title": "initial version"
+	}],
+	"eng_version": "1.0",
+	"flux": "maptest",
+	"sources": [{
+		"medium":    "db",
+		"type":      "main",
+		"name":		"client",
+		"key": "nom",
+		"srcname": "client",
+		"params": {
+			"table": "contact",
+			"schema": "public", 
+			"dsn": "mysql:host=localhost;dbname=rcu1",
+			"user": "ramsadak",
+			"pass": "azerty",
+			"query": "select client.intitule as intitule, client.prenom as prenom, client.nom as nom, adresse.ligne2 as ligne2, adresse.ligne3 as ligne3, adresse.ligne4 as ligne4, adresse.cp as cp, adresse.ville as ville from client, adresse, client_adresse where client_adresse.client_id = client.id and client_adresse.adresse_id = adresse.id"
+		}
+	}, {
+		"medium": "db",
+		"type": "ref",
+		"name":      "intitule",
+		"key":       "local",
+		"refkey":     "intitule",
+		"srcname": "transcott",
+		"params": {
+			"table": "intit_transco",
+			"schema": "public", 
+			"dsn": "mysql:host=localhost;dbname=rcu1",
+			"user": "ramsadak",
+			"pass": "azerty"
+		}
+	}],
+	"dest": {
+		"medium": "db",
+		"mode":   "line",
+		"params": {
+			"table": "contact",
+			"schema": "public", 
+			"dsn": "pgsql:host=localhost;dbname=maptest",
+			"user": "ramsadak",
+			"pass": "azerty"
+		}
+	},
+    "map": [
+        { "dest": "intitule", 	 "map_value": 	"map_ref(intitule, distant)" },
+        { "dest": "nom",      	 "main": 		"nom" 						 },
+        { "dest": "prenom",   	 "main": 		"prenom" 					 },
+		{ "dest": "adresse",  	 "main": 		"ligne3" 					 },
+		{ "dest": "adresse2", 	 "main": 		"ligne4" 					 },
+		{ "dest": "cp",       	 "main": 		"cp" 						 },
+		{ "dest": "ville",    	 "main":	 	"ville" 					 },
+		{ "dest": "date_entree", "map_value": 	"now()" 					 },
+		{ "dest": "date_cre", 	 "map_value": 	"now()" 					 },
+		{ "dest": "date_maj", 	 "map_value": 	"now()" 					 }
+    ]
+}

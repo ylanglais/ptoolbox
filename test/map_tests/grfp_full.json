@@ -1,0 +1,93 @@
+{
+	"map_name": "grf contact test",
+	"flux": "grf.contact.test",
+	"sources": [{
+		"medium":    "csv",
+		"type":      "main",
+		"srcname":   "rcu_contact_full.csv",
+		"name":      "contact",
+		"key":       "codecontact",
+		"params": {
+			"file": "rcu_contact_full.csv",
+			"sep": "|",
+			"del": "\""
+		}
+	}],
+	"dest":{
+		"medium": "db",
+		"type": "main",
+		"mode":   "line",
+		"params": {
+			"schema": "rcu", 
+			"dsn": "pgsql:host=localhost;dbname=rcu1",
+			"user": "ylanglais",
+			"pass": "vcstHqqVWwEPg0Io"
+        }
+	},
+	"fragments" : [{
+		"type": "main",
+		"table": "rcu.person",
+		"id": { "field": "id", "type": "uuid" },
+		"ref": "codecontact",
+		"mode": "RW"
+	}, {
+		"type": "ref",
+		"table": "rcu.email",
+		"id": { "field": "id", "type": "uuid" },
+		"ref": "email",
+		"mode": "RW"
+	}, {
+		"table": "rcu.phone",
+		"type": "ref",
+		"id": { "field": "id", "type": "uuid" },
+		"ref": "phone",
+		"mode": "RW"
+	}, {
+		"table": "rcu.origin",
+		"type": "ref",
+		"id": { "field": "id", "type": "uuid" },
+		"link": [
+			{ "id": "entity_id", "table": "entity" }
+		],
+		"mode": "RW"
+	}, {
+		"type": "ref",
+		"table": "rcu.lnk_channel", 
+		"id": { "field": "id", "type": "uuid" },
+		"link": [
+			{ "id": "entity_id",  "table": "entity" }, 
+			{ "id": "channel_id", "table": "channel" }
+		],
+		"mode": "RW"
+   }],
+	"map": [
+		{ "dest": "rcu.person.last_name",  "main": "nomf" 		},
+		{ "dest": "rcu.person.first_name", "main": "prenom" 	},
+		{ "dest": "rcu.person.title",      "main": "civilite" 	},
+
+		{ "dest": "rcu.origin",            "link": [ "rcu.person" ]	},
+		{ "dest": "rcu.origin.origin", 	   "map_value": "46e535c8-960a-46c2-9a31-12e36e2a1bb7" },
+		{ "dest": "rcu.origin.origin_id",  "main": "codecontact" },
+
+
+		{ "dest": "rcu.phone.phone",       "main": "telephone1" },
+		{ "dest": "rcu.lnk_channel",       "link": [ "rcu.person", "rcu.phone"]	},
+		{ "dest": "rcu.origin",            "link": [ "rcu.phone"] },
+		{ "dest": "rcu.origin.origin", 	   "map_value": "46e535c8-960a-46c2-9a31-12e36e2a1bb7" },
+
+		{ "dest": "rcu.phone.phone",       "main": "telephone2" },
+		{ "dest": "rcu.lnk_channel",       "link": [ "rcu.person", "rcu.phone"]	},
+		{ "dest": "rcu.origin",            "link": [ "rcu.phone"] },
+		{ "dest": "rcu.origin.origin", 	   "map_value": "46e535c8-960a-46c2-9a31-12e36e2a1bb7" },
+
+		{ "dest": "rcu.phone.phone",       "main": "telephone3" },
+		{ "dest": "rcu.lnk_channel",       "link": [ "rcu.person", "rcu.phone"]	},
+		{ "dest": "rcu.origin",            "link": [ "rcu.phone"] },
+		{ "dest": "rcu.origin.origin", 	   "map_value": "46e535c8-960a-46c2-9a31-12e36e2a1bb7" },
+
+		{ "dest": "rcu.email.email",       "main": "email"      },
+		{ "dest": "rcu.lnk_channel",       "link": [ "rcu.person", "rcu.email"]	},
+		{ "dest": "rcu.origin",            "link": [ "rcu.email"] },
+		{ "dest": "rcu.origin.origin", 	   "map_value": "46e535c8-960a-46c2-9a31-12e36e2a1bb7" }
+	]
+}

@@ -1,0 +1,69 @@
+{
+    "map_name": "Croix rouge - Identity",
+    "map_version": "1.0",
+    "engversion": "1.0",
+    "author": "HTR",
+    "revisions": [{
+		"date": "26/05/2021",
+		"author": "HTR",
+		"title": "initial version"
+	}],
+    "flux": "crf_benevoles.csv",
+    "sources": [{
+		"medium": "csv",
+		"type": "main",
+		"srcname": "crf_benevoles.csv",
+		"name": "identity",
+		"key": "fichier_id",
+		"params": {
+			"file": "crf_benevoles.csv",
+			"sep": "|",
+			"del": "\""
+		}
+    }],
+    "dest": {
+        "medium": "db",
+        "type": "main",
+        "mode": "line",
+        "params": {
+            "schema": "rcu",
+            "dsn": "pgsql:host=localhost;dbname=rcu1",
+            "user": "ylanglais",
+            "pass": "vcstHqqVWwEPg0Io"
+        }
+    },
+    "fragments": [{
+		"type": "main",
+		"table": "rcu.person",
+		"id": { "field": "id", "type": "uuid" },
+		"ref": "fichier_id",
+		"mode": "RW"
+	}, {
+		"table": "rcu.origin",
+		"type": "ref",
+		"id": { "field": "id", "type": "uuid" },
+		"link": [ {
+			"id": "entity_id",
+			"table": "entity"
+		}],
+		"mode": "RW"
+	}, {
+		"type": "ref",
+		"table": "rcu.lnk_channel", 
+		"id": { "field": "id", "type": "uuid" },
+		"link": [
+			{ "id": "entity_id",  "table": "entity" }, 
+			{ "id": "channel_id", "table": "channel" }
+		],
+		"mode": "RW"
+	}],
+    "map": [
+		{ "dest": "rcu.person.last_name",  "main": "nom" 		},
+		{ "dest": "rcu.person.first_name", "main": "prenom" 	},
+		{ "dest": "rcu.person.gender",     "main": "civilite" 	},
+        { "dest": "rcu.person.title",      "map_value": "map_if(map_equal(map_src(civilite), 'H'), '2', map_if(map_equal(map_src(civilite), 'F'), '1', null ))" },
+        { "dest": "rcu.origin",            "link": [ "rcu.person" ]	},
+		{ "dest": "rcu.origin.origin", 	   "map_value": "74c90e45-99b7-4f9c-98b7-b836e00dda35" },
+		{ "dest": "rcu.origin.origin_id",  "main": "fichier_id" }
+    ]
+}

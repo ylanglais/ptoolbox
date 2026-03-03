@@ -1,0 +1,65 @@
+{
+	"map_name": "Multi_dest",
+	"map_version": "1.0",
+	"engversion": "1.0",
+	"author":      "RMK",
+	"revisions" : [{
+		"date": "19/03/2021",
+		"author": "RMK",
+		"title": "initial version"
+	}],
+	"eng_version": "1.0",
+	"flux": "maptest",
+	"sources": [{
+		"medium":    "csv",
+		"type":      "main",
+		"srcname":   "user.csv",
+		"name":      "user",
+		"key":       "login",
+		"params": {
+			"file": "user.csv",
+			"sep": ";",
+			"del": "\""
+		}
+	}],
+	"dest":{
+		"medium": "db",
+                "type": "main",
+		"mode":   "line",
+		"params": {
+			"schema": "public", 
+			"dsn": "pgsql:host=localhost;dbname=rcu1",
+			"user": "ramsadak",
+			"pass": "azerty"
+                    }
+        },
+        "fragments" : [{
+                        "table": "user",
+                        "type": "main",
+                        "id": { "field": "id", "type": "uuid"}
+                        }, {
+                                "table": "role",
+                                "type":  "ref",
+                                "id": { "field": "id", "type": "max"},
+                                "ref": "name"
+                        }, {
+                                "table": "user_role",
+                                "type":  "link",
+                                "link": {
+                                        "from_table": 	"user",     
+                                        "to_table": 	"role",
+                                        "from_ref": "login",
+                                        "from_id": 		"user_id",
+                                        "to_id": 		"role_id",
+                                        "to_ref": "name"
+                                }
+                        }
+        ],
+        "map": [
+                { "dest": "id",           "map_value": 	"map_genuuid()" },
+                { "dest": "login", 	  "main": 		"login" },
+                { "dest": "email", 	  "main": 		"email" },
+                { "dest": "map_link(user_role , login, role, role1,rw)" },
+                { "dest": "map_link(user_role,  login, role, role2,rw)" }
+        ]
+}

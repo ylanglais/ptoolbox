@@ -1,0 +1,71 @@
+{
+	"map_name": "Multi_dest",
+	"map_version": "1.0",
+	"engversion": "1.0",
+	"author":      "RMK",
+	"revisions" : [{
+		"date": "19/03/2021",
+		"author": "RMK",
+		"title": "initial version"
+	}],
+	"eng_version": "1.0",
+	"flux": "maptest",
+	"sources": [{
+		"medium":    "csv",
+		"type":      "main",
+		"srcname":   "1_n_n.csv",
+		"name":      "user",
+		"key":       "login",
+		"params": {
+			"file": "1_n_n.csv",
+			"sep": ";",
+			"del": "\""
+		}
+	}],
+	"dest":{
+		"medium": "db",
+                "type": "main",
+		"mode":   "line",
+		"params": {
+			"schema": "public", 
+			"dsn": "pgsql:host=localhost;dbname=rcu1",
+			"user": "ramsadak",
+			"pass": "azerty"
+                    }
+        },
+        "fragments" : [{
+                        "table": "contact",
+                        "type": "main",
+                        "id": { "field": "id", "type": "uuid" },
+                        "ref": "nom"
+                       }, {
+                        "table": "company",
+                        "type":  "ref",
+                        "id": { "field": "id", "type": "uuid" },
+                        "ref": "name"
+                       }, {	
+                        "table": "relation",
+                        "type":  "vref",
+                        "id": { "field": "id", "type": "seq" },
+                        "ref": "nom",
+                        "fields" :["type","nom","table_1","table_2"],
+                        "field_val" : ["table_1","id_1"]
+                       }, {
+                        "table": "relation_tables",
+                        "type":  "link",
+                        "wlink": {      
+                                "id": { "field": "relation_id" },
+                                "fields" : ["table_1","id_1","table_2","id_2"],
+                                "fk_main" : "id_2"
+                            }
+                       }
+        ],
+        "map": [
+                { "dest": "id",    "map_value": 	"map_genuuid()" },
+                { "dest": "nom",    "main": 	"nom" },
+                { "dest": "map_dst(company, entreprise, rw)" },
+                { "dest": "map_vref(relation, fonction, company, entreprise, contact)" },
+                { "dest": "map_vref(relation, responsable, contact, nom, contact)" },
+                { "dest": "map_vref(relation, comptabilite, company, entreprise, contact)" }                                                      
+        ]
+}
