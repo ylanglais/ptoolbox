@@ -164,18 +164,18 @@ if (($uid = $a->post("uid")) !== false || $a->post("newuser") == true) {
 			if (($nid = adm_user_new_id()) === false) {
 				dbg_err("cannot find a new id");
 			} else {
-				$sql = "insert into tech.user values (:nid, :login, :empty, :name, :surname, :mail, :active, :since, :until)", [
+				new query(
+					"insert into tech.user values (:nid, :login, :empty, :name, :surname, :mail, :active, :since, :until)", [
 					':nid'     => $nid, 
 					':login'   => $usr->login, 
 					":empty"   => '', 
 					':name'    => $usr->name, 
 					':surname' => $usr->surname, 
-					':mail'    =>$usr->mail, 
+					':mail'    => $usr->mail, 
 					':active'  => $active, 
 					':since'   => $since, 
 					':until'   => $until
 				]);
-				new query($sql);
 
 				foreach ($rol as $r)  new query("insert into tech.user_role values (:nid, :rol)", [ ":nid" => $nid, ":rol" => $r ]);
 				$auth = new auth_local();
@@ -192,7 +192,7 @@ if (($uid = $a->post("uid")) !== false || $a->post("newuser") == true) {
 				":active"  => $active,
 				":since"   => $since,
 				":until"   => $until,
-				":udi"     => $usr->uid
+				":uid"     => $usr->uid
 			];
 			new query($sql, $sdat);
 
