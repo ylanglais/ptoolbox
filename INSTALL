@@ -1,0 +1,18 @@
+#
+# Create directory:
+mdir myapp
+cd myapp
+#
+#
+git clone git@github.com:ylanglais/ptoolbox.git .
+#
+# create database:
+sudo su - postgres
+psql "create database myapp"
+psql "create user myuser passwod 'blabla'"
+psql "alter database myapp owner to myuser"
+exit
+#
+# Create base ;
+
+
