@@ -49,7 +49,7 @@ function audit_login($sid, $login, $ip) {
  */
 function audit_logout($sid) {
 	$t  = _schema() . "connection";
-	new query("update $t set until=now(), State='logout' where id = :sid' and State = 'login' and since = (select max(since) from $t where id = :sid and State = 'login')", [
+	new query("update $t set until=now(), state='logout' where id = :sid and state = 'login' and since = (select max(since) from $t where id = :sid and state = 'login')", [
 		":sid" => $sid
 	]);
 }
