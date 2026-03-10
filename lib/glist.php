@@ -141,6 +141,7 @@ function glist($prov, $opts = []) {
 
 	# first use, try to load user prefs for this provider:
 	if (is_string($opts)) $opts = json_decode($opts);
+	if (is_object($opts)) $opts = (array) $opts;
 	if ($opts == [] || !array_key_exists("start", $opts))  $opts = array_merge($opts, glist_user_pref_get($prov));
 	else if (is_object($opts)) $opts = (array) $opts; 
 

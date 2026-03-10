@@ -310,8 +310,12 @@ class prov_db {
 		$i = 0;
 		foreach ($req as $k => $v) {
 			$i++;
+			if ($v === null) {
+				array_push($w, "$k is null");
+			 } else {
 			array_push($w,    "$k = :prm$i");
 			$sdat[":prm$i"] = $v;
+			}
 		}
 		$where = " where " . implode(" and ", $w);
 		$sql = "select * from $this->table $where";
@@ -321,7 +325,6 @@ class prov_db {
 				$sql .= " $order";
 		}
 		if ($limit > 0)      $sql .= " limit $limit offset $start";
-		#dbg($sql);
 		$q = new query($this->db, $sql, $sdat);
 		return $q->all();
 	}

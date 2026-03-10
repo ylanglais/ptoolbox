@@ -466,7 +466,7 @@ a.rptlink:visited,
 a.menuentry:visited { color: $menuentry_fg; }
 a.rptlink:hover,
 a.menuentry:hover   { 
-	color: $hover; 
+	color: $menu_hover; 
 }
 
 a.menuentry.current {
