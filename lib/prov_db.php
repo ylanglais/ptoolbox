@@ -43,7 +43,7 @@ class prov_db {
 			$base  = $m[1];
 			$table = $m[2];
 
-			$perm = get_perm("table", "$base.$table");
+			$perm = get_perm("Table", "$base.$table");
 			if ($perm != 'RONLY' && $perm != 'ALL' && $perm != 'SYSTEM') {
 				$s =  "Attempted access to table $d without due permission";
 				audit_log("SECURITY", $s);
@@ -313,8 +313,8 @@ class prov_db {
 			if ($v === null) {
 				array_push($w, "$k is null");
 			 } else {
-			array_push($w,    "$k = :prm$i");
-			$sdat[":prm$i"] = $v;
+				array_push($w,    "$k = :prm$i");
+				$sdat[":prm$i"] = $v;
 			}
 		}
 		$where = " where " . implode(" and ", $w);
@@ -371,7 +371,6 @@ class prov_db {
 			}
 		}
 		$sql = "insert into $this->table (".  implode(",", $cols) . ") values (". implode(",", $vals) .")";
-		#dbg($sql);
 		$q = new query($this->db, $sql, $sdat);
 		if ($q->nrows() != 1) {
 			err("$sql : " . $q->err());
@@ -475,9 +474,12 @@ class prov_db {
 				}
 				$k = $this->fquote($f);
 				$i++;
-				array_push($w, "$k = :prm$i");
-				$sdat[":prm$i"] = $data[$f];
-
+				if ($data[$f] === null) {
+					array_push($w, "$k is null");
+				 } else {
+					array_push($w, "$k = :prm$i");
+					$sdat[":prm$i"] = $data[$f];
+				}
 			}
 		} else {
 			foreach ($dat as $f => $v) {
@@ -489,7 +491,6 @@ class prov_db {
 		}
 		$where = " where " . implode(" and ", $w);
 		$sql = "delete from $this->table $where";
-		#dbg($sql);
 		$q = new query($this->db, $sql, $sdat);
 		
 		if (($r = $q->obj()) === false) {

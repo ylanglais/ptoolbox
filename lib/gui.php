@@ -3,8 +3,10 @@ require_once("lib/args.php");
 require_once("lib/dbg_tools.php");
 require_once("lib/glist.php");
 require_once("lib/prov.php");
+require_once("lib/session.php");
 
 function gui_ctrl() {
+	session::enforce();
 	$a = new args();
 
 	if ($a->has("page")) $page = $a->val("page");

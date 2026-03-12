@@ -1,6 +1,7 @@
 <?php
 require_once('lib/prov.php');
 require_once('lib/util.php');
+require_once('lib/session.php');
 
 function fsel($ctrl, $data, $all, $sel = [], $popupid) {
 	if (is_string($all)) $all = json_decode($all);

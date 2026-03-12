@@ -1,11 +1,11 @@
 <?php
-
 require_once("lib/dbg_tools.php");
 require_once("lib/db.php");
 require_once("lib/query.php");
 require_once("lib/ora.php");
 require_once("lib/prov.php");
 require_once("lib/glist.php");
+require_once("lib/session.php");
 
 function dbexp() {
 	$q = new query("select dbs from tech.dbs order by dbs");
@@ -13,7 +13,8 @@ function dbexp() {
 	print("<tr><td onclick='dbexp_tables(this, \"default\")' onmouseover='this.classList.add(\"over\")' onmouseout='this.classList.remove(\"over\")'>default</td></tr>\n");
 
 	while ($o = $q->obj()) {
-		print("<tr><td onclick='dbexp_tables(this, \"$o->dbs\")' onmouseover='this.classList.add(\"over\")' onmouseout='this.classList.remove(\"over\")'>$o->dbs</td></tr>\n");
+		if ($o->dbs != 'default')
+			print("<tr><td onclick='dbexp_tables(this, \"$o->dbs\")' onmouseover='this.classList.add(\"over\")' onmouseout='this.classList.remove(\"over\")'>$o->dbs</td></tr>\n");
 	}
 	print("</table></div>");
 	print("<div id='dbexp_tables' class='dbexp'></div>\n");	
@@ -65,6 +66,7 @@ function dbexp_data($dbs, $table) {
 }
 
 function dbexp_ctrl() {
+	session::enforce();
 	$a = new args();
 	if ($a->has("action")) {
 		$action = $a->val("action");

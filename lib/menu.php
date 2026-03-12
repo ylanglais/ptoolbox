@@ -4,9 +4,8 @@ require_once("lib/session.php");
 require_once("lib/args.php");
 
 function menu_ctrl() {
+	session::enforce();
 	$s = new session();
-	$s->check();
-
 	$a = new args();
 
 	if (!$a->has("menu_cur")) {

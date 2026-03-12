@@ -4,6 +4,7 @@ require_once("lib/args.php");
 require_once("lib/db.php");
 require_once("lib/query.php");
 require_once("lib/stats.php");
+require_once("lib/session.php");
 
 class form {
 	function __construct($spec) {
@@ -141,6 +142,7 @@ class form {
 }
 
 function form_ctrl() {
+	session::enforce();
 	$a = new args();
 	if (!$a->has("fname")) {
 		err("No form specified");

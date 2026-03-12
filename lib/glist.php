@@ -78,9 +78,9 @@ function glist_user_opt_save($prov, $opts) {
 	$uid = get_user_id();
 	$pid = $prov->id();
 	if (glist_user_pref_has($pid, $uid)) {
-		new query("update param.glist set sortby = :sb, orderby = :ob where user_id = :uid and provider = :pid", [ ":sb" => $sb, ":ob" => $ob, ":uid" => $uid, ":pid", $pid ]);
+		new query("update param.glist set sortby = :sb, orderby = :ob where user_id = :uid and provider = :pid", [ ":sb" => $sb, ":ob" => $ob, ":uid" => $uid, ":pid" => $pid ]);
 	} else {
-		new query("insert into param.glist (user_id, provider, sortby, orderby) values (:uid, :pid, :sb, :ob)", [ ":uid" => $uid, ":pid", $pid, ":sb" => $sb, ":ob" => $ob ]); 
+		new query("insert into param.glist (user_id, provider, sortby, orderby) values (:uid, :pid, :sb, :ob)", [ ":uid" => $uid, ":pid" => $pid, ":sb" => $sb, ":ob" => $ob ]); 
 	}
 }
 function glist_user_pref_save($prov, $opts) {
@@ -419,6 +419,7 @@ function glist_export($prov, $opts, $type = "csv") {
 }
 
 function glist_ctrl() {
+	session::enforce();
 	$a = new args();
 	$opts = [];
 	$fsel = [];

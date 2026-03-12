@@ -42,7 +42,7 @@ class prov_view {
 				exit();
 			}
 		} else {
-			$perm = get_perm("view", $view);
+			$perm = get_perm("View", $view);
 			if ($perm != 'RONLY' && $perm != 'ALL') {
 				$s =  "Attempted access to view $view without due permission";
 				audit_log("SECURITY", $s);
@@ -50,7 +50,7 @@ class prov_view {
 			}
 			$this->perm = $perm;
 
-			$q = new query("select * from param.entity where name = '$view' and etype = 'view'");
+			$q = new query("select * from param.entity where name = '$view' and etype = 'View'");
 
 			if (($o = $q->obj()) === false) {
 				err("no view named '$view'");
@@ -381,7 +381,7 @@ class prov_view {
 			} 
 			
 		}
-		$s = "insert into " . $this->view->tname . " (" . implode($flds, ",") . ") values (" . implode($vals, ",") . ")";
+		$s = "insert into " . $this->view->tname . " (" . implode(",", $flds) . ") values (" . implode(",", $vals) . ")";
 		$q = new query($s);
 		if ($q->nrows() != 1) {
 			err("$s : " . $q->err());

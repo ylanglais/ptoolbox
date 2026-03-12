@@ -54,6 +54,21 @@ class session {
 	public  $userdata;
 	public  $roles;
 
+	static function enforce() {
+		global $_session_;
+		#
+		# Start/Restore session:
+		if (!isset($_session_)) $_session_ = new session();
+		#
+		# Check 
+		#
+		if ($_session_->isnew()) { 
+			err("Unauthorized");
+			header("HTTP/1.1 401 Unauthorized");
+			exit;
+		}
+	} 
+		
 	function __construct() {
 		if (!isset($_SESSION)) session_start(); 
 		#

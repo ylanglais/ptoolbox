@@ -6,7 +6,7 @@ require_once("lib/query.php");
 require_once("lib/locl.php");
 require_once("lib/stats.php");
 require_once("lib/scrm.php");
-
+require_once("lib/session.php");
 
 class rpt {
 	private $icons = [
@@ -924,6 +924,8 @@ class rpt {
     }
 }
 function rpt_ctrl() {
+	session::enforce();
+
 	$rpt_name = false;
 	$data     = false;
 	

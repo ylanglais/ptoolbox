@@ -7,6 +7,7 @@ require_once("lib/store.php");
 require_once("lib/prov_db.php");
 require_once("lib/prov_view.php");
 require_once("lib/util.php");
+require_once("lib/session.php");
 
 class prov { 
 	function __construct($d, $datalink = null, $filter = null) {
@@ -121,6 +122,7 @@ class prov {
 }
 
 function prov_ctrl() {
+	session::enforce();
 	$a = new args();
 	if ($a->has("prov_data") && $a->has("action")) {
 		$action = $a->val("action");
