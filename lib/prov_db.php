@@ -466,19 +466,21 @@ class prov_db {
 		$w = [];
 		$sdat = [];
 		$i = 0;
+dbg($dat);
+		if (is_object($dat)) $dat = (array) $dat;
 		if ($this->fkeys != []) {	
 			foreach ($this->fkeys as $f) {
-				if  (!property_exists($dat, $f)) {
+				if  (!array_key_exists($f->col, $dat)) {
 					err("Missing key $f, cannot delete (" . json_encode($dat) . ")");
 					return false;
 				}
-				$k = $this->fquote($f);
+				$k = $this->fquote($f->col);
 				$i++;
-				if ($data[$f] === null) {
+				if ($dat[$f->col] === null) {
 					array_push($w, "$k is null");
 				 } else {
 					array_push($w, "$k = :prm$i");
-					$sdat[":prm$i"] = $data[$f];
+					$sdat[":prm$i"] = $dat[$f->col];
 				}
 			}
 		} else {
