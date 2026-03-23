@@ -10,7 +10,7 @@ require_once("lib/style.php");
 $args = new args();
 
 global $_session_;
-
+	
 # Start/Restore session:
 if (!isset($_session_)) $_session_ = new session();
 # Check 
@@ -37,6 +37,9 @@ if ($_session_->isnew()) {
 }
 style::reload();
 include("parts/header.php");
+print("<body onbeforeunload='timeout_logout(\"body onbeforeunload\");'>"); 
+
 include("parts/layout.php");
+layout();
 include("parts/tailer.php");	
 ?>

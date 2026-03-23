@@ -10,11 +10,14 @@ function menu_content() {
 	global $_session_;
 	if (!isset($_session_)) $_session_ = new session();
 	# Make sure we are connected:
-	$_session_->check();
+	#$_session_->check();
 
-	$usr   = $_session_->user->login();
-	$roles = $_session_->user->roles();
-
+	if (!$_session_->isnew()) {
+		$usr   = $_session_->user->login();
+		$roles = $_session_->user->roles();
+	} else {
+		$roles = [ "notconnected", "any" ];
+	}
 
 	$menu_cur = $menu_entry_cur = $menu_data_cur = null;
 	foreach (["menu_cur", "entry_cur", "data_cur" ] as $v) {
@@ -69,38 +72,54 @@ function menu_content() {
 		<input type="hidden" name="page" value="logout"/>
 		</form>
 		<ul id="menuul" class="menu">';
+	
 
-	$q = new query("select f.name as folder ,p.name as page ,p.ptype ,p.datalink ,p.pagefile ,fp.perm_name as perm from param.folder f ,param.folder_page pf ,param.folder_perm fp ,param.page p ,tech.role r where f.id = pf.folder_id and p.id = pf.page_id and fp.folder_id = f.id and r.id = fp.role_id and r.name in ($rstr) order by f.id, pf.page_order");
+dbg("select f.name as folder ,p.name as page ,p.ptype ,p.datalink ,p.pagefile ,fp.perm_name as perm, r.id as permid from param.folder f ,param.folder_page pf ,param.folder_perm fp ,param.page p ,tech.role r where f.id = pf.folder_id and p.id = pf.page_id and fp.folder_id = f.id and r.id = fp.role_id and r.name in ($rstr) order by f.id, pf.page_order");
 
-	$fold = "";
+	$q = new query("select f.name as folder ,p.name as page ,p.ptype ,p.datalink ,p.pagefile ,fp.perm_name as perm, r.id as permid from param.folder f ,param.folder_page pf ,param.folder_perm fp ,param.page p ,tech.role r where f.id = pf.folder_id and p.id = pf.page_id and fp.folder_id = f.id and r.id = fp.role_id and r.name in ($rstr) order by f.id, pf.page_order");
+
+	$m = [];
+	$all = $q->all();
+	foreach ($all as $i => $o) {
+		if (!array_key_exists($o->folder, $m)) {
+			$m[$o->folder] = [];
+		}
+		if (!array_key_exists($o->page, $m[$o->folder])) $m[$o->folder][$o->page] = $o;
+		else if ( $m[$o->folder][$o->page]->permid < $o->permid)  $m[$o->folder][$o->page]->permid = $o->permid;
+	}	
 
 	$menu_id = -1;
-
-	while ($o = $q->obj()) {
-		if ($o->folder != $fold) {
-			if ($fold != "") {
-				$str .= "\t\t</ul>\n\t</li>\n";
-			}
-			$fold = $o->folder;
-			$menu_id++;
-			$str .= "\t<li class='menu'>\n\t\t<a class='menu' onclick='menu_show(\"menu_$menu_id\")'>$fold</a>\n\t\t<ul id='menu_$menu_id' class='menusub'>\n";
+	$def_entry ="";
+	foreach ($m as $f => $pgs) {
+		$menu_id++;
+		$str .= "\t<li class='menu'>\n\t\t<a class='menu' onclick='menu_show(\"menu_$menu_id\")'>$f</a>\n\t\t<ul id='menu_$menu_id' class='menusub'>\n";
+		foreach ($pgs as $o) { 
+			# Todo: set le def_menu & def_entry in db
+			if ($menu_id == 0 && $def_entry == "") $def_entry = "me_"  .$o->page;
+			if      ($o->ptype == "External") $str .= "\t\t\t". menu_external($o->page, $o->pagefile) . "\n";
+			else if ($o->ptype == "System")   $str .= "\t\t\t". menu_page($o->page, $o->pagefile) . "\n";
+			else if ($o->ptype == "Client")   $str .= "\t\t\t". menu_page($o->page, $o->pagefile) . "\n";
+			else if ($o->ptype == "Table" )   $str .= "\t\t\t". menu_table($o->page,$o->datalink) . "\n";
+			else if ($o->ptype == "Form")     $str .= "\t\t\t". menu_form($o->page, $o->pagefile) . "\n";
+			else if ($o->ptype == "Report")   $str .= "\t\t\t". menu_rpt ($o->page, $o->pagefile) . "\n";
+			else if ($o->ptype == "View")     $str .= "\t\t\t". menu_view($o->page, $o->datalink) . "\n";
 		}
-		
-		if      ($o->ptype == "External") $str .= "\t\t\t". menu_external($o->page, $o->pagefile) . "\n";
-		else if ($o->ptype == "System")   $str .= "\t\t\t". menu_page($o->page, $o->pagefile) . "\n";
-		else if ($o->ptype == "Client")   $str .= "\t\t\t". menu_page($o->page, $o->pagefile) . "\n";
-		else if ($o->ptype == "Table" )   $str .= "\t\t\t". menu_table($o->page,$o->datalink) . "\n";
-		else if ($o->ptype == "Form")     $str .= "\t\t\t". menu_form($o->page, $o->pagefile) . "\n";
-		else if ($o->ptype == "Report")   $str .= "\t\t\t". menu_rpt ($o->page, $o->pagefile) . "\n";
-		else if ($o->ptype == "View")     $str .= "\t\t\t". menu_view($o->page, $o->datalink) . "\n";
+		$str .= "\t\t</ul>\n\t</li>\n";
 	}
-	$str .= "\t\t</ul>\n\t</li>\n";
-	$str .= " <!-- Menu Déconnexion -->
+
+#########################
+	if (!in_array("notconnected", $roles)) {
+		$str .= " <!-- Menu Déconnexion -->
 		<li class='menu'>
 			<a class='menu' onclick='document.getElementById(\"menusubmit\").submit()'>Déconnexion</a> 
 		</li>
-	</ul>
-	<script>
+	</ul>";
+	} else if ($_session_->getvar("menu_cur") === false) {
+		# Todo: set le def_menu & def_entry in db
+		$menu_cur  =  "menu_0";
+		$entry_cur =  $def_entry;
+	}
+	$str .= "<script>
 	timeout_set(60);
 	$initf
 	</script>";

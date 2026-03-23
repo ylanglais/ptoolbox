@@ -292,7 +292,7 @@ function glist($prov, $opts = []) {
 			$html .= "<tr onmouseover='this.classList.add(\"over\")' onmouseout='this.classList.remove(\"over\")'";
 			if ($qry != []) {
 				$vdata = '{ "prov": "'. $pdat . '", "req": '. json_encode($qry) . ', "opts": '.json_encode($opts) .'}';
-				$html .= " onclick='glist_view(\"".$opts["gform_id"]."\", $vdata)'";
+				$html .= " onclick='glist_select(this);glist_view(\"".$opts["gform_id"]."\", $vdata)'";
 			} 
 			$html .=">";
 

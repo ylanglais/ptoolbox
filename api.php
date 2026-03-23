@@ -239,8 +239,9 @@ default:
 			$l = mthd_args($req, $action);
 			$alst = [];
 			$dat = $a->val("data");
+			if ($dat != null)
 			foreach ($l as $o) {
-				if (!array_key_exists($o->name)) {
+				if (property_exists($dat, $o->name)) {
 					$v = $dat->{$o->name};
 					if ($o->type != []) {
 						$ok = false;
@@ -255,7 +256,7 @@ default:
 							}
 						}
 						if ($ok == false) {
-							api_reply("ko", "bad request to $req::$action, parameter $o->name should be in " . json_encode($o->type) . " but is " . gettype($v) );
+							api_reply("ko", "bad request to $req::$action, parameter $o->name should be in " . json_encode($o->type) . " but is " . gettype($v));
 						}
 					} 	
 					array_push($alst, $v);

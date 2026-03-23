@@ -4,7 +4,7 @@ require_once("lib/session.php");
 require_once("lib/args.php");
 
 function menu_ctrl() {
-	session::enforce();
+	#session::enforce();
 	$s = new session();
 	$a = new args();
 

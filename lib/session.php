@@ -48,7 +48,7 @@ function get_perm($type, $link) {
 class session {
 	private $sid;	
 	private $name;
-	public  $user;
+	public  $user = null;
 	public  $login;	
 	public  $profile;
 	public  $userdata;
@@ -138,7 +138,10 @@ class session {
 		}
 	}
 	function has_role($role) {
-		if ($this->roles != null && (in_array($role, $this->roles) || ($role != "admin" && in_array("any", $this->roles)))) return true;
+		if ($this->roles != null && (in_array($role, $this->roles) || 
+			($role != "admin" && in_array("any", $this->roles)))) 
+			#($role != "admin" && in_array("any", $this->roles) && !in_array("notconnected")))) 
+			return true;
 		return false;
 	}
 	function has($key) {

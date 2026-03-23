@@ -55,8 +55,16 @@ class style {
 		if (!is_array(self::$data) || array_key_exists($key, self::$data) === false) {
 			return false;
 		}
-		if (self::$data[$key]->type == "color" && substr(($v = self::$data[$key]->value),0, 6) == "color(") {
-			return self::value(substr($v, 6, -1));
+		if (self::$data[$key]->type == "color" && substr(($v = self::$data[$key]->value), 0, 6) == "color(") {
+			$v = substr($v, 6, -1);
+			#
+			# Avoid infinite loop:
+			if ( $v != $key) { 
+				return self::value($v);
+			} else {
+				err("$key color references itself (".self::$data[$key]->value.")");
+				return "red";	
+			}
 		}
 		return self::$data[$key]->value;
 	}

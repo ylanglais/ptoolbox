@@ -1,3 +1,5 @@
+let glist_current = null;
+
 function glist_opts(id) {
 	_el = document.getElementById(id + "_opts");
 	if (_el == null) return _el;
@@ -49,6 +51,11 @@ function glist_sort(el, id, field) {
 	opts.sort  = field;
 	ctrl("glist", {"prov": pdat, "opts": opts, "save_opts": true}, id);
 	return false;
+}
+function glist_select(el) {
+	if (glist_current != null) glist_current.classList.remove('selected');
+	glist_current = el;
+	el.classList.add('selected');
 }
 function glist_view(id, data) {
 	ctrl("gform", { "id": id, "data": data }, id);

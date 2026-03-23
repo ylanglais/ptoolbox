@@ -266,4 +266,14 @@ class curl {
 	}
 }
 
+function curl_get($str) {
+	$c = new curl($str);
+	return $c->get("");
+}
+
+function curl_post($str, $data) {
+	$c = new curl($str);
+	return $c->post("", $data);
+}
+
 ?>

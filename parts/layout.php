@@ -24,7 +24,6 @@ if ($direct == true) {
 	exit;
 }
 
-
 	
 function layout_part_content($part) {
 	$str = "";
@@ -42,11 +41,12 @@ function layout_part($divid, $divclass, $part) {
 	$str .= "</div>\n";
 	return $str;
 }
-
-print("<div id='body'>\n");
-print(layout_part("heading", "heading", "heading"));
-print(layout_part("menu", "menu", "menu"));
-print("<div id='data_area'></div>\n");
-#print("<div id='msg_area'></div>\n");
-print("</div>\n");
+function layout() {
+	print("<div id='body'>\n");
+	print(layout_part("heading", "heading", "heading"));
+	print(layout_part("menu", "menu", "menu"));
+	print("<div id='data_area'></div>\n");
+	#print("<div id='msg_area'></div>\n");
+	print("</div>\n");
+}
 

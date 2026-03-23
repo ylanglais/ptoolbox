@@ -307,6 +307,7 @@ class prov_view {
 	}
 	function has_fk($f) {
 		if ($this->init === false) return false;
+dbg($this->cols->{$f});
 		if (property_exists($this->cols, $f) && property_exists($this->cols->{$f}, "ftable")) {
 			return [ "ftable" => $this->cols->{$f}->ftable,"fcol" => $this->cols->{$f}->fcol];
 		}

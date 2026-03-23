@@ -38,4 +38,3 @@ foreach (['js', 'usr/js'] as $dir) {
 ?>
 
 </head>
-<body onbeforeunload='timeout_logout("body onbeforeunload");'> 

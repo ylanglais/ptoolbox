@@ -80,7 +80,7 @@ div.dbexp {
 	overflow-y:  auto;
 	overflow-x:  clip;
 	float: left;
-}	
+}
 div.data {
 	width: 100%; 
 	top: 0px; 
@@ -476,8 +476,8 @@ a.menuentry.current {
 /* 
  * Anchor definitions:
  */ 
-a:link    { color: $bleu1 }
-a:visited { color: $bleu2 }
+a:link    { color: $link }
+a:visited { color: $vlink }
 a.prjlink {
 	cursor: pointer;
 	text-decoration: none;
@@ -631,7 +631,7 @@ table.flist {
 	border: 0.5px solid $normal;
 }
 table.flist th {
-	width: auto;	
+	width: auto;
 	position: sticky;
 	top: 0;
 	z-index: 2;
@@ -708,8 +708,8 @@ tr.over {
 	box-shadow: 1px 1px 3px $shadow;
 }
 tr.selected {
-	color: $reverse_fg;
-	background-color: $normal;
+	color: $selected_fg;
+	background-color: $selected_bg;
 	font-weight: bold;
 }
 table.subform tr.selected {
@@ -912,11 +912,11 @@ option, select.datalist option {
 }
 select.datalist option:hover {
 	color: $reverse_fg;
-	background-color: $reverse_bg	
+	background-color: $reverse_bg;
 }
 select.datalist option:checked {
 	color: $reverse_fg;
-	background-color: $reverse_bg	
+	background-color: $reverse_bg;
 }
 option:checked {
 	color: $bg;
@@ -1004,7 +1004,7 @@ input[type="button"]:focus
 }
 input[type="checkbox"] {
 	color: $bg;
-	border: 0px;	
+	border: 0px;
 }
 input[type="checkbox"] {
 	appearance:none;
@@ -1126,7 +1126,6 @@ div.center {
 	width: 80%;
 	height: 14vh;
 	margin: auto;
-	
 }
 .white {
 	background-color: #ffffff;
@@ -1395,7 +1394,7 @@ text.graph.legend {
 }
 text.graph.pie.legend{
 	font-size: clamp(8px, 40%, 12px);
-	fill: $bleu2;
+	fill: $fg;
 }
 line.graph.legend {
 	stroke-width: 2px;
