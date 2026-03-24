@@ -250,7 +250,7 @@ default:
 								$ok = true; break;
 							}
 							$chk = "is_". $t;
-							dbg("$t --> $chk($v) --> ". $chk($v) ? "true": "false");
+							#dbg("$t --> $chk($v) --> ". $chk($v) ? "true": "false");
 							if (function_exists($chk) && $chk($v)) {
 								$ok = true; break;	
 							}
