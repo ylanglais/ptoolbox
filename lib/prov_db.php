@@ -421,7 +421,7 @@ class prov_db {
 
 		$autoupdate = 0;
 		foreach ($this->fields as $f) {
-			if (property_exists($dat, $f) && (!property_exists($ori, $f) || $ori->$f != $dat->$f)) {
+			if (property_exists($dat, $f) && (!property_exists($ori, $f) || ($ori->$f != $dat->$f))) {
 				if ($f == "mstamp") $autoupdate = 1;
 				$k = $this->fquote($f); 
 				$i++;
@@ -496,7 +496,7 @@ class prov_db {
 		
 		if (($r = $q->obj()) === false) {
 			err("$sql : " . $q->err());
-			dbg($sdat);
+			err($sdat);
 			return  '{"status": false, "query": "'.$sql.'", "error": "'.$q->err().'"}';
 		}
 		return true;
@@ -517,7 +517,6 @@ class prov_db {
 			$s .= " where lower(cast($f as char(1000))) like lower('$str%')";
 		} 
 		$s .= " order by 1 limit $max"; 
-		#dbg(">d> $s");
 		$q = new query($this->db, $s);
 		$d = [];
 		while ($o = $q->obj()) array_push($d, $o->{$f});

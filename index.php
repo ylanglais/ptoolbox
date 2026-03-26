@@ -5,41 +5,37 @@ require_once("lib/args.php");
 require_once("lib/user.php");
 require_once("lib/session.php");
 require_once("lib/style.php");
+require_once("parts/layout.php");
 
 # Get POST data:
-$args = new args();
+$a = new args();
 
 global $_session_;
-	
-# Start/Restore session:
-if (!isset($_session_)) $_session_ = new session();
-# Check 
-if ($_session_->isnew()) {
-	if (!$args->has("login") || !$args->has("passwd")) {
-		header("Location: login.php");
-		exit;
-	} else {
-		$u = new user();
-		if (!($u->auth_check($args->val("login"), $args->val("passwd"), $args->val("ip")))) {
-			html_err("invalid pair login/passwd");
-			header("Location: login.php");
-			exit;
-		}
-		$_session_->create($u);
-		$args->clean("passwd");
-		$args->clean("login");
-	}
-} else if ($args->has("page") && $args->val("page") == "logout") {
-	$_session_->destroy();
-	$args->all_clean();
-	header("Location: login.php");
-	exit;
-}
-style::reload();
-include("parts/header.php");
-print("<body onbeforeunload='timeout_logout(\"body onbeforeunload\");'>"); 
 
-include("parts/layout.php");
-layout();
-include("parts/tailer.php");	
+if (!isset($_session_)) $_session_ = new session();
+
+if (!$_session_->isnew() && $a->has("page") && $a->val("page") == "logout") {
+	$_session_->destroy();
+	$a->all_clean();
+	header("Location: index.php");
+}
+
+include("parts/header.php");
 ?>
+<body>
+<div id="body">
+	<div id='header' class='heading'>
+		<table class='heading'>
+			<tr><td align="center"><img src='images/logo.svg' height='60px'/></td><th>VSPA - recherche de pièces automobile</th><td width='50%'></td>
+			<td align='left'><div align='center'>Mon panier<br/><img height="50px" src="images/basket.png"/></div></td>
+			<td><div align='center'>Mon compte<br/><img height="50px" src='images/account.png'/></div></td></tr>
+		</table>
+	</div>
+<?php 
+	print(layout_part("menu", "menu", "menu"));
+?>
+	<div id='data_area'>
+	</div>
+</div>
+</body>
+</html>

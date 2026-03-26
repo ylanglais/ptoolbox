@@ -11,9 +11,10 @@ window.addEventListener('load',   menu_onresize, true);
 
 
 function menu_restore(cur_menu, cur_entry, cur_data) {
-	if (cur_menu == null || cur_menu == "") return;
+	if (cur_menu === null || cur_menu == "") return;
 
-	menu_cur  = document.getElementById(cur_menu);
+	if ((menu_cur  = document.getElementById(cur_menu)) === null) return;
+
 	menu_show(menu_cur.id);
 
 	if (cur_entry != null) {
@@ -31,35 +32,7 @@ function menu_onresize() {
 	if (menu_cur != null)
 		menu_cur.style.maxHeight = "" + hh + "px";
 }
-/***
-function menu_reload() {
-	console.log("in menu_reload()");
-	
-	$('#divmenu').load("divmenu", "parts/menu.php", {}, function() {
-		m = menu_cur;
-		e = entry_cur;
 
-		menu_cur = entry_cur = null;
-		if (m) { 
-			menu_show(m);
-			p = m;
-
-			var o = document.getElementById(p).children;
-
-			// element had content e.innerHTML => must retreive its new instance:
-			if (e != null) {
-				for (var i = 0; i < o.length; i++) {
-					var a = o[i].children[0];
-					if (a.innerHTML == e.innerHTML) {
-						a.classList.add("current");
-						entry_cur = a;
-					}
-				}
-			}
-		}
-	});
-}
-***/
 function menu_show(id) {
 	e = document.getElementById(id);
 	if (menu_cur != null) {

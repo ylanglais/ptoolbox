@@ -25,7 +25,7 @@ input[type=submit] {
 </head>
 <body style="background-color: #F8F8F6; font-family: arial, Helvetica, sans;" onresize="geom_center('login')" onload="geom_center('login')">
 <script type="text/javascript" src="js/geom.js"></script>
-<form action="index.php" method="post" autocomplete="off">
+<form action="__index.php" method="post" autocomplete="off">
 
 <div id="login" style="position: absolute; background-color: white; width: 15%; min-width: 250px; text-align: center; padding: 15px; border-radius: 5px; box-shadow: 10px 10px 5px #555555;">
 <table align="center">

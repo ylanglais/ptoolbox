@@ -32,8 +32,7 @@ function get_roles():array {
 	global $_session_;
 	if (!is_object($_session_) || !property_exists($_session_, "roles"))
 		return [];
-
-	return $_session_->roles;
+	return $_session_->user->roles();
 }
 function get_perm($type, $link) {
 	global $_session_;
@@ -43,6 +42,20 @@ function get_perm($type, $link) {
 		|| !is_object($_session_->user))
 		return "NONE";
 	return $_session_->user->right_on($type, $link);
+}
+
+function has_role($role) {
+	global $_session_;
+	if (!is_object($_session_) || !is_object($_session_->user)|| !property_exists($_session_->user, "roles")) {
+		return false;
+	}
+	return $_session_->user->has_role($role);;
+}
+function remove_role($role) { 
+	global $_session_;
+	if (!is_object($_session_) || !is_object($_session_->user)|| !property_exists($_session_->user, "roles"))
+		return false;
+	return $_session_->user->remove_role($role);
 }
 	
 class session {
@@ -105,10 +118,14 @@ class session {
 		}
 		$this->usrdata = $data;
 	}
-	function create($user) {
+	function create($user, $ip = false) {
 		#_log("create session");
 		#session_regenerate_id();
-		$this->ip   = $_SERVER['REMOTE_ADDR'];
+		if ($ip === false) 
+			$this->ip   = $_SERVER['REMOTE_ADDR'];
+		else 
+			$this->ip   = $ip;
+
 		$this->name = $user->login() . "@" . $this->ip;
 		#session_name($this->name);
 		$this->sid   = session_id(); 
@@ -118,7 +135,6 @@ class session {
 		$this->user     = $user;
 		$this->login    = $user->login();
 		$this->profile  = $user->profile();
-		$this->roles    = $user->roles();
 
 		if (file_exists("usr/usrsession.php")) {
 			if (include_once("usr/usrsession.php")) {
@@ -138,8 +154,8 @@ class session {
 		}
 	}
 	function has_role($role) {
-		if ($this->roles != null && (in_array($role, $this->roles) || 
-			($role != "admin" && in_array("any", $this->roles)))) 
+		if ($this->user->roles != null && (in_array($role, $this->user->roles) || 
+			($role != "admin" && in_array("any", $this->user->roles)))) 
 			#($role != "admin" && in_array("any", $this->roles) && !in_array("notconnected")))) 
 			return true;
 		return false;

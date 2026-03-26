@@ -117,6 +117,29 @@ class prov_view {
 					array_push($this->fields, $o->name);
 					array_push($this->slist, "$o->ft.$o->fdc as \"$o->name\"");
 					array_push($this->joins, "left join $o->ft on " . $this->view->tname . ".$o->sc = $o->ft.$o->fjc");
+				} else if ($this->frags->{$o->name}->type == "evalue") {
+			
+/***
+select 
+	ref.title.value
+	,person.first_name
+	,person.last_name
+	,phone.phone
+--	,address.line_1
+--	,address.line_2
+--	,address.line_3
+--	,address.line_4
+--	,address.zipcode
+--	,address.city
+--	,address.country
+from 
+	person
+left join ref.title on ref.title.id = person.title
+right join link_channel on link_channel.entity = 'person' and link_channel.entity_id = person.id
+right join phone        on link_channel.channel = 'phone' and link_channel.channel_id = phone.id
+***/
+
+
 				} else if ($this->frags->{$o->name}->type == "values") {
 				} else if ($this->frags->{$o->name}->type == "vallist") {
 					$this->cols->{$o->name} = $this->tables->{$o->ft}->cols->{$o->fdc};
@@ -307,7 +330,7 @@ class prov_view {
 	}
 	function has_fk($f) {
 		if ($this->init === false) return false;
-dbg($this->cols->{$f});
+		#dbg($this->cols->{$f});
 		if (property_exists($this->cols, $f) && property_exists($this->cols->{$f}, "ftable")) {
 			return [ "ftable" => $this->cols->{$f}->ftable,"fcol" => $this->cols->{$f}->fcol];
 		}

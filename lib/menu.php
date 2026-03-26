@@ -8,6 +8,12 @@ function menu_ctrl() {
 	$s = new session();
 	$a = new args();
 
+	if ($a->has("reload")) {
+		require_once("parts/menu.php");
+		print(menu_content());
+		return;
+	}		
+	
 	if (!$a->has("menu_cur")) {
 		err("no menu_cur");
 		return "";
@@ -24,5 +30,4 @@ function menu_ctrl() {
 	}
 	return "";
 }
-
 ?>

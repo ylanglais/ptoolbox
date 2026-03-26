@@ -18,7 +18,6 @@ function menu_content() {
 	} else {
 		$roles = [ "notconnected", "any" ];
 	}
-
 	$menu_cur = $menu_entry_cur = $menu_data_cur = null;
 	foreach (["menu_cur", "entry_cur", "data_cur" ] as $v) {
 		${$v} = null;
@@ -74,7 +73,7 @@ function menu_content() {
 		<ul id="menuul" class="menu">';
 	
 
-dbg("select f.name as folder ,p.name as page ,p.ptype ,p.datalink ,p.pagefile ,fp.perm_name as perm, r.id as permid from param.folder f ,param.folder_page pf ,param.folder_perm fp ,param.page p ,tech.role r where f.id = pf.folder_id and p.id = pf.page_id and fp.folder_id = f.id and r.id = fp.role_id and r.name in ($rstr) order by f.id, pf.page_order");
+#dbg("select f.name as folder ,p.name as page ,p.ptype ,p.datalink ,p.pagefile ,fp.perm_name as perm, r.id as permid from param.folder f ,param.folder_page pf ,param.folder_perm fp ,param.page p ,tech.role r where f.id = pf.folder_id and p.id = pf.page_id and fp.folder_id = f.id and r.id = fp.role_id and r.name in ($rstr) order by f.id, pf.page_order");
 
 	$q = new query("select f.name as folder ,p.name as page ,p.ptype ,p.datalink ,p.pagefile ,fp.perm_name as perm, r.id as permid from param.folder f ,param.folder_page pf ,param.folder_perm fp ,param.page p ,tech.role r where f.id = pf.folder_id and p.id = pf.page_id and fp.folder_id = f.id and r.id = fp.role_id and r.name in ($rstr) order by f.id, pf.page_order");
 
@@ -108,6 +107,7 @@ dbg("select f.name as folder ,p.name as page ,p.ptype ,p.datalink ,p.pagefile ,f
 	}
 
 #########################
+dbg($roles);
 	if (!in_array("notconnected", $roles)) {
 		$str .= " <!-- Menu Déconnexion -->
 		<li class='menu'>

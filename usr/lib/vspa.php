@@ -4,6 +4,7 @@ require_once("lib/query.php");
 require_once("lib/args.php");
 require_once("lib/locl.php");
 require_once("lib/util.php");
+require_once("lib/curl.php");
 
 function vspa_search_ref_or_desc($str) {
 	$str = strtoupper(trim($str));
@@ -35,7 +36,25 @@ function vspa_get($id) {
 	$q = new query($qry, $sdat);	
 	return $q->obj();
 }
+
+function vspa_external_sellers() {
+	$q  = new query("select * from external_sellers");
+	return $q->all();
+}
+function vspa_curl_seller_qry($s, $ref) {
+	$qry = str_replace('$ref_or_desc', urlencode($ref), $s->query_string);
+	$c = new curl();
+}
 	
+function vspa_search_external_sellers($ref) {
+/*
+	$slrs = vspa_external_sellers();
+	foreach ($slrs as $sl) {
+		$qry = 
+*/
+}
+
+
 function vspa_format($all) {
 	$l = new locl();
 	/***

@@ -16,8 +16,8 @@ class user {
 	private $active;
 	private $since;
 	private $until;
-	private $roles;
-	private $rights;
+	private $roles  = [];
+	private $rights = [];
 
 	//public $session;
 
@@ -47,8 +47,7 @@ class user {
 		$this->active  = $usr_active;
 	}
 	function dbg() {
-		foreach (get_class_vars("address") as $k => $v)	
-			dbg_html($k . ": " . eval("return \$this->$k;"));
+		dbg($this);
 	}
 	function id() {
 		return $this->id;
@@ -59,6 +58,11 @@ class user {
 	function has_role($role) {
 		if ($this->roles == null || !in_array($role, $this->roles)) return false;
 		return true;
+	}
+	function remove_roles($role) {
+		if ($this->roles == null || !in_array($role, $this->roles)) return false;
+		$i = array_search($role, $this->roles);
+		array_splice($this->roles, $i);
 	}
 	function login($login = "") {
 		if ($login != "") $this->login = $login;
@@ -86,10 +90,11 @@ class user {
 		return $this->active;
 	}
 	function load_roles() {
+		#dbg("SELECT name from $this->role_table where id in (select $this->role_id from $this->user_role_table where $this->user_id = '$this->id') order by id");
 		$q =  new query("SELECT name from $this->role_table where id in (select $this->role_id from $this->user_role_table where $this->user_id = '$this->id') order by id");
 		$this->roles = [];
 		while ($row = $q->data()) {
-			if ($row['name'] == "local" && $this->source != "local") next;
+			#if ($row['name'] == "local" && $this->source != "local") next;
 			array_push($this->roles, $row['name']);
 		}
 		if ($this->source == "local" && !in_array("local", $this->roles)) array_push($this->roles, "local");
@@ -183,36 +188,34 @@ class user {
 			# test local auth:
 			$auth = new auth_local();
 			if ($auth->check($login, $passwd)) {
-				$q = new query("SELECT * from $this->user_table where login = :login and passwd is not null", [":login" => "$login"] );
+				$sdat = [  ":login" => $login ];
+				$q = new query("SELECT * from $this->user_table where login = :login and passwd is not null", $sdat );
 				if (($dat = $q->data()) == null) {
 					audit_login_error($login, $ip, 'bad_user');
 					return false;
 				}
 				if ($dat['active'] != "Y") {
-					#dbg_html("user inactive pass");
 					audit_login_error($login, $ip, 'user_inactive');
 					return false;
 				}
 				// set members w/ data:
 				foreach ($dat as $k => $v) {
-					eval("\$this->$k = '$v';");
+					$this->$k = $v;
 				}
 
 				$now = today('');
-
 				if ($this->until != "" && $thist->until < $now) { 
 					// need to desactivate user:
 					audit_login_error($login, $ip, 'user_obsolete');
-					new query("update $this->user_table set active = 'N' where login = :login", [ ":login" => "$login" ]);
+					$sdat = [  ":login" => $login ];
+					new query("update $this->user_table set active = 'N' where login = :login", $sdat );
 					return false;
 				}
 			
 				if ($this->since != "" && $this->since > $now) {
-					#dbg_html("user not active yet");
 					audit_login_error($login, $ip, 'user_not_activated');
 					return false;
 				}
-
 				$this->source = "local";
 				$this->load_roles();
 				$this->load_rights();
@@ -224,10 +227,11 @@ class user {
 	function load($login = "") {
 		#echo "<pre>\$user->load: SELECT * from $this->user_table where login = \"$login\"</pre>";
 		if ($login == "" && $this->login != "") $login = $this->login;
-		if (!($q = new query("SELECT * from $this->user_table where login = :login", [ ":login" => $login ]))) return false;
+		$sdat = [ ":login" => $login ];
+		if (!($q = new query("SELECT * from $this->user_table where login = :login", $sdat))) return false;
 		if ($q->nrows() < 1) return false;
 		foreach (($row = $q->data()) as $k => $v) {
-			eval("\$this->$k = \"$v\";");
+			$this->$k = $v;
 		}
 		if ($this->login == "") return false;
 
