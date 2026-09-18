@@ -8,9 +8,9 @@ var  UI = function(spec, data, actions) {
 
 	this.draw = function(id) {
 		this.pid = id;
-		var div = document.getElementById(id);
+		var div = el(id);
 		if (div === undefined) {
-			console.log("div '" + id + "' not found");
+			dbg("div '" + id + "' not found");
 			return;
 		}
 		this.div = div;
@@ -124,11 +124,11 @@ var  UI = function(spec, data, actions) {
 		if (this.id == null) return null;
 		for (e of this.spec) {
 			if (e.type == "string" || e.type == "numeric") {
-				data[e.property] = document.getElementById(this.div.id + "_" + e.property).value;
+				data[e.property] = el(this.div.id + "_" + e.property).value;
 			} else if (e.type == "bool") {
-				data[e.property] = document.getElementById(this.div.id + "_" + e.property).checked;
+				data[e.property] = el(this.div.id + "_" + e.property).checked;
 			} else if (e.type == "list") {
-				s = document.getElementById(this.div.id + "_" + e.property)
+				s = el(this.div.id + "_" + e.property)
 				data[e.property] = s.options[s.selectedIndex].text;
 			}
 		}
@@ -136,7 +136,7 @@ var  UI = function(spec, data, actions) {
 	}
 
  	this.trigger = function(name) {
-		console.log("this.trigger("+ name + ")");
+		dbg("this.trigger("+ name + ")");
 		if (name == "cancel") {
 			this.div.innerHTML = "";
 			this.draw(this.pid);
@@ -153,15 +153,15 @@ var  UI = function(spec, data, actions) {
 		for (a of this.act) if (a.name == name) break;
 
 		if (a.name != name) {
-			console.log("err: action " + name + " not found");	
+			dbg("err: action " + name + " not found");	
 			return;
 		}
-		console.log("action: " + a.name + ", callback: " + a.callback + ", data: " + JSON.stringify(this.data));
+		dbg("action: " + a.name + ", callback: " + a.callback + ", data: " + JSON.stringify(this.data));
 		if (a.hasOwnProperty("callback")) post(a.callback, this.data);
 		
 		
 
-		//console.log(this.collect());
+		//dbg(this.collect());
 		// check if action has a cb, collect data and call cb:
 	}
 	

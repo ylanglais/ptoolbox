@@ -12,7 +12,7 @@ function menu_ctrl() {
 		require_once("parts/menu.php");
 		print(menu_content());
 		return;
-	}		
+	}
 	
 	if (!$a->has("menu_cur")) {
 		err("no menu_cur");
@@ -27,6 +27,10 @@ function menu_ctrl() {
 	if ($a->has("data_cur")) {
 		$data_cur = $a->val("data_cur");
 		$s->pushvar("data_cur", $data_cur);
+	}
+	if ($a->has("user_data")) { 
+		$user_data = $a->val("user_data");
+		$s->pushvar("user_data", $user_data);
 	}
 	return "";
 }

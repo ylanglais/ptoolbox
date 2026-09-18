@@ -1,7 +1,7 @@
 let pop = null;
 
 function popup_new(id, title, url, param, formid) { 
-	if (document.getElementById(id) != null) return; 
+	if (el(id) != null) return; 
 
 	p = document.createElement("div");
 
@@ -29,13 +29,13 @@ function popup_new(id, title, url, param, formid) {
 	
 
     if (typeof(formid) == "string") {
-		let form = document.getElementById(formid)
+		let form = el(formid)
 		if (form != null) form.addListenerListener("submit", popup_destroy(id), false);
 	}
 }
 
 function popup_ctrl(id, title, ctl, data, formid) { 
-	if (document.getElementById(id) != null) return; 
+	if (el(id) != null) return; 
 
 	p = document.createElement("div");
 
@@ -67,7 +67,7 @@ function popup_ctrl(id, title, ctl, data, formid) {
 	
 
     if (typeof(formid) == "string") {
-		let form = document.getElementById(formid)
+		let form = el(formid)
 		if (form != null) form.addListenerListener("submit", popup_destroy(id), false);
 	}
 }
@@ -81,7 +81,7 @@ function popup_mouse_get(event) {
 
 function popup_mouse_down(event, id) {
 	event.stopPropagation();
-    p = document.getElementById(id);
+    p = el(id);
     if (!p) return;
 	
     pos = popup_mouse_get(event);
@@ -94,7 +94,7 @@ function popup_mouse_down(event, id) {
 
 function popup_mouse_up(id) {
 	if (!pop) return;
-    //let p = document.getElementById(id);
+    //let p = el(id);
     pop.dx = pop.dy = 0;
 	//pop.removeEventListener("mouseout",  pop.mouseoutlsnr);
 	document.removeEventListener("mousemove", pop.mousemovlstnr);
@@ -120,7 +120,7 @@ function popup_mouse(event) {
 }
 
 function popup_show(id) {
-    var p = document.getElementById("popup_" + id);
+    var p = el("popup_" + id);
     if (p == null) return;
 
     geom_center("popup_" + id);
@@ -131,19 +131,19 @@ function popup_show(id) {
 }
 
 function popup_hide(id) {
-    var p = document.getElementById("popup_" + id);
+    var p = el("popup_" + id);
     if (p == null) return;
     p.style.visibility = 'hidden';
 }
 
 function popup_visibility(id) {
-    var p = document.getElementById("popup_" + id);
+    var p = el("popup_" + id);
     if (p == null) return;
     return p.style.visibility;
 }
 
 function popup_destroy(id) {
-	p = document.getElementById("popup_"+id)
+	p = el("popup_"+id)
 	if (p) p.remove();
 	pop = null;
 }

@@ -7,7 +7,7 @@ function date_dow(d, m, y) {
 
 	date = new Date(y, m-1, d);
 
-	//console.log("dow(" + d + "/" + m + "/"  + y + ") = " + ((sd.getDay() + 6) % 7));
+	//dbg("dow(" + d + "/" + m + "/"  + y + ") = " + ((sd.getDay() + 6) % 7));
 	return (sd.getDay() + 6) % 7;
 }
 
@@ -52,10 +52,10 @@ function date_cal_content(par, d, m, y) {
 }
 
 function date_month_prev(pid) {
-	par = document.getElementById(pid);
+	par = el(pid);
 
 	id = par.id + '_date_chooser';
-	var dch = document.getElementById(id);
+	var dch = el(id);
 	d = par.value.substr(0, 2);
 	m = par.value.substr(3, 2);
 	y = par.value.substr(6, 4);
@@ -78,9 +78,9 @@ function date_month_prev(pid) {
 	dch.innerHTML = date_cal_content(par, d, m, y);	
 }
 function date_month_next(pid) {
-	par = document.getElementById(pid);
+	par = el(pid);
 	id = pid + '_date_chooser';
-	var dch = document.getElementById(id);
+	var dch = el(id);
 	d = par.value.substr(0, 2);
 	m = par.value.substr(3, 2);
 	y = par.value.substr(6, 4);
@@ -104,9 +104,9 @@ function date_month_next(pid) {
 }
 
 function date_cal_choose(pid, cell) {
-	par = document.getElementById(pid);
+	par = el(pid);
 	id = pid + '_date_chooser';
-	var dch = document.getElementById(id);
+	var dch = el(id);
 	d = parseInt(cell.innerHTML);
 	if (d < 10) d = "0" + d;
 	
@@ -137,7 +137,7 @@ function date_cal_open(par) {
 
 	id = par.id + '_date_chooser';
 
-	var dch = document.getElementById(id);
+	var dch = el(id);
 	if (typeof dch === 'undefined' || dch == null) {
 		dch = document.createElement('div');	
 		dch.id = id;
@@ -155,7 +155,7 @@ function date_cal_open(par) {
 
 function date_cal_update(par) {
 	id = par.id + '_date_chooser';
-	var dch = document.getElementById(id);
+	var dch = el(id);
 	if (typeof dch !== 'undefined' && dch != null) {
 			date = par.value;
 		if (date == "") {
@@ -179,7 +179,7 @@ function date_cal_update(par) {
 
 function date_cal_close(par) {
 	id = par.id + '_date_chooser';
-	var dch = document.getElementById(id);
+	var dch = el(id);
 	if (typeof dch !== 'undefined' && dch != null) {
 		dch.style.display = 'none';
 	}

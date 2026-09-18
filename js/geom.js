@@ -1,9 +1,48 @@
+function geom_center(id) {
+	var div = document.getElementById(id);
+	if (div == null) return;
+	// compute position of the popup:
+	ww = parseInt(window.innerWidth);
+	wh = parseInt(window.innerHeight);
+
+
+	ow = parseInt(div.offsetWidth);
+	oh = parseInt(div.offsetHeight); 
+
+
+	var x = (ww / 2) - (ow / 2);
+	var y = (wh / 2) - (oh / 2);
+
+	// set pos:
+	div.style.left = x + "px"; 
+	div.style.top  = y + "px"; 
+}
+/*
 function geom_inner_width() {
 	return window.innerWidth;
 }
 
 function geom_inner_height() {
 	return window.innerHeight;
+}
+
+function geom_height(id = null) {
+	if (id == null) {
+		dbg("windowheight: " + parseInt(e.innerHeight));
+		heig = parseInt($(window).height());
+		dbg("jqueryheight: " + heig);
+		return heig;
+	} 
+	return epos(id).height;
+}
+
+function geom_top(id = null) {
+	if (id === null) return 0;
+	ptop = parseInt(epos(id).top);
+	dbg("epos.top:  " + ptop);
+	ptop = parseInt($("#"+id).position().top);
+	dbg("jquerytop: " + ptop);
+	return ptop;
 }
 
 function geom_sb_width() {
@@ -34,9 +73,9 @@ function geom_sb_width() {
 
 function geom_resize_table(divid, tableid, tbodyid) {
 	// Get elements:
-	var div   = document.getElementById(divid);
-	var table = document.getElementById(tableid);
-	var tb    = document.getElementById(tbodyid);
+	var div   = el(divid);
+	var table = el(tableid);
+	var tb    = el(tbodyid);
 
 	// compute wi
 	tbw = tb.offsetWidth;
@@ -80,29 +119,29 @@ function geom_resize_table(divid, tableid, tbodyid) {
 }
 
 function geom_resize_elem(id, par) {
-	ptop = parseInt($("#"+par).position().top);
-	heig = parseInt($(window).height());
-	var table = document.getElementById(id);
+	ptop = geom_top(par);
+	heig = geom_height();
+	var table = el(id);
 	//table.style.maxHeight = (heig - ptop - 50) + "px";
 	table.style.height    = Math.min(table.height, (heig - ptop - 50)) + "px";
 
 }
 
 function geom_height_max(id, par) {
-	ptop = parseInt($("#"+par).position().top);
-	heig = parseInt($(window).height());
-	var el = document.getElementById(id);
+	ptop = geom_top(par);
+	heig = geom_height();
+	var el = el(id);
 	el.style.height = el.style.maxHeight = (heig - ptop - 50) + "px";
 }
 
 function geom_vector_redraw(id) {
 	// Get vector components (container and content):
-	var div = document.getElementById(id);
-	var tab = document.getElementById('vtable_'+id);
+	var div = el(id);
+	var tab = el('vtable_'+id);
 	
 	// Compute max vector height:
-	ptop = parseInt($("#"+id).position().top);
-	heig = parseInt($(window).height());
+	ptop = geom_top(id);
+	heig = geom_height()
 
 	h = (heig - ptop - 50) + "px";
 
@@ -138,13 +177,13 @@ function geom_vector_redraw(id) {
 	tab.tBodies[0].style.display  = "block";
 	tab.tBodies[0].style.overflow = "auto";
 
-	//console.log("cw = " + cw + ", body width = " + parseFloat(tab.offsetWidth));
+	//dbg("cw = " + cw + ", body width = " + parseFloat(tab.offsetWidth));
 	// compute size of the slider if present:
 	delta = (parseFloat(tab.offsetWidth) - parseFloat(tab.tBodies[0].rows[0].offsetWidth)) / (tab.tHead.rows[0].cells.length - 1);
 	//tab.tHead.style.width = 
-	//console.log("delta = " + delta);
+	//dbg("delta = " + delta);
 
-	//console.log("padding = " + tab.tHead.rows[0].cells[0].style.padding);
+	//dbg("padding = " + tab.tHead.rows[0].cells[0].style.padding);
 
 	for (i = 0; i < tab.tHead.rows[0].cells.length; i++) {
 		tab.tHead.rows[0].cells[i].style.width = tab.tFoot.rows[0].cells[i].style.width = tab.tBodies[0].rows[0].cells[i].style.width;
@@ -158,16 +197,11 @@ function geom_vector_redraw(id) {
 }
 
 function geom_maximize(id) {
-	//var w = parseInt($(window).width());
-	//var x = parseInt($("#" + id).position().left); 
-	//var  sh = parseInt($(screen).height());
-	//var  dh = parseInt($(document).height());
-
 	// get window height:
-	var h = parseInt($(window).height());
+	var h = geom_height();
 
 	// get element top: 
-	var y = parseInt($("#" + id).position().top); 
+	var y = geom_top(id);
 	
 	var a = parseInt($("#" + id ).height());
 	
@@ -196,27 +230,8 @@ function geom_resize(id, width, height) {
 	if (width > geom_inner_width())
 		width = (parseInt(geom_inner_width()) - 20) + "px";
 	if (height > geom_inner_height())
-		height = (parseInt(geom_inner_height()) - 20) + "px";
+		height = (geom_height() - 20) + "px";
 	$("#"+id).width(width);
 	$("#"+id).height(height);
 }
-
-function geom_center(id) {
-	var div = document.getElementById(id);
-	if (div == null) return;
-	// compute position of the popup:
-	ww = parseInt(window.innerWidth);
-	wh = parseInt(window.innerHeight);
-
-
-	ow = parseInt(div.offsetWidth);
-	oh = parseInt(div.offsetHeight); 
-
-
-	var x = (ww / 2) - (ow / 2);
-	var y = (wh / 2) - (oh / 2);
-
-	// set pos:
-	div.style.left = x + "px"; 
-	div.style.top  = y + "px"; 
-}
+*/

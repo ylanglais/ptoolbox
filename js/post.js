@@ -1,8 +1,8 @@
 async function load(id, url, data) {
 	const response = await fetch(url, { method: "POST", credentials: 'same-origin', cache: 'no-cache', headers: {  'Content-Type': 'application/json' }, body: JSON.stringify(data) });
 	const text     = await response.text();
-	var e = document.getElementById(id);
-	if (e == null) { console.log("element " + id + " doesn't exit"); return; }
+	var e = el(id);
+	if (e == null) { dbg("element " + id + " doesn't exit"); return; }
 	e.innerHTML = text;
 }
 function sync_load(id, url, data) {
@@ -13,8 +13,8 @@ function sync_load(id, url, data) {
     ws.setRequestHeader("Content-Type", "application/json; charset=utf-8");
     ws.send(JSON.stringify(data));
 	if (ws.response) {
-		var e = document.getElementById(id);
-		if (e == null) { console.log("element " + id + " doesn't exit"); return; }
+		var e = el(id);
+		if (e == null) { dbg("element " + id + " doesn't exit"); return; }
 		e.innerHTML = ws.response
 	}
 }
@@ -22,7 +22,7 @@ async function post(url, data) {
  	fetch(url, { method: "POST", credentials: 'same-origin', cache: 'no-cache', headers: {  'Content-Type': 'application/json' }, body: JSON.stringify(data)} );
 }
 async function download(url, data) {
-	console.log("in download");
+	dbg("in download");
  	fetch(url, { 
 		method: "POST", 
 		credentials: 'same-origin', 
@@ -34,7 +34,7 @@ async function download(url, data) {
 		fpart = parts[1].split("=");
 		fname = fpart[1];
 		res.blob().then(blob => { 
-			console.log(blob);
+			dbg(blob);
 			var url = window.URL.createObjectURL(blob); 
 			var a      = document.createElement("a");
 				a.href = url;

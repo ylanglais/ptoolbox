@@ -3,9 +3,9 @@ function genid() {
 }
 function progress(id, rpt_key) {
 	var r = ctrl("stats", {"stats_key": rpt_key}, null, true);
-	div = document.getElementById(id);
+	div = el(id);
 	if (div == null) {
-		console.log("no element called '" + id + "'");
+		dbg("no element called '" + id + "'");
 		return;
 	}
 	if (r === false || r == null) {
@@ -16,7 +16,7 @@ function progress(id, rpt_key) {
 		div.innerHTML = '<div id="a_' + rpt_key + '" class="data_modal"><div class="data_modal_hourglass"><progress id="'+pid+'" max="100" value="0"></progress><br/>Computing...</div></div>';
 		step  = r.max * 10.;
 		inter = setInterval(() => { 
-			e = document.getElementById(pid);
+			e = el(pid);
 			if (!e) {
 				clearInterval(inter);
 			} else {

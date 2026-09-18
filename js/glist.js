@@ -1,17 +1,17 @@
 let glist_current = null;
 
 function glist_opts(id) {
-	_el = document.getElementById(id + "_opts");
+	_el = el(id + "_opts");
 	if (_el == null) return _el;
 	return JSON.parse(_el.value);
 }
 function glist_pdat(id) {
-	_el = document.getElementById(id + "_pdat");
+	_el = el(id + "_pdat");
 	if (_el == null) return el;
 	return _el.value;
 }
 function glist_popup(id) {
-	//console.log("glist_popup("+prov+")")
+	//dbg("glist_popup("+prov+")")
 	event.stopPropagation();
 	popup_ctrl("glist_popup", "Sélection de champs", "glist", {"glist_popup": glist_pdat(id)});
 	return false;
@@ -41,7 +41,7 @@ function glist_sort(el, id, field) {
 		}
 	} else {
 		if (opts.sort !== false) {
-			oe = document.getElementById("sort_" + opts.sort);
+			oe = el("sort_" + opts.sort);
 			oe.classList.remove('sel');
 		}	
 		el.classList.add('sel');
@@ -70,7 +70,7 @@ function glist_action() {
 }
 function glist_field_filter(e, id, fld) {
 	event.stopPropagation();
-	if (document.getElementById('inp_'+fld) != null) return;
+	if (el('inp_'+fld) != null) return;
 	d = e.parentElement;
 	pdat = glist_pdat(id);
 
@@ -83,7 +83,7 @@ function glist_field_filter(e, id, fld) {
 	try {
 		val = opts.filter[fld];
 		// clean img error emulating div onload:
-		if ((ttt = document.getElementById("onc_ac_" + fld)) != null) ttt.remove();
+		if ((ttt = el("onc_ac_" + fld)) != null) ttt.remove();
 	} catch(e) {
 		val = null;
 	}
@@ -110,7 +110,7 @@ function glist_filter_add(id, fld, value) {
 	pdat = glist_pdat(id);
 
 	if (opts.filter == null) opts.filter = {};
-console.log("glist_filter_add --> " + value);
+dbg("glist_filter_add --> " + value);
 	opts.filter[fld] = value;
 	ctrl("glist", {"prov": pdat, "opts": opts, "save_opts": true}, opts.id);
 }

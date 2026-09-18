@@ -245,5 +245,29 @@ class user {
 	function deactivate() {
 		return new query("update $this->user_table set active = 'y' where login = :login", [ ":login" => $login ]);
 	}
+}
+function create_local_user($u) {
+	$auth = new auth_local();
+	$pass = $auth->dbstr_from_pass($u->passwd);
+	$ctx  = new db("default");
+	new query($ctx, "begin transaction");
+	new query($ctx, "lock tech.user");
+	$q = new query($ctx, "select max(id)+1 as id from tech.user");
+	$o = $q->obj();
+	$sdat = [
+		":id"      => $o->id,
+		":login"   => $u->login,
+		":passwd"  => $pass,
+		":name"    => $u->name,
+		":surname" => $u->surname,
+		":mail"    => $u->mail,
+		":active"  => true,
+		":since"   => today()
+	];
+	new query($ctx, "insert into tech.user (id, login, passwd, name, surname, mail, active, since) values (:id, :login, :passwd, :name, :surname, :mail, :active, :since)", $sdat);
+	new query($ctx, "commit");
+	#new query($ctx, "unlock tech.user");
+	new query($ctx, "end transaction");
+	return $o->id;
 };
 ?>

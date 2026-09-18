@@ -1,13 +1,13 @@
 function fsel_apply(popupid, fid) {
 	ctl = null;
 	data = {};
-	e = document.getElementById("fsel_ctrl_" + fid);
+	e = el("fsel_ctrl_" + fid);
 	if (e != null) ctl = e.value;
-	e = document.getElementById("fsel_data_" + fid);
+	e = el("fsel_data_" + fid);
 	if (e != null) data = JSON.parse(e.value);
 
 	a = [];
-	s = document.getElementById("fsel_sel_" + fid);
+	s = el("fsel_sel_" + fid);
 	for (o of s.options) {
 		a.push(o.value);
 	}
@@ -37,17 +37,17 @@ function fsel_move(f, t) {
 	}
 }
 function fsel_add(fid) {
-	a = document.getElementById("fsel_ava_" + fid);
-	s = document.getElementById("fsel_sel_" + fid);
+	a = el("fsel_ava_" + fid);
+	s = el("fsel_sel_" + fid);
 	fsel_move(a, s);
 }
 function fsel_rem(fid) {
-	a = document.getElementById("fsel_ava_" + fid);
-	s = document.getElementById("fsel_sel_" + fid);
+	a = el("fsel_ava_" + fid);
+	s = el("fsel_sel_" + fid);
 	fsel_move(s, a);
 }
 function fsel_up(fid) {
-	var sel = document.getElementById("fsel_sel_" + fid)
+	var sel = el("fsel_sel_" + fid)
 	var opts = sel.options;
 	for (var i = 1; i < opts.length; i++) {
 		if (opts[i].selected) {
@@ -59,7 +59,7 @@ function fsel_up(fid) {
 }
 
 function fsel_dw(fid) {
-	var sel  = document.getElementById("fsel_sel_" + fid)
+	var sel  = el("fsel_sel_" + fid)
 	var opts = sel.options;
 	for (var i = opts.length - 2; i >= 0; i--) {
 		if (opts[i].selected) {

@@ -934,7 +934,7 @@ input {
 	font-size: 10pt;
 }
 input.required, select.required{
-	box-shadow: 0px 0px 3px $hover;
+	box-shadow: -1px -1px 3px $required;
 }
 input.modified, select.modified {
 	color: $modified;

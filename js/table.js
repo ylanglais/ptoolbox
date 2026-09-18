@@ -19,12 +19,12 @@ var Table = function(jsdata) {
 
 	this.draw = function(divid) {
 		if (divid === undefined) {
-			console.log("Null div id");
+			dbg("Null div id");
 			return;
 		}
-		var div = document.getElementById(divid);
+		var div = el(divid);
 		if (div === undefined) {
-			console.log("div '" + divid + "' not found");
+			dbg("div '" + divid + "' not found");
 			return;
 		}
 		html = "<table>";

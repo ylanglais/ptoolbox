@@ -1,27 +1,27 @@
 function parse_params(data, params) {
 	for (i in params) {
-		//console.log(i);
+		//dbg(i);
 		if (params[i].type == 'date') {
-			var v = document.getElementById(i).value;
+			var v = el(i).value;
 			var val = v.substring(6,10) + "-" + v.substring(3,5) + "-" + v.substring(0,2);
 			data[i] = val;
 		} else if (params[i].type == 'list' || params[i].type == 'mlist') {
 			var r = [];
-			var v = document.getElementById(i);
-			//console.log(i + " + " + JSON.stringify(v));
+			var v = el(i);
+			//dbg(i + " + " + JSON.stringify(v));
 			for (let o of v.options) {	
-				//console.log("text: " + o.text + " value: "+ o.value);
+				//dbg("text: " + o.text + " value: "+ o.value);
 				if (o.selected) {
 					r.push(o.text);
 				}
 			}
 			if (r.length == 1) data[i] = r[0];
 			else data[i] = r;
-			//console.log(i + " --> " + data[i]);
+			//dbg(i + " --> " + data[i]);
 		} else {
-			data[i] = document.getElementById(i).value;
+			data[i] = el(i).value;
 		}
-		//console.log("data[" + i + "]: " + data[i]);
+		//dbg("data[" + i + "]: " + data[i]);
 	}
 }
 function form_load(name, form, action) {
@@ -37,7 +37,7 @@ function form_load(name, form, action) {
 			parse_params(data, form.param_groups[j]);
 	}
 
-	//console.log(data);
+	//dbg(data);
 	
 	progress('form_result', form.fname);
 	ctrl("form", data, 'form_result');
@@ -55,6 +55,6 @@ function form_download(name, form, action) {
 			parse_params(data, form.param_groups[j]);
 	}
 
-	//console.log(data);
+	//dbg(data);
 	ctrl("form", data, null, false, true);
 }

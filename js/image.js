@@ -1,5 +1,5 @@
 function image_show(e, id) {
-    var d = document.getElementById(id);
+    var d = el(id);
 	if (d.style.display == 'none')	{
 		d.style.display = 'block';
 		var x = e.clientX + (document.documentElement.scrollLeft ? document.documentElement.scrollLeft : document.body.scrollLeft);
@@ -11,14 +11,14 @@ function image_show(e, id) {
 	}
 } 
 function image_hide(id) {
-    document.getElementById(id).style.display = 'none';
+    el(id).style.display = 'none';
 } 
 function image_clear(id) {
-	document.getElementById(id).value                = "";
-	document.getElementById("path_"      + id).value = "";
-	document.getElementById("name_"      + id).value = "";
-	document.getElementById("whole_"     + id).src   = "images/no_image.png";
-	document.getElementById("thumbnail_" + id).src   = "images/tn_no_image.png";
+	el(id).value                = "";
+	el("path_"      + id).value = "";
+	el("name_"      + id).value = "";
+	el("whole_"     + id).src   = "images/no_image.png";
+	el("thumbnail_" + id).src   = "images/tn_no_image.png";
 }
 
 function image_hover(img, hsrc) {

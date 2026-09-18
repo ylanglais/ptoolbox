@@ -1,14 +1,42 @@
+/***
 function hst_show(id) {
 	$('#'+id).show();
-	document.getElementById(id).classList.remove('sh');
-	document.getElementById(id).classList.add('hs');
+	el(id).classList.remove('sh');
+	el(id).classList.add('hs');
 }
 function hst_hide(id) {
 	$('#'+id).hide();
-	document.getElementById(id).classList.remove('hs');
-	document.getElementById(id).classList.add('sh');
+	el(id).classList.remove('hs');
+	el(id).classList.add('sh');
 }
 function hst_toggle(id) {
 	$('#'+id).toggle();
 }
  
+function __show(id) {
+	if ((e = el(id)) === null) return;
+	rect = epos(e);
+	if (e.hasOwnProperty("intid") && e.intid  !== null) clearInterval(e.intid);
+	e.intid = setInterval(fct, 10);
+	e.iter  = 0;
+	e.fheight = parseInt(rect.height);
+	
+	function _resize() {
+		if (e.iter = 0) {
+			e.style.height = "0px";
+		} 
+		e.iter++;
+		h = parseInt(e.style.height);
+		if (h < e.fheight) h += 1;	
+		else {
+			clearInterval(e.intid);
+			e.intid = null;
+		}
+		e.height = h + "px";
+	}
+}
+function __hide(id) {
+	if ((e = el(id)) === null) return;
+	rect = epos(e);
+}
+***/

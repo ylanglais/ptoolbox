@@ -6,7 +6,6 @@ require_once("lib/dbg_tools.php");
 class sirene {
 
 	function __construct() {
-		$this->bearer = false;
 		if (!file_exists("conf/sirene.php")) {
 			_err("no config file");
 			return;
@@ -16,34 +15,18 @@ class sirene {
 		$this->base  = $sirene_base;
 		$this->tokn  = $sirene_tokn;
 		$this->api3  = $sirene_api3;
-		$this->bauth = "Authorization: Basic " .  base64_encode("$sirene_key:$sirene_sec");
-		$this->hdr1  = "Content-Type: application/x-www-form-urlencoded"; 
-		$this->hdr2  = "Accept: application/json";
-		$c = new curl ($sirene_base, [ $this->hdr1, $this->bauth ], false, false);	
-		$r = $c->post($this->tokn, "grant_type=client_credentials");
-		if ($r !== false) {
-			if (($j = json_decode($r)) !== false) {
-				if (property_exists($j, "access_token")) {
-					$this->bearer = $j->access_token;
-					_dbg("bearer: $this->bearer"); 
-				} else {
-					_err("bad return : " . print_r($j, true));
-				}
-			} else {
-				_err("invalid JSON: " . print_r($r, true)); 	
-			}
-		} else {
-			_err("no return");
-		}
+		$this->cert  = $sirene_cert;
+		$this->ctyp  = $sirene_ctype;
+		$this->cpas  = $sirene_cpass;
+		$this->ckey  = $sirene_ckey;
+		$this->hdr1  = "Accept: application/json";
+		$this->hdr2  = "X-INSEE-Api-Key-Integration: $sirene_key";
 	}
 
 	function siren($string) {
-		if ($this->bearer === false) {
-			_err("no connexion to sirene");
-			return false;
-		}
-		$c = new curl($this->base, [ $this->hdr1, $this->hdr2, "Authorization: Bearer $this->bearer" ], false, false);	
-		$r = $c->post($this->api3 . "/siren", "q=$string"); 
+		$c = new curl($this->base, [ $this->hdr1, $this->hdr2 ], false, false);	
+		$c->certificate($this->cert, $this->ctyp, $this->ckey, $this->cpas); 
+		$r = $c->get($this->api3 . "/siren?q=$string"); 
 		if ($r !== false) {
 			if (($j = json_decode($r)) !== false) {
 				if (property_exists($j, "header") && property_exists($j->header, "message")) {
@@ -61,10 +44,6 @@ class sirene {
 		}
 		return false;
 	}
-
-
 }
-
-
 
 ?>

@@ -1,5 +1,5 @@
 function ac_new(id, pdat, fld, value, on_change) {
-	if (document.getElementById('ac_inp_'+fld) != null) return;
+	if (el('ac_inp_'+fld) != null) return;
 
 
 	inp = document.createElement("input");
@@ -25,7 +25,7 @@ function ac_value_set(inp, val) {
 	inp.value = val;	
 }
 function ac_destroy(div) {
-	inp = document.getElementById("ac_" + fld);
+	inp = el("ac_" + fld);
 	if (inp == null) return;
 
 	inp.on_destroy(id, fld, value);
@@ -34,7 +34,7 @@ function ac_destroy(div) {
 }
 function ac_change(inp) {
 	
-	console.log("inp.value = " + inp.value);	
+	dbg("inp.value = " + inp.value);	
 	inp.on_change(inp.extid, inp.fld, inp.value);
 }
 function ac_sel_new(inp) {
@@ -58,28 +58,28 @@ function ac_sel_new(inp) {
 	sel.size = 20;
 	sel.style.zIndex = 100;
 
-	//sel.addEventListener('select', function(){console.log("select"); ac_onsel(inp, sel)});
-	//sel.addEventListener('change', function(){console.log("change"); ac_onsel(inp, sel)});
+	//sel.addEventListener('select', function(){dbg("select"); ac_onsel(inp, sel)});
+	//sel.addEventListener('change', function(){dbg("change"); ac_onsel(inp, sel)});
 
 	div.appendChild(sel);
 	return sel;
 }
 function ac_sel_destroy(inp) {
 	inp.removeEventListener("keydown", ac_key);
-	if ((sel = document.getElementById(inp.id + "_dd")) != null)
+	if ((sel = el(inp.id + "_dd")) != null)
 		sel.remove();
 }
 function ac_click(el, ev) {
-	console.log("ac_click at: " + ev.clientX + ", " + ev.clientY);
+	dbg("ac_click at: " + ev.clientX + ", " + ev.clientY);
 	ev.stopPropagation();
 }
 function ac_key(e) {
 	inp = this;
 	if (!inp) return;
-	if (document.getElementById(inp.id + "_dds") == null) {
+	if (el(inp.id + "_dds") == null) {
 		return;
 	}
-	// console.log(">> " + e.keyCode);
+	// dbg(">> " + e.keyCode);
 	if (e.keyCode == 40) {
 		// Down:
 		if (sel.selectedIndex < 0) {
@@ -102,7 +102,6 @@ function ac_key(e) {
 		event.stopPropagation();
 	} else if (e.keyCode == 13) {
 		// Return:
-		//inp.classList.Addor REMOVE();
 		if (sel.selectedIndex < 0) {
 			ac_sel_destroy(inp);
 			event.stopPropagation();
@@ -119,10 +118,10 @@ function ac_key(e) {
 }
 
 function ac_input(inp) {
-	if (document.getElementById(inp.id + "_dds") == null) {
+	if (el(inp.id + "_dds") == null) {
 		sel = ac_sel_new(inp);
 	} else {
-		sel  = document.getElementById(inp.id + "_dds");
+		sel  = el(inp.id + "_dds");
 	}
 	opts = ctrl("prov", {"prov_data": inp.pdat, "action": "fdata", "field": inp.fld, "str": inp.value});
 
@@ -148,19 +147,19 @@ function ac_input(inp) {
 	sel.size = i;
 }
 function ac_onsel(inp, sel) {
-console.log("onsel");
+dbg("onsel");
 	if (sel == null) {
-		sel = document.getElementById(inp.id + "_dds");
+		sel = el(inp.id + "_dds");
 		if (sel == null) return
 	}	
 	v = sel.options[sel.selectedIndex].value;
 	inp.value = v;
-console.log("inp.value: " + inp.value + ", v = " + v);
+dbg("inp.value: " + inp.value + ", v = " + v);
 	ac_sel_destroy(inp);
 	event.stopPropagation();
 	inp.value = v;
 }
 function ac_destroy(fld) {
-	e = document.getElementById("acflt_" + fld);
+	e = el("acflt_" + fld);
 	if (e != null) e.remove();
 }

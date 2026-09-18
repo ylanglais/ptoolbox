@@ -74,6 +74,13 @@ class curl {
 		}
 	}
 
+	function certificate($cert, $type, $key, $pass) {
+		curl_setopt($this->c, CURLOPT_SSLCERT,      $cert);
+    	curl_setopt($this->c, CURLOPT_SSLCERTTYPE,  $type);
+		curl_setopt($this->c, CURLOPT_SSLKEY,       $key);
+    	curl_setopt($this->c, CURLOPT_SSLKEYPASSWD, $pass);
+	}
+
 	/**
 	 * Set ir unset debug:
 	 */

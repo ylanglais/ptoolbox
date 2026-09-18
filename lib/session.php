@@ -154,9 +154,7 @@ class session {
 		}
 	}
 	function has_role($role) {
-		if ($this->user->roles != null && (in_array($role, $this->user->roles) || 
-			($role != "admin" && in_array("any", $this->user->roles)))) 
-			#($role != "admin" && in_array("any", $this->roles) && !in_array("notconnected")))) 
+		if ($this->user->has_role($role))
 			return true;
 		return false;
 	}

@@ -2,7 +2,7 @@
 require_once("lib/style.php");
 $title = style::value("application_title");
 ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 <html>
 <head xmlns="http://www.w3.org/1999/xhtml" lang="fr">
 <title><?php echo $title ?></title>
@@ -23,14 +23,14 @@ $title = style::value("application_title");
 <link rel='shortcut icon' type='image/x-icon' href='images/favicon.ico' />
 <link rel="stylesheet"   type="text/css" href="style.php"/>
 
-<script type="text/javascript" src="js/jquery/jquery.js"></script>
+<!--script type="text/javascript" src="js/jquery/jquery.js"></script-->
 <?php
 foreach (['js', 'usr/js'] as $dir) {
 	if ($h = opendir($dir)) {
 		$dirs = array();
 		while (false !== ($js = readdir($h)))
 			if (substr($js, -3) == ".js") array_push($dirs, $js);
-		#sort($dirs);
+		sort($dirs);
 
 		foreach ($dirs as $js) print("<script type=\"text/javascript\" src=\"$dir/$js\"></script>\n");
 	}

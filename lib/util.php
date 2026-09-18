@@ -33,6 +33,41 @@ function gen_elid() {
 	return substr(microtime(), 2, 6);
 }
 
+function mthd_args($cls, $mthd) {
+	if ($cls == null) {
+		try {
+			$r = new ReflectionFunction($mthd);
+		} catch (\Exception $e) {
+			err("invalid function name \"$mthd\"");
+			return null;
+		}
+	} else {	
+		try {
+			$r = new ReflectionMethod($cls, $mthd);
+		} catch (\Exception $e) {
+			err("invalid class \"$cls\" or method name \"$mthd\"");
+			return null;
+		}
+	}
+	$al = [];
+	foreach ($r->getParameters() as $a) {
+		if (preg_match('/[ 	]*Parameter #([0-9]*) \[ <(required|optional)> (([^ ]*) )?\$([a-zA-Z0-9_]*) (= ([^ ]*) )?\]/', $a, $m)) {
+			$o = (object)[];
+			#foreach ($m as $i => $v) print("$i: $v\n");
+			$o->name = $m[5];
+			$o->num  = $m[1];
+			$o->opt  = true;  if ($m[2] == "required") $o->opt  = false;
+			$o->type = [] ;   if ($m[4] != "")         $o->type = explode("|", $m[4]);
+			$o->hdef = false; if (count($m) >= 7)      $o->hdef = true;
+			$o->def  = null;  if ($o->hdef)            $o->def  = $m[7];
+			array_push($al, $o);
+		} else  {
+			print("no match $a\n");
+		}
+	}
+	return $al;
+} 
+
 function pdf_2_png($in, $out, $page, $x, $y, $w, $h) {
 	$im = new Imagick();
 	$im->setResolution(300, 300);
@@ -52,6 +87,10 @@ function dcod($str) {
 
 function esc($s) {
     return str_replace("'", "''", $s);
+}
+
+function hvqe($s) {
+	return htmlspecialchars($s);
 }
 
 function h_child($path, $node = "") {

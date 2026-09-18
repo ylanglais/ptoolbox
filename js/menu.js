@@ -1,6 +1,7 @@
 var menu_cur  = null;
 var entry_cur = null;
 var data_cur  = null;
+var user_data = null;
 
 var mh = 0;
 var uh = 0;
@@ -9,23 +10,24 @@ var hh = 0
 window.addEventListener('resize', menu_onresize, true);
 window.addEventListener('load',   menu_onresize, true);
 
-
-function menu_restore(cur_menu, cur_entry, cur_data) {
+function menu_restore(cur_menu, cur_entry, cur_data, user_data) {
+dbgp();
 	if (cur_menu === null || cur_menu == "") return;
 
-	if ((menu_cur  = document.getElementById(cur_menu)) === null) return;
+	if ((menu_cur  = el(cur_menu)) === null) return;
 
 	menu_show(menu_cur.id);
 
 	if (cur_entry != null) {
-		entry_cur = document.getElementById(cur_entry);
-		data_cur  = JSON.parse(cur_data);
+		entry_cur = el(cur_entry);
+		data_cur  = json_decode(cur_data);
+		user_data = json_decode(user_data);
 		menu_data_reload();
 	}
 }
 function menu_onresize() {
-	mh = parseInt(document.getElementById("menu").offsetHeight);
-	uh = parseInt(document.getElementById("menuul").offsetHeight);
+	mh = parseInt(el("menu").offsetHeight);
+	uh = parseInt(el("menuul").offsetHeight);
 
 	hh = mh - uh;
 
@@ -34,13 +36,13 @@ function menu_onresize() {
 }
 
 function menu_show(id) {
-	e = document.getElementById(id);
+	e = el(id);
 	if (menu_cur != null) {
 		menu_cur.classList.remove("current");
 		menu_cur = null;
 	}
 	menu_cur = e;
-	var da = document.getElementById("data_area");
+	var da = el("data_area");
 	if (da != null) 
 		da.innerHTML = "";
 
@@ -58,12 +60,22 @@ function menu_entry(e) {
 	entry_cur = e;
 }
 function menu_save(data) {
+dbgp();
 	ctrl("menu", data, null, false); 
+}
+function menu_user_data_get() {
+	return user_data;
+}
+function menu_user_data_set(data) {
+	user_data = data;
+	if (menu_cur != null)
+		menu_save({'menu_cur': menu_cur.id, 'entry_cur': entry_cur.id, 'data_cur': json_encode(data_cur), 'user_data': json_encode(user_data)})
 }
 function data_cur_set(data) {
 	data_cur = data;
+	dbg("user_data", user_data);
 	if (menu_cur != null)
-		menu_save({'menu_cur': menu_cur.id, 'entry_cur': entry_cur.id, 'data_cur': JSON.stringify(data)}, null, false);	
+		menu_save({'menu_cur': menu_cur.id, 'entry_cur': entry_cur.id, 'data_cur': json_encode(data), 'user_data': json_encode(user_data)});	
 }
 function menu_form(e, fname, titre) {
 	menu_entry(e);
@@ -78,7 +90,8 @@ function menu_rpt(e, rpt_name) {
 }
 function menu_page(e, page) {
 	menu_entry(e);
-	load("data_area", page); 
+dbg(user_data);
+	load("data_area", page, user_data); 
 	data_cur_set({"type": "page", "page": page});
 }
 function menu_table(e, page, datalink) {

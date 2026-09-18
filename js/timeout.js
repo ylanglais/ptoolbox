@@ -5,7 +5,7 @@
 var timeout_value;
 var timeout_id;
 function timeout_set(minutes) {
-	//console.log("Start timer");
+	//dbg("Start timer");
     window.onload = timeout_reset;
 
 	timeout_value = minutes;
@@ -28,11 +28,11 @@ function timeout_set(minutes) {
 }
 function timeout_logout(what) {
 	if (what == null) {
-		console.log("timeout")
+		dbg("timeout")
 	} else {
-		//console.log(what);
+		//dbg(what);
 	}
-	let subm = document.getElementById("menusubmit");
+	let subm = el("menusubmit");
 	if (subm != null) subm.submit();
 }
 function timeout_reset() {

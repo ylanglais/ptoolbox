@@ -2,7 +2,7 @@ dbexp_cur_dbs   = null;
 dbexp_cur_table = null;
 
 function dbexp_clean(id) {
-	let e = document.getElementById(id);
+	let e = el(id);
 	if (e != null) e.innerHTML = "";
 }
 function dbexp_tables(e, dbs) {
