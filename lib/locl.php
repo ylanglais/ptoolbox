@@ -27,7 +27,12 @@ class locl {
 
 	function type_detect($val) {
 		if (is_float($val))          return "float";
-		if (is_numeric($val))        return "numeric";
+		if (is_numeric($val)) {
+			if (preg_match('/^((\+33\s?)|0)[1-9](?:[ .-]?\d{2}){4}$/', $val)) {
+				return "phone";
+			}
+	        return "numeric";
+		}
 		if (substr($val, -1) == "%") return "percentage";
 		if (is_date($val))			 return "date";
 		return "string";
