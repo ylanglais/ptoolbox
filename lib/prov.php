@@ -79,6 +79,10 @@ class prov {
 		if ($this->prov == null) return null;
 		return $this->prov->datatype($data);
 	}
+	function format($field) {
+		if ($this->prov == null) return null;
+		return $this->prov->format($field);
+	}
 	function defval($data) {
 		if ($this->prov == null) return null;
 		return $this->prov->defval($data);
