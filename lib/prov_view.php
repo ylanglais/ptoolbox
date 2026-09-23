@@ -10,13 +10,16 @@ class prov_view {
 		$this->init   = false;
 		$this->type   = "view";
 		$this->name   = "";
+	
 		$this->tables = (object)[];
 		$this->fields = [];
 		$this->cols   = (object)[];
 		$this->frags  = (object)[];
 		$this->qry    = (object)[];
 		$this->slist  = [];
+		$this->tc     = [];
 		$this->joins  = [];
+		$this->jt     = [];
 		$this->keys   = [];
 		$this->perm   = 'NONE';
 		$this->view   = false;
@@ -73,6 +76,7 @@ class prov_view {
 			# type: fragment type 
 			#	column: 	source table column, 
 			#	reference:	ref value in an indexed look up table (1:1 relation)
+			#   evalue:	    unique value from a translation table (n:n:n relation) filtered by tag (does that make sense ?)
 			#	vallist:	Values from a 1:n) relation from source table to other table
 			#	
 			# name:
@@ -118,27 +122,65 @@ class prov_view {
 					array_push($this->slist, "$o->ft.$o->fdc as \"$o->name\"");
 					array_push($this->joins, "left join $o->ft on " . $this->view->tname . ".$o->sc = $o->ft.$o->fjc");
 				} else if ($this->frags->{$o->name}->type == "evalue") {
-			
-/***
-select 
-	ref.title.value
-	,person.first_name
-	,person.last_name
-	,phone.phone
---	,address.line_1
---	,address.line_2
---	,address.line_3
---	,address.line_4
---	,address.zipcode
---	,address.city
---	,address.country
-from 
-	person
-left join ref.title on ref.title.id = person.title
-right join link_channel on link_channel.entity = 'person' and link_channel.entity_id = person.id
-right join phone        on link_channel.channel = 'phone' and link_channel.channel_id = phone.id
-***/
+					$this->_add_table($this->view->dsrc, $o->ft);
+					$this->cols->{$o->name} = $this->tables->{$o->ft}->cols->{$o->fdc};
+					array_push($this->fields, $o->name);
+					array_push($this->slist, $this->frags->{$o->name}->ft . "." .$this->frags->{$o->name}->fdc . " as \"$o->name\"");
 
+					/***
+					Exemple: 
+						select 
+							ref.title.value		as "Titre"
+							,person.first_name	as "Prénom"
+							,person.last_name	as "Nom"
+							,phone.phone		as "Téléphone principal"
+							,address.line_1 	as "Ligne 1"
+							,address.line_2
+							,address.line_3
+							,address.line_4
+							,address.zipcode
+							,address.city
+							,ref.country.name
+						from 
+							person
+						left join ref.title         on ref.title.id = person.title
+						right join link_channel l1  on l1.entity = 'person' and l1.entity_id = person.id
+						right join phone            on l1.channel = 'phone' and l1.channel_id = phone.id
+						left  join entity_tags  e1  on e1.tag = 'principal' and e1.entity = 'phone' and e1.id = phone.id
+						right  join link_channel l2 on l2.entity = 'person' and l2.entity_id = person.id
+						right  join address         on l2.channel = 'address' and l2.channel_id = address.id
+						left  join entity_tags  e2  on e2.tag = 'principal' and e2.entity = 'address' and e2.id = address.id	
+						left  join ref.country      on ref.country.id = address.country
+						where 
+							person.last_name = 'Langlais'
+					***/
+
+
+					# Jointures:
+					$jt = $this->frags->{$o->name}->jt;
+					if (array_key_exists($jt, $this->jt))
+						$this->jt[$jt]++;
+					else
+						$this->jt[$jt] = 1;
+
+					$jtal = $jt . $this->jt[$jt];
+
+					#right join link_channel l1  on l1.entity = 'person' and l1.entity_id = person.id
+					array_push($this->joins, "right join $jt " . $jtal . " on $jtal.". $this->frags->{$o->name}->jst ." = '" . $this->view->tname . "' and $jtal." . $this->frags->{$o->name}->jsc . " = " . $this->view->tname.".". $this->frags->{$o->name}->sc);
+
+					#right join phone            on l1.channel = 'phone' and l1.channel_id = phone.id
+					array_push($this->joins, "right join  " . $this->frags->{$o->name}->ft . " on $jtal.". $this->frags->{$o->name}->jft ." = '" . $this->frags->{$o->name}->ft . "' and $jtal." . $this->frags->{$o->name}->jfc . " = " . $this->frags->{$o->name}->ft.".". $this->frags->{$o->name}->fjc);
+
+					if ($this->frags->{$o->name}->ftag != "") {
+						if (array_key_exists("entity_tags", $this->jt))
+							$this->jt["entity_tags"]++;
+						else
+							$this->jt["entity_tags"] = 1;
+
+						$taga = "entity_tags".$this->jt["entity_tags"];
+						#left  join entity_tags  e1  on e1.tag = 'principal' and e1.entity = 'phone' and e1.id = phone.id
+						array_push($this->joins, "left  join entity_tags $taga on $taga.tag = '". $this->frags->{$o->name}->ftag ."'  and $taga.entity = '". $this->frags->{$o->name}->ft . "'  and $taga.id = " . $this->frags->{$o->name}->ft . ".". $this->frags->{$o->name}->fjc);
+					}
 
 				} else if ($this->frags->{$o->name}->type == "values") {
 				} else if ($this->frags->{$o->name}->type == "vallist") {
@@ -172,6 +214,8 @@ right join phone        on link_channel.channel = 'phone' and link_channel.chann
 				} else {
 				}
 			}
+			
+			#dbg($this->joins);
 			store::put($this->id, $this);
 		}
 		$this->init = true;
@@ -330,7 +374,6 @@ right join phone        on link_channel.channel = 'phone' and link_channel.chann
 	}
 	function has_fk($f) {
 		if ($this->init === false) return false;
-		#dbg($this->cols->{$f});
 		if (property_exists($this->cols, $f) && property_exists($this->cols->{$f}, "ftable")) {
 			return [ "ftable" => $this->cols->{$f}->ftable,"fcol" => $this->cols->{$f}->fcol];
 		}
@@ -403,7 +446,6 @@ right join phone        on link_channel.channel = 'phone' and link_channel.chann
 				$v = $this->val2cval($k, $dat->{$k});
 				array_push($vals, $this->quote($this->view->tname, $f->sc, $v));
 			} 
-			
 		}
 		$s = "insert into " . $this->view->tname . " (" . implode(",", $flds) . ") values (" . implode(",", $vals) . ")";
 		$q = new query($s);
@@ -411,6 +453,12 @@ right join phone        on link_channel.channel = 'phone' and link_channel.chann
 			err("$s : " . $q->err());
 			return  '{"status": false, "query": "'.$sql.'", "error": "'.$q->err().'"}';
 		}
+
+		if ($this->view->audited) {
+			dbg($this->view->name . " is audited");
+			audit_action($this->view->name, "aaa", 1, "put", json_encode($data));  
+		}
+
 		return true;
 	}
 	function _where($keyvals) {
@@ -636,6 +684,7 @@ right join phone        on link_channel.channel = 'phone' and link_channel.chann
 		
 		$s .= " offset $start";
 		if ($stop > 0) $s .= " limit $stop";
+
 #dbg($s);
 		$q = new query($s);
 		return $q->all();	
