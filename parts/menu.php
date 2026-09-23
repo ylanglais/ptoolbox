@@ -18,15 +18,15 @@ function menu_content() {
 	} else {
 		$roles = [ "notconnected", "any" ];
 	}
-	$menu_cur = $menu_entry_cur = $menu_data_cur = null;
-	foreach (["menu_cur", "entry_cur", "data_cur" ] as $v) {
+	#$menu_cur = $menu_entry_cur = $menu_data_cur = null;
+	foreach (["menu_cur", "entry_cur", "data_cur", "user_data" ] as $v) {
 		${$v} = null;
 		if ($_session_->has($v)) {
 			${$v} = $_session_->getvar($v);	
 		}
 	}
-	if (is_string($menu_cur) && is_string($entry_cur) && is_string($data_cur)) {
-		$initf = "window.addEventListener('load', (event) => {menu_restore('$menu_cur', '$entry_cur', '$data_cur');});";
+	if (is_string($menu_cur) && is_string($entry_cur) && is_string($data_cur) && is_string($user_data)) {
+		$initf = "window.addEventListener('load', (event) => {menu_restore('$menu_cur', '$entry_cur', '$data_cur', '$user_data');});";
 	} else
 		$initf = "";
 
@@ -107,7 +107,6 @@ function menu_content() {
 	}
 
 #########################
-dbg($roles);
 	if (!in_array("notconnected", $roles)) {
 		$str .= " <!-- Menu Déconnexion -->
 		<li class='menu'>
