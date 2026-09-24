@@ -1,14 +1,14 @@
 let glist_current = null;
 
 function glist_opts(id) {
-	_el = el(id + "_opts");
-	if (_el == null) return _el;
-	return JSON.parse(_el.value);
+	e = el(id + "_opts");
+	if (e == null) return e;
+	return JSON.parse(e.value);
 }
 function glist_pdat(id) {
-	_el = el(id + "_pdat");
-	if (_el == null) return el;
-	return _el.value;
+	e = el(id + "_pdat");
+	if (e == null) return e;
+	return e.value;
 }
 function glist_popup(id) {
 	//dbg("glist_popup("+prov+")")
@@ -23,7 +23,7 @@ function glist_go(id, start, lines) {
 	if (lines != null) opts.page  = lines ;
 	ctrl("glist", {"prov": pdat, "opts": opts}, id);
 }
-function glist_sort(el, id, field) {
+function glist_sort(e, id, field) {
 	event.stopPropagation();
 
 	pdat = glist_pdat(id);	
@@ -31,12 +31,12 @@ function glist_sort(el, id, field) {
 
 	if (opts.sort == field) {
 		if (opts.order == 'up') {
-			el.classList.remove('up');
-			el.classList.add('down');
+			e.classList.remove('up');
+			e.classList.add('down');
 			opts.order = 'down';
 		} else {
-			el.classList.remove('down');
-			el.classList.add('up');
+			e.classList.remove('down');
+			e.classList.add('up');
 			opts.order = 'up';
 		}
 	} else {
@@ -44,18 +44,18 @@ function glist_sort(el, id, field) {
 			oe = el("sort_" + opts.sort);
 			oe.classList.remove('sel');
 		}	
-		el.classList.add('sel');
+		e.classList.add('sel');
 		opts.order = 'up';
-		if (el.classList.contains('down')) opts.order = 'down';
+		if (e.classList.contains('down')) opts.order = 'down';
 	}
 	opts.sort  = field;
 	ctrl("glist", {"prov": pdat, "opts": opts, "save_opts": true}, id);
 	return false;
 }
-function glist_select(el) {
+function glist_select(e) {
 	if (glist_current != null) glist_current.classList.remove('selected');
-	glist_current = el;
-	el.classList.add('selected');
+	glist_current = e;
+	e.classList.add('selected');
 }
 function glist_view(id, data) {
 	ctrl("gform", { "id": id, "data": data }, id);
@@ -119,14 +119,14 @@ function glist_fdata_list(e, id, fld) {
 	fdata = ctrl("glist", {"fdata":fld, "prov": pdat});
 	e.backup = e;
 }
-function glist_filter_field_rm(id, el, fld) {
+function glist_filter_field_rm(id, e, fld) {
 	opts = glist_opts(id);
 	pdat = glist_pdat(id);
 
 	delete opts.filter[fld];
 
 	ctrl("glist", {"prov": pdat, "opts": opts, "save_opts": true}, opts.id);
-	el.parentElement.remove();
+	e.parentElement.remove();
 }
 function glist_fdata_list(e, id, fld) {
 	pdat = glist_pdat(id);
