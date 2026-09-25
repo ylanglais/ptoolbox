@@ -1,19 +1,23 @@
 CREATE TABLE param.fragment2 (
-    entity character varying(50) NOT NULL,
+    entity character varying(50) NOT NULL REFERENCES param.entity(name),
     type   character varying(50),
+	datatype character varying(50) references ref.datatype(name),
     name   character varying(50) NOT NULL,
 	corder int                   not NULL,
     sc     character varying(50) NOT NULL, -- source column (replaces cname) 
 	
 	-- Join table:
     jt     character varying(50) DEFAULT NULL::character varying, -- join table 
+	jst    character varying(50) DEFAULT NULL::character varying, -- join source table name (if exists)
     jsc    character varying(50) DEFAULT NULL::character varying, -- join source column
+	jft    character varying(50) DEFAULT NULL::character varying, -- join foreign table name (if exists)
     jfc    character varying(50) DEFAULT NULL::character varying, -- join foreign column
 	
 	-- Foreign table:
     ft     character varying(50) DEFAULT NULL::character varying, -- foreign table (replaces ftname)
     fjc    character varying(50) DEFAULT NULL::character varying, -- foreign join column (replaces finame)
-    fdc    character varying(50) DEFAULT NULL::character varying -- foreign data column (replaces flname) 
+    fdc    character varying(50) DEFAULT NULL::character varying, -- foreign data column (replaces flname) 
+	ftag   character varying(200)  DEFAULT NULL::character varying  -- foreign data tag (if exists); 
 );
 
 insert into param.fragment2 (entity, type, name, corder, sc, ft, fjc, fdc) 
